@@ -27,7 +27,7 @@ const GetStarted = () => {
             
             <li>
               <strong>Contact Customer Service:</strong>
-              <p className="mt-2">Once your Alpaca account is set up, please notify Deco Global Customer Services at <span className="text-primary">support@decoglobal.com</span></p>
+              <p className="mt-2">Once your Alpaca account is set up, please notify Deco Global Customer Services at <span className="text-primary">support@decoglobal.us</span></p>
             </li>
             
             <li>
