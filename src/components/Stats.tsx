@@ -1,9 +1,9 @@
 export const Stats = () => {
   const stats = [
-    { number: "10M+", label: "Active Traders" },
-    { number: "$50B+", label: "Daily Volume" },
-    { number: "100+", label: "Global Markets" },
-    { number: "0.01s", label: "Execution Time" }
+    { number: "99.9%", label: "Execution Rate" },
+    { number: "$500M+", label: "Daily Trading Volume" },
+    { number: "0.1s", label: "Avg. Response Time" },
+    { number: "24/7", label: "Market Monitoring" }
   ];
 
   return (
