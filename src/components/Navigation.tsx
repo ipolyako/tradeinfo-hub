@@ -13,7 +13,7 @@ export const Navigation = () => {
           
           <div className="hidden md:flex items-center space-x-8">
             <a href="#features" className="text-muted-foreground hover:text-primary transition-colors">Features</a>
-            <a href="#stats" className="text-muted-foreground hover:text-primary transition-colors">Stats</a>
+            <Link to="/stats" className="text-muted-foreground hover:text-primary transition-colors">Stats</Link>
             <Link to="/get-started">
               <Button>Get Started</Button>
             </Link>
