@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Navigation = () => {
   return (
@@ -7,13 +8,15 @@ export const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <span className="text-xl font-bold text-primary">TradePro</span>
+            <Link to="/" className="text-xl font-bold text-primary">TradePro</Link>
           </div>
           
           <div className="hidden md:flex items-center space-x-8">
             <a href="#features" className="text-muted-foreground hover:text-primary transition-colors">Features</a>
             <a href="#stats" className="text-muted-foreground hover:text-primary transition-colors">Stats</a>
-            <Button>Get Started</Button>
+            <Link to="/get-started">
+              <Button>Get Started</Button>
+            </Link>
           </div>
           
           <div className="md:hidden">
