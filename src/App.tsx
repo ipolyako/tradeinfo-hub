@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import GetStarted from "./pages/GetStarted";
 import Stats from "./pages/Stats";
 import TermsOfService from "./pages/TermsOfService";
+import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/get-started" element={<GetStarted />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
