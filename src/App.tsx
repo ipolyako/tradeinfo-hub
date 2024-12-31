@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import GetStarted from "./pages/GetStarted";
 import Stats from "./pages/Stats";
+import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/get-started" element={<GetStarted />} />
           <Route path="/stats" element={<Stats />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
