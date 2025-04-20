@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import { ArrowLeft } from "lucide-react";
@@ -21,13 +22,13 @@ const GetStarted = () => {
           
           <ol className="list-decimal pl-6 space-y-4">
             <li>
-              <strong>Open an Alpaca Account:</strong>
-              <p className="mt-2">You'll need to create and fund a trading account with Alpaca Securities. This will be the account where our algorithms will execute trades.</p>
+              <strong>Open a Brokerage Account:</strong>
+              <p className="mt-2">You'll need to create and fund a trading account with either Charles Schwab or TradeStation. These are the currently supported brokers where our algorithms will execute trades.</p>
             </li>
             
             <li>
               <strong>Contact Customer Service:</strong>
-              <p className="mt-2">Once your Alpaca account is set up, please notify Deco Global Customer Services at <span className="text-primary">support@decoglobal.us</span></p>
+              <p className="mt-2">Once your brokerage account is set up, please notify Deco Global Customer Services at <span className="text-primary">support@decoglobal.us</span></p>
             </li>
             
             <li>
