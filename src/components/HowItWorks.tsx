@@ -1,3 +1,4 @@
+
 import { ArrowDownUp, Clock, Shield, TrendingUp } from "lucide-react";
 
 export const HowItWorks = () => {
@@ -9,7 +10,7 @@ export const HowItWorks = () => {
     },
     {
       icon: <Clock className="h-12 w-12 text-primary" />,
-      title: "Day-Only Trading",
+      title: "Day Trading Only",
       description: "All positions are closed before market close, eliminating overnight market risk exposure"
     },
     {
