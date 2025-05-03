@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
-import { activity, play, stop } from "lucide-react";
+import { Activity, Play, Square } from "lucide-react";
 
 const Account = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,17 +14,33 @@ const Account = () => {
   const [status, setStatus] = useState<"idle" | "running" | "stopped">("idle");
   const { toast } = useToast();
 
-  // Mock authentication function
+  // OAuth authentication function
   const handleLogin = (provider: string) => {
-    // In a real app, this would redirect to OAuth provider
-    console.log(`Logging in with ${provider}`);
-    setTimeout(() => {
-      setIsAuthenticated(true);
-      toast({
-        title: "Successfully logged in",
-        description: `You've been authenticated with ${provider}`,
-      });
-    }, 1000);
+    // Prepare the redirect URL back to this page after authentication
+    const redirectUrl = encodeURIComponent(window.location.origin + "/account");
+    
+    // Set up OAuth URLs for different providers
+    const authUrls: Record<string, string> = {
+      Google: `https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=${redirectUrl}&response_type=code&scope=profile email&prompt=select_account`,
+      Facebook: `https://www.facebook.com/v13.0/dialog/oauth?client_id=YOUR_APP_ID&redirect_uri=${redirectUrl}&state=random_state_string&scope=email,public_profile`,
+      Outlook: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=${redirectUrl}&response_type=code&scope=openid profile email`
+    };
+
+    // In a demo environment, we'll simulate the login
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`Demo mode: Would redirect to ${authUrls[provider]}`);
+      setTimeout(() => {
+        setIsAuthenticated(true);
+        toast({
+          title: "Demo Login Successful",
+          description: `You've been authenticated with ${provider} (demo mode)`,
+        });
+      }, 1000);
+      return;
+    }
+
+    // In production, redirect to the authentication URL
+    window.location.href = authUrls[provider];
   };
 
   const handleStart = () => {
@@ -112,7 +128,7 @@ const Account = () => {
                     disabled={status === "running"}
                     className="flex items-center gap-2"
                   >
-                    <play className="h-4 w-4" />
+                    <Play className="h-4 w-4" />
                     Start
                   </Button>
                   <Button 
@@ -121,7 +137,7 @@ const Account = () => {
                     variant="destructive"
                     className="flex items-center gap-2"
                   >
-                    <stop className="h-4 w-4" />
+                    <Square className="h-4 w-4" />
                     Stop
                   </Button>
                   <Button 
@@ -129,7 +145,7 @@ const Account = () => {
                     variant="outline"
                     className="flex items-center gap-2"
                   >
-                    <activity className="h-4 w-4" />
+                    <Activity className="h-4 w-4" />
                     Status
                   </Button>
                 </div>
