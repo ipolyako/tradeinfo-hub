@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import GetStarted from "./pages/GetStarted";
 import Stats from "./pages/Stats";
 import TermsOfService from "./pages/TermsOfService";
 import Privacy from "./pages/Privacy";
+import Account from "./pages/Account";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,7 @@ const App = () => (
           <Route path="/stats" element={<Stats />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/account" element={<Account />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

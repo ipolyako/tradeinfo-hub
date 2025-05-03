@@ -21,6 +21,7 @@ export const Navigation = () => {
     { title: "Stats", path: "/stats" },
     { title: "Terms of Service", path: "/terms-of-service" },
     { title: "Privacy", path: "/privacy" },
+    { title: "My Account", path: "/account" },
   ];
 
   return (
