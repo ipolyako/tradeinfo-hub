@@ -89,7 +89,7 @@ const Account = () => {
     }
   };
   
-  // Call the trader service API - updated to support both GET and POST methods
+  // Call the trader service API - updated to include explicit protocol
   const callTraderServiceAPI = async (endpoint: string, method: 'GET' | 'POST' = 'GET') => {
     if (!userProfile?.trader_service_name || !userProfile?.trader_secret) {
       setResults(prev => `${prev}\nError: Missing trader service credentials`);
@@ -102,8 +102,8 @@ const Account = () => {
     }
     
     try {
-      // Create clean URL without any undefined values
-      const baseUrl = "http://decoglobal.us";
+      // Create clean URL with proper protocol
+      const baseUrl = "https://decoglobal.us";  // Changed to use HTTPS protocol
       const path = `/services/${userProfile.trader_service_name}/${endpoint}`;
       const url = `${baseUrl}${path}`;
       
@@ -281,7 +281,7 @@ const Account = () => {
     setStatus("running");
     setResults("Algorithm started. Processing market data...");
     
-    // Call the start endpoint
+    // Call the start endpoint with POST method
     const apiResponse = await callTraderServiceAPI("start", "POST");
     if (apiResponse) {
       setResults(prev => `${prev}\nAPI Response: ${apiResponse}`);
