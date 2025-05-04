@@ -89,7 +89,7 @@ const Account = () => {
     }
   };
   
-  // Call the trader service API - updated for SSL port
+  // Call the trader service API - updated for new domain
   const callTraderServiceAPI = async (endpoint: string, method: 'GET' | 'POST' = 'GET') => {
     if (!userProfile?.trader_service_name || !userProfile?.trader_secret) {
       setResults(prev => `${prev}\nError: Missing trader service credentials`);
@@ -102,8 +102,8 @@ const Account = () => {
     }
     
     try {
-      // Create URL for the API request with SSL port
-      const baseUrl = "https://decoglobal.us:8443"; // Use SSL port 8443
+      // Create URL for the API request with new domain
+      const baseUrl = "https://auth.decoglobal.us:8443"; // Updated domain with SSL port
       const path = `/services/${userProfile.trader_service_name}/${endpoint}`;
       const url = `${baseUrl}${path}`;
       
