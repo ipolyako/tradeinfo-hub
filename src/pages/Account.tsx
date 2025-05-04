@@ -102,12 +102,17 @@ const Account = () => {
     }
     
     try {
-      // Format exactly as: GET /services/trader-name/status HTTP/1.1
-      const url = `http://decoglobal.us/services/${userProfile.trader_service_name}/${endpoint}`;
-      const requestLine = `GET /services/${userProfile.trader_service_name}/${endpoint} HTTP/1.1`;
+      // Fix: Properly construct URL without undefined at the end
+      const baseUrl = "http://decoglobal.us";
+      const path = `/services/${userProfile.trader_service_name}/${endpoint}`;
+      const url = `${baseUrl}${path}`;
+      
+      // Create clean request line for logging
+      const requestLine = `GET ${path} HTTP/1.1`;
+      
+      console.log(`Making API call to: ${url}`);
+      console.log(`Request line: ${requestLine}`); 
       setResults(prev => `${prev}\nCalling: ${url}`);
-      console.log(`Making API call to: ${url}`); // Debug log
-      console.log(requestLine); // Log the exact format without undefined
       
       const response = await fetch(url, {
         method: 'GET',
@@ -123,17 +128,17 @@ const Account = () => {
         },
       });
       
-      console.log('Response status:', response.status); // Debug log
+      console.log('Response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`API returned ${response.status}: ${response.statusText}`);
       }
       
-      const data = await response.json(); // Parse as JSON instead of text
-      console.log('Response data:', data); // Debug log
-      return JSON.stringify(data); // Return as string for consistent display
+      const data = await response.json();
+      console.log('Response data:', data);
+      return JSON.stringify(data);
     } catch (error: any) {
-      console.error('API call error:', error); // Debug log
+      console.error('API call error:', error);
       setResults(prev => `${prev}\nAPI Error: ${error.message}`);
       toast({
         title: "API Error",
