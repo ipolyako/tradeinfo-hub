@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,9 +49,9 @@ const Account = () => {
   const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "signup">("login");
-  const [results, setResults] = useState<string>("");
+  const [results, setResults] = useState<string>("Checking current bot status...");
   const [status, setStatus] = useState<"idle" | "running" | "stopped">("idle");
-  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -185,6 +184,10 @@ const Account = () => {
           await fetchUserProfile(currentSession.user.id);
           // Check bot status after profile is loaded
           setTimeout(() => checkBotStatus(), 1000);
+        } else {
+          // If no user is logged in, reset the checking status
+          setCheckingStatus(false);
+          setResults("Please log in to access your trading algorithm.");
         }
         
         setLoading(false);
@@ -193,16 +196,18 @@ const Account = () => {
       } catch (error) {
         console.error("Error checking auth status:", error);
         setLoading(false);
+        setCheckingStatus(false);
       }
     };
 
     getSession();
   }, []);
 
-  // New function to check bot status
+  // Check bot status function
   const checkBotStatus = async () => {
     if (!userProfile?.trader_service_name) {
       console.log("No trader service name available yet");
+      setCheckingStatus(false);
       return;
     }
     
@@ -665,7 +670,7 @@ Enabled: ${serviceStatus.enabled}`);
                         <span>Checking current bot status...</span>
                       </div>
                     ) : (
-                      results || "No results to display. Start the algorithm to see output."
+                      results
                     )}
                   </div>
                 </div>
