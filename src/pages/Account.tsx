@@ -102,16 +102,14 @@ const Account = () => {
     }
     
     try {
-      // Fix: Properly construct URL without undefined at the end
+      // Create clean URL without any undefined values
       const baseUrl = "http://decoglobal.us";
       const path = `/services/${userProfile.trader_service_name}/${endpoint}`;
       const url = `${baseUrl}${path}`;
       
-      // Create clean request line for logging
-      const requestLine = `GET ${path} HTTP/1.1`;
-      
+      // Log request details for debugging
       console.log(`Making API call to: ${url}`);
-      console.log(`Request line: ${requestLine}`); 
+      console.log(`Request path: ${path}`);
       setResults(prev => `${prev}\nCalling: ${url}`);
       
       const response = await fetch(url, {
@@ -120,7 +118,6 @@ const Account = () => {
           'Authorization': `Bearer ${userProfile.trader_secret}`,
           'Accept': 'application/json',
           'Host': 'decoglobal.us',
-          'Connection': 'keep-alive',
           'User-Agent': 'Mozilla/5.0',
           'Accept-Language': 'en-US,en;q=0.5',
           'Accept-Encoding': 'gzip, deflate',
