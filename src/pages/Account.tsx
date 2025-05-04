@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,8 +30,16 @@ const signupSchema = z.object({
   path: ["confirmPassword"],
 });
 
+interface UserProfile {
+  id: string;
+  username: string | null;
+  trader_service_name: string | null;
+  trader_secret: string | null;
+}
+
 const Account = () => {
   const [session, setSession] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "signup">("login");
@@ -58,6 +67,68 @@ const Account = () => {
     },
   });
 
+  // Fetch user profile data
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, trader_service_name, trader_secret')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (data) {
+        setUserProfile(data);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    }
+  };
+  
+  // Call the trader service API
+  const callTraderServiceAPI = async (endpoint: string) => {
+    if (!userProfile?.trader_service_name || !userProfile?.trader_secret) {
+      setResults(prev => `${prev}\nError: Missing trader service credentials`);
+      toast({
+        title: "API Error",
+        description: "Missing trader service credentials",
+        variant: "destructive",
+      });
+      return null;
+    }
+    
+    try {
+      const url = `http://decoglobal.us/services/${userProfile.trader_service_name}/${endpoint}`;
+      setResults(prev => `${prev}\nCalling: ${url}`);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${userProfile.trader_secret}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.text();
+      return data;
+    } catch (error: any) {
+      setResults(prev => `${prev}\nAPI Error: ${error.message}`);
+      toast({
+        title: "API Error",
+        description: error.message || "Failed to call trader service",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   // Check for authentication on component mount
   useEffect(() => {
     const getSession = async () => {
@@ -68,12 +139,25 @@ const Account = () => {
           (event, currentSession) => {
             setSession(currentSession);
             setLoading(false);
+            
+            // When user logs in, fetch their profile and check service status
+            if (event === 'SIGNED_IN' && currentSession?.user) {
+              fetchUserProfile(currentSession.user.id).then(() => {
+                // We use setTimeout to avoid any potential deadlocks with Supabase auth
+                setTimeout(() => handleStatus(), 1000);
+              });
+            }
           }
         );
 
         // Then check for existing session
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         setSession(currentSession);
+        
+        if (currentSession?.user) {
+          await fetchUserProfile(currentSession.user.id);
+        }
+        
         setLoading(false);
 
         return () => subscription.unsubscribe();
@@ -157,6 +241,7 @@ const Account = () => {
       // Reset state
       setResults("");
       setStatus("idle");
+      setUserProfile(null);
       
       toast({
         title: "Logged Out",
@@ -171,17 +256,31 @@ const Account = () => {
     }
   };
 
-  const handleStart = () => {
+  const handleStart = async () => {
     setStatus("running");
     setResults("Algorithm started. Processing market data...");
+    
+    // Call the start endpoint
+    const apiResponse = await callTraderServiceAPI("start");
+    if (apiResponse) {
+      setResults(prev => `${prev}\nAPI Response: ${apiResponse}`);
+    }
+    
     toast({
       title: "Algorithm Started",
       description: "Your trading algorithm is now running",
     });
   };
 
-  const handleStop = () => {
+  const handleStop = async () => {
     setStatus("stopped");
+    
+    // Call the stop endpoint
+    const apiResponse = await callTraderServiceAPI("stop");
+    if (apiResponse) {
+      setResults(prev => `${prev}\nAPI Response: ${apiResponse}`);
+    }
+    
     setResults(prev => `${prev}\nAlgorithm stopped at ${new Date().toLocaleTimeString()}`);
     toast({
       title: "Algorithm Stopped",
@@ -189,9 +288,18 @@ const Account = () => {
     });
   };
 
-  const handleStatus = () => {
+  const handleStatus = async () => {
+    // Call the status endpoint
+    const apiResponse = await callTraderServiceAPI("status");
+    
     const statusMessage = `Current status: ${status}\nTimestamp: ${new Date().toLocaleTimeString()}`;
-    setResults(prev => `${prev}\n${statusMessage}`);
+    
+    if (apiResponse) {
+      setResults(prev => `${prev}\n${statusMessage}\nAPI Response: ${apiResponse}`);
+    } else {
+      setResults(prev => `${prev}\n${statusMessage}`);
+    }
+    
     toast({
       title: "Status Updated",
       description: `Algorithm is currently ${status}`,
@@ -482,6 +590,19 @@ const Account = () => {
                   <div className="bg-muted p-4 rounded-md h-[200px] overflow-y-auto font-mono text-sm whitespace-pre-line">
                     {results || "No results to display. Start the algorithm to see output."}
                   </div>
+                </div>
+
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium mb-2">API Configuration</h3>
+                  <div className="text-sm mb-2">
+                    <span className="font-medium">Service Name:</span> {userProfile?.trader_service_name || "Not configured"}
+                  </div>
+                  <div className="text-sm mb-2">
+                    <span className="font-medium">API Key Status:</span> {userProfile?.trader_secret ? "Configured" : "Not configured"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Note: To update these values, please contact your administrator.
+                  </p>
                 </div>
               </CardContent>
             </Card>
