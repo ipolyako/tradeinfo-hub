@@ -89,7 +89,7 @@ const Account = () => {
     }
   };
   
-  // Call the trader service API - updated to make real API requests
+  // Call the trader service API - updated to use HTTPS
   const callTraderServiceAPI = async (endpoint: string, method: 'GET' | 'POST' = 'GET') => {
     if (!userProfile?.trader_service_name || !userProfile?.trader_secret) {
       setResults(prev => `${prev}\nError: Missing trader service credentials`);
@@ -102,8 +102,8 @@ const Account = () => {
     }
     
     try {
-      // Create URL for the API request
-      const baseUrl = "http://decoglobal.us";
+      // Create URL for the API request with HTTPS protocol
+      const baseUrl = "https://decoglobal.us";
       const path = `/services/${userProfile.trader_service_name}/${endpoint}`;
       const url = `${baseUrl}${path}`;
       
@@ -121,25 +121,19 @@ const Account = () => {
           'Content-Type': 'application/json',
           'Origin': window.location.origin,
         },
-        // Add mode: 'no-cors' to bypass CORS restrictions, but note this limits response access
-        mode: 'no-cors',
+        // Remove the no-cors mode so we can properly process the response
       });
       
-      // When using no-cors mode, we can't access response details directly
-      // Instead, return a basic success message
-      if (method === 'POST') {
-        return JSON.stringify({ 
-          success: true, 
-          message: `${endpoint} request processed`, 
-          timestamp: new Date().toISOString()
-        });
-      } else {
-        // For GET requests
-        return JSON.stringify({ 
-          status: "operational", 
-          active: status === "running" ? "active" : "inactive",
-          timestamp: new Date().toISOString()
-        });
+      // Parse and return the actual API response
+      try {
+        const data = await response.json();
+        console.log('API Response:', data);
+        return JSON.stringify(data);
+      } catch (e) {
+        // If we can't parse JSON, return a text response
+        const text = await response.text();
+        console.log('API Response (text):', text);
+        return text;
       }
     } catch (error: any) {
       console.error('API call error:', error);
