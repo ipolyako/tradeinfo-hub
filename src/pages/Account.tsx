@@ -77,6 +77,7 @@ const Account = () => {
   // Fetch user profile data
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user ID:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('id, username, trader_service_name, trader_secret')
@@ -171,11 +172,11 @@ const Account = () => {
               console.log('User signed in, fetching profile'); // Debug log
               const profile = await fetchUserProfile(currentSession.user.id);
               
-              if (profile?.trader_service_name) {
-                // Set initial results message and check status immediately
+              // Simply check if profile exists and proceed with status check
+              // Don't add additional conditions that might block the status check
+              if (profile) {
                 setResults("Checking current bot status...");
                 setCheckingStatus(true);
-                // We use setTimeout to give React a chance to update the UI
                 setTimeout(() => checkBotStatus(), 500);
               }
             }
@@ -190,15 +191,15 @@ const Account = () => {
         if (currentSession?.user) {
           const profile = await fetchUserProfile(currentSession.user.id);
           
-          if (profile?.trader_service_name) {
-            // Set initial results message and check status immediately
+          // Simply proceed with the status check if we have a profile
+          // Don't add additional conditions that might block the status check
+          if (profile) {
             setResults("Checking current bot status...");
             setCheckingStatus(true);
-            // We use setTimeout to give React a chance to update the UI
             setTimeout(() => checkBotStatus(), 500);
           } else {
             setCheckingStatus(false);
-            setResults("Your trading algorithm configuration is incomplete. Contact support for assistance.");
+            setResults("Unable to retrieve your profile. Please try logging in again.");
           }
         } else {
           // If no user is logged in, reset the checking status
@@ -222,13 +223,10 @@ const Account = () => {
 
   // Check bot status function
   const checkBotStatus = async () => {
-    if (!userProfile?.trader_service_name) {
-      console.log("No trader service name available yet");
-      setCheckingStatus(false);
-      setResults("Trading service configuration missing. Please contact support.");
-      return;
-    }
+    console.log("Checking bot status, userProfile:", userProfile);
     
+    // Don't block the status check based on trader_service_name
+    // Let the API call handle any missing configuration
     setCheckingStatus(true);
     setResults("Checking current bot status...");
     
@@ -264,7 +262,7 @@ const Account = () => {
         setResults(`API Response: ${responseStr}\n\nUnable to determine bot status from response.`);
       }
     } else {
-      setResults("Failed to check bot status. Please try again.");
+      setResults("Failed to check bot status. Verify your trader service configuration and try again.");
     }
   };
 
