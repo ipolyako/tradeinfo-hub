@@ -294,6 +294,7 @@ const Account = () => {
 
   const handleStop = async () => {
     setStatus("stopped");
+    setResults(prev => `${prev}\nSending stop command...`);
     
     // Call the stop endpoint
     const apiResponse = await callTraderServiceAPI("stop");
