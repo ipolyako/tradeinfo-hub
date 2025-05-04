@@ -89,7 +89,7 @@ const Account = () => {
     }
   };
   
-  // Call the trader service API - updated with CORS handling
+  // Call the trader service API - simplified for same-domain requests
   const callTraderServiceAPI = async (endpoint: string, method: 'GET' | 'POST' = 'GET') => {
     if (!userProfile?.trader_service_name || !userProfile?.trader_secret) {
       setResults(prev => `${prev}\nError: Missing trader service credentials`);
@@ -102,27 +102,24 @@ const Account = () => {
     }
     
     try {
-      // Create URL for the API request with the correct base domain
-      const baseUrl = "https://decoglobal.us"; // Direct domain, not subdomain
+      // Create URL for the API request on the same domain
       const path = `/services/${userProfile.trader_service_name}/${endpoint}`;
-      const url = `${baseUrl}${path}`;
+      const url = `${path}`; // Use relative URL since we're on the same domain
       
       // Log request details for debugging
       console.log(`Making API ${method} call to: ${url}`);
       console.log(`Request path: ${path}`);
       setResults(prev => `${prev}\nCalling: ${url} with ${method} method`);
       
-      // Make the actual API request with proper CORS headers
+      // Make the API request (simplified since we're on same domain)
       const response = await fetch(url, {
         method: method,
         headers: {
           'Authorization': `Bearer ${userProfile.trader_secret}`,
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Origin': window.location.origin,
-        },
-        mode: 'cors', // Explicitly set CORS mode
-        credentials: 'omit', // Don't send cookies for cross-origin requests
+          'Content-Type': 'application/json'
+          // No need for Origin header or CORS settings on same domain
+        }
       });
       
       // Parse and return the actual API response
