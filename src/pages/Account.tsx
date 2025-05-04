@@ -89,7 +89,7 @@ const Account = () => {
     }
   };
   
-  // Call the trader service API - updated to include explicit protocol
+  // Call the trader service API - updated to use HTTP protocol
   const callTraderServiceAPI = async (endpoint: string, method: 'GET' | 'POST' = 'GET') => {
     if (!userProfile?.trader_service_name || !userProfile?.trader_secret) {
       setResults(prev => `${prev}\nError: Missing trader service credentials`);
@@ -102,8 +102,8 @@ const Account = () => {
     }
     
     try {
-      // Create clean URL with proper protocol
-      const baseUrl = "https://decoglobal.us";  // Changed to use HTTPS protocol
+      // Create clean URL with HTTP protocol
+      const baseUrl = "http://decoglobal.us";  // Changed to use HTTP protocol
       const path = `/services/${userProfile.trader_service_name}/${endpoint}`;
       const url = `${baseUrl}${path}`;
       
