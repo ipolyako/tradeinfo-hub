@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,8 +90,8 @@ const Account = () => {
     }
   };
   
-  // Call the trader service API
-  const callTraderServiceAPI = async (endpoint: string) => {
+  // Call the trader service API - updated to support both GET and POST methods
+  const callTraderServiceAPI = async (endpoint: string, method: 'GET' | 'POST' = 'GET') => {
     if (!userProfile?.trader_service_name || !userProfile?.trader_secret) {
       setResults(prev => `${prev}\nError: Missing trader service credentials`);
       toast({
@@ -108,12 +109,12 @@ const Account = () => {
       const url = `${baseUrl}${path}`;
       
       // Log request details for debugging
-      console.log(`Making API call to: ${url}`);
+      console.log(`Making API ${method} call to: ${url}`);
       console.log(`Request path: ${path}`);
-      setResults(prev => `${prev}\nCalling: ${url}`);
+      setResults(prev => `${prev}\nCalling: ${url} with ${method} method`);
       
       const response = await fetch(url, {
-        method: 'GET',
+        method: method,
         headers: {
           'Authorization': `Bearer ${userProfile.trader_secret}`,
           'Accept': 'application/json',
@@ -122,6 +123,7 @@ const Account = () => {
           'Accept-Language': 'en-US,en;q=0.5',
           'Accept-Encoding': 'gzip, deflate',
           'Origin': window.location.origin,
+          'Content-Type': 'application/json',
         },
       });
       
@@ -296,8 +298,8 @@ const Account = () => {
     setStatus("stopped");
     setResults(prev => `${prev}\nSending stop command...`);
     
-    // Call the stop endpoint
-    const apiResponse = await callTraderServiceAPI("stop");
+    // Call the stop endpoint with POST method
+    const apiResponse = await callTraderServiceAPI("stop", "POST");
     if (apiResponse) {
       setResults(prev => `${prev}\nAPI Response: ${apiResponse}`);
     }
@@ -648,3 +650,4 @@ const Account = () => {
 };
 
 export default Account;
+
