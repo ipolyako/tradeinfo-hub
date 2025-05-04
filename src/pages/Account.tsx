@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,15 +85,18 @@ const Account = () => {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        return;
+        return null;
       }
 
       if (data) {
         console.log('Profile data fetched:', data); // Debug log
         setUserProfile(data);
+        return data;
       }
+      return null;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      return null;
     }
   };
   
@@ -160,18 +162,22 @@ const Account = () => {
       try {
         // First set up auth state listener to keep state updated
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          (event, currentSession) => {
+          async (event, currentSession) => {
             console.log('Auth state changed:', event); // Debug log
             setSession(currentSession);
-            setLoading(false);
             
             // When user logs in, fetch their profile and check service status
             if (event === 'SIGNED_IN' && currentSession?.user) {
               console.log('User signed in, fetching profile'); // Debug log
-              fetchUserProfile(currentSession.user.id).then(() => {
-                // We use setTimeout to avoid any potential deadlocks with Supabase auth
-                setTimeout(() => checkBotStatus(), 1000);
-              });
+              const profile = await fetchUserProfile(currentSession.user.id);
+              
+              if (profile?.trader_service_name) {
+                // Set initial results message and check status immediately
+                setResults("Checking current bot status...");
+                setCheckingStatus(true);
+                // We use setTimeout to give React a chance to update the UI
+                setTimeout(() => checkBotStatus(), 500);
+              }
             }
           }
         );
@@ -182,9 +188,18 @@ const Account = () => {
         setSession(currentSession);
         
         if (currentSession?.user) {
-          await fetchUserProfile(currentSession.user.id);
-          // Check bot status after profile is loaded
-          setTimeout(() => checkBotStatus(), 1000);
+          const profile = await fetchUserProfile(currentSession.user.id);
+          
+          if (profile?.trader_service_name) {
+            // Set initial results message and check status immediately
+            setResults("Checking current bot status...");
+            setCheckingStatus(true);
+            // We use setTimeout to give React a chance to update the UI
+            setTimeout(() => checkBotStatus(), 500);
+          } else {
+            setCheckingStatus(false);
+            setResults("Your trading algorithm configuration is incomplete. Contact support for assistance.");
+          }
         } else {
           // If no user is logged in, reset the checking status
           setCheckingStatus(false);
@@ -198,6 +213,7 @@ const Account = () => {
         console.error("Error checking auth status:", error);
         setLoading(false);
         setCheckingStatus(false);
+        setResults("Error checking authentication status. Please try again.");
       }
     };
 
@@ -209,6 +225,7 @@ const Account = () => {
     if (!userProfile?.trader_service_name) {
       console.log("No trader service name available yet");
       setCheckingStatus(false);
+      setResults("Trading service configuration missing. Please contact support.");
       return;
     }
     
