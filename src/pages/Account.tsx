@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,7 +90,7 @@ const Account = () => {
     }
   };
   
-  // Call the trader service API - updated to use HTTPS
+  // Call the trader service API - updated to use the correct base URL
   const callTraderServiceAPI = async (endpoint: string, method: 'GET' | 'POST' = 'GET') => {
     if (!userProfile?.trader_service_name || !userProfile?.trader_secret) {
       setResults(prev => `${prev}\nError: Missing trader service credentials`);
@@ -102,8 +103,8 @@ const Account = () => {
     }
     
     try {
-      // Create URL for the API request with HTTPS protocol
-      const baseUrl = "https://decoglobal.us";
+      // Create URL for the API request with the correct base domain
+      const baseUrl = "https://decoglobal.us"; // Direct domain, not subdomain
       const path = `/services/${userProfile.trader_service_name}/${endpoint}`;
       const url = `${baseUrl}${path}`;
       
@@ -121,7 +122,6 @@ const Account = () => {
           'Content-Type': 'application/json',
           'Origin': window.location.origin,
         },
-        // Remove the no-cors mode so we can properly process the response
       });
       
       // Parse and return the actual API response
