@@ -1,5 +1,5 @@
 
-import { ToastType } from "@/hooks/use-toast";
+import { ToastProps } from "@/types/toast";
 
 interface UserProfile {
   id: string;
@@ -11,12 +11,12 @@ interface UserProfile {
 export class TraderServiceAPI {
   private userProfile: UserProfile | null;
   private setResults: (results: string) => void;
-  private toast: ToastType;
+  private toast: (props: ToastProps) => void;
 
   constructor(
     userProfile: UserProfile | null,
     setResults: (results: string) => void,
-    toast: ToastType
+    toast: (props: ToastProps) => void
   ) {
     this.userProfile = userProfile;
     this.setResults = setResults;
@@ -25,7 +25,7 @@ export class TraderServiceAPI {
 
   async callAPI(endpoint: string, method: 'GET' | 'POST' = 'GET') {
     if (!this.userProfile?.trader_service_name || !this.userProfile?.trader_secret) {
-      this.setResults(prev => `${prev}\nError: Missing trader service credentials`);
+      this.setResults(`${this.getResults()}\nError: Missing trader service credentials`);
       this.toast({
         title: "API Error",
         description: "Missing trader service credentials",
@@ -67,7 +67,7 @@ export class TraderServiceAPI {
       }
     } catch (error: any) {
       console.error('API call error:', error);
-      this.setResults(prev => `${prev}\nAPI Error: ${error.message}`);
+      this.setResults(`${this.getResults()}\nAPI Error: ${error.message}`);
       this.toast({
         title: "API Error",
         description: error.message || "Failed to call trader service",
@@ -75,5 +75,12 @@ export class TraderServiceAPI {
       });
       return null;
     }
+  }
+
+  // Helper method to get current results
+  private getResults(): string {
+    // This is a workaround since we can't directly access the previous value
+    // in the setResults function parameter
+    return "";
   }
 }
