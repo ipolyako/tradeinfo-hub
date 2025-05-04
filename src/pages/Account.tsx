@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,7 +89,7 @@ const Account = () => {
     }
   };
   
-  // Call the trader service API - updated to use the correct base URL
+  // Call the trader service API - updated with CORS handling
   const callTraderServiceAPI = async (endpoint: string, method: 'GET' | 'POST' = 'GET') => {
     if (!userProfile?.trader_service_name || !userProfile?.trader_secret) {
       setResults(prev => `${prev}\nError: Missing trader service credentials`);
@@ -113,7 +112,7 @@ const Account = () => {
       console.log(`Request path: ${path}`);
       setResults(prev => `${prev}\nCalling: ${url} with ${method} method`);
       
-      // Make the actual API request
+      // Make the actual API request with proper CORS headers
       const response = await fetch(url, {
         method: method,
         headers: {
@@ -122,6 +121,8 @@ const Account = () => {
           'Content-Type': 'application/json',
           'Origin': window.location.origin,
         },
+        mode: 'cors', // Explicitly set CORS mode
+        credentials: 'omit', // Don't send cookies for cross-origin requests
       });
       
       // Parse and return the actual API response
