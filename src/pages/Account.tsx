@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +42,7 @@ interface ServiceStatus {
   enabled: string;
   pid: string;
   service: string;
+  amount: string; // Add the new amount field to the interface
 }
 
 const Account = () => {
@@ -52,6 +54,7 @@ const Account = () => {
   const [results, setResults] = useState<string>("Click the Status button to check your bot status.");
   const [status, setStatus] = useState<"idle" | "running" | "stopped">("idle");
   const [checkingStatus, setCheckingStatus] = useState(false);
+  const [tradingAmount, setTradingAmount] = useState<string>(""); // Add state for trading amount
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -218,6 +221,9 @@ const Account = () => {
       if (typeof statusResponse === 'object' && statusResponse !== null) {
         const serviceStatus = statusResponse as ServiceStatus;
         
+        // Set the trading amount from the response
+        setTradingAmount(serviceStatus.amount || "N/A");
+        
         if (serviceStatus.active === "failed") {
           setStatus("stopped");
           setResults(`Bot is currently not running (status: ${serviceStatus.active}).\nYou can start it using the Start button.`);
@@ -227,7 +233,7 @@ const Account = () => {
           });
         } else {
           setStatus("running");
-          setResults(`Bot is currently running (status: ${serviceStatus.active}).\nService: ${serviceStatus.service}\nPID: ${serviceStatus.pid}\nEnabled: ${serviceStatus.enabled}`);
+          setResults(`Bot is currently running (status: ${serviceStatus.active}).\nService: ${serviceStatus.service}\nPID: ${serviceStatus.pid}\nEnabled: ${serviceStatus.enabled}\nTrading Amount: ${serviceStatus.amount}`);
           toast({
             title: "Bot Status",
             description: "Bot is currently running",
@@ -680,6 +686,12 @@ const Account = () => {
                   <div className="text-sm mb-2">
                     <span className="font-medium">API Key Status:</span> {userProfile?.trader_secret ? "Configured" : "Not configured"}
                   </div>
+                  
+                  {/* Add Trading Amount display */}
+                  <div className="text-sm mb-2">
+                    <span className="font-medium">Trading Amount:</span> {tradingAmount || "Check status to view"}
+                  </div>
+                  
                   <p className="text-xs text-muted-foreground mt-2">
                     Note: To update these values, please contact your administrator.
                   </p>
