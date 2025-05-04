@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,13 @@ interface UserProfile {
   trader_secret: string | null;
 }
 
+interface ServiceStatus {
+  active: string;
+  enabled: string;
+  pid: string;
+  service: string;
+}
+
 const Account = () => {
   const [session, setSession] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -44,6 +52,7 @@ const Account = () => {
   const [authTab, setAuthTab] = useState<"login" | "signup">("login");
   const [results, setResults] = useState<string>("");
   const [status, setStatus] = useState<"idle" | "running" | "stopped">("idle");
+  const [checkingStatus, setCheckingStatus] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -110,7 +119,6 @@ const Account = () => {
       // Log request details for debugging
       console.log(`Making API ${method} call to: ${url}`);
       console.log(`Request path: ${path}`);
-      setResults(prev => `${prev}\nCalling: ${url} with ${method} method`);
       
       // Make the API request
       const response = await fetch(url, {
@@ -126,7 +134,7 @@ const Account = () => {
       try {
         const data = await response.json();
         console.log('API Response:', data);
-        return JSON.stringify(data);
+        return data;
       } catch (e) {
         // If we can't parse JSON, return a text response
         const text = await response.text();
@@ -162,7 +170,7 @@ const Account = () => {
               console.log('User signed in, fetching profile'); // Debug log
               fetchUserProfile(currentSession.user.id).then(() => {
                 // We use setTimeout to avoid any potential deadlocks with Supabase auth
-                setTimeout(() => handleStatus(), 1000);
+                setTimeout(() => checkBotStatus(), 1000);
               });
             }
           }
@@ -175,6 +183,8 @@ const Account = () => {
         
         if (currentSession?.user) {
           await fetchUserProfile(currentSession.user.id);
+          // Check bot status after profile is loaded
+          setTimeout(() => checkBotStatus(), 1000);
         }
         
         setLoading(false);
@@ -188,6 +198,53 @@ const Account = () => {
 
     getSession();
   }, []);
+
+  // New function to check bot status
+  const checkBotStatus = async () => {
+    if (!userProfile?.trader_service_name) {
+      console.log("No trader service name available yet");
+      return;
+    }
+    
+    setCheckingStatus(true);
+    setResults("Checking current bot status...");
+    
+    const statusResponse = await callTraderServiceAPI("status", "GET");
+    setCheckingStatus(false);
+    
+    if (statusResponse) {
+      // Format the response as a string for display
+      const responseStr = JSON.stringify(statusResponse);
+      setResults(`API Response: ${responseStr}`);
+      
+      // Parse the response and update UI based on "active" status
+      if (typeof statusResponse === 'object' && statusResponse !== null) {
+        const serviceStatus = statusResponse as ServiceStatus;
+        
+        if (serviceStatus.active === "failed") {
+          setStatus("stopped");
+          setResults(`Bot is currently not running (status: ${serviceStatus.active}).
+You can start it using the Start button.`);
+          toast({
+            title: "Bot Status",
+            description: "Bot is currently not running",
+          });
+        } else {
+          setStatus("running");
+          setResults(`Bot is currently running (status: ${serviceStatus.active}).
+Service: ${serviceStatus.service}
+PID: ${serviceStatus.pid}
+Enabled: ${serviceStatus.enabled}`);
+          toast({
+            title: "Bot Status",
+            description: "Bot is currently running",
+          });
+        }
+      }
+    } else {
+      setResults("Failed to check bot status. Please try again.");
+    }
+  };
 
   const handleLogin = async (formData: z.infer<typeof loginSchema>) => {
     setAuthLoading(true);
@@ -282,7 +339,9 @@ const Account = () => {
     // Call the start endpoint with POST method
     const apiResponse = await callTraderServiceAPI("start", "POST");
     if (apiResponse) {
-      setResults(prev => `${prev}\nAPI Response: ${apiResponse}`);
+      setResults(`API Response: ${JSON.stringify(apiResponse)}`);
+      // After starting, check status again to update UI
+      setTimeout(() => checkBotStatus(), 2000);
     }
     
     toast({
@@ -293,15 +352,16 @@ const Account = () => {
 
   const handleStop = async () => {
     setStatus("stopped");
-    setResults(prev => `${prev}\nSending stop command...`);
+    setResults("Sending stop command...");
     
     // Call the stop endpoint with POST method
     const apiResponse = await callTraderServiceAPI("stop", "POST");
     if (apiResponse) {
-      setResults(prev => `${prev}\nAPI Response: ${apiResponse}`);
+      setResults(`API Response: ${JSON.stringify(apiResponse)}`);
+      // After stopping, check status again to update UI
+      setTimeout(() => checkBotStatus(), 2000);
     }
     
-    setResults(prev => `${prev}\nAlgorithm stopped at ${new Date().toLocaleTimeString()}`);
     toast({
       title: "Algorithm Stopped",
       description: "Your trading algorithm has been stopped",
@@ -309,34 +369,7 @@ const Account = () => {
   };
 
   const handleStatus = async () => {
-    console.log("Checking status for profile:", userProfile);
-    // Call the status endpoint explicitly with GET method
-    const apiResponse = await callTraderServiceAPI("status", "GET");
-    
-    const statusMessage = `Current status: ${status}\nTimestamp: ${new Date().toLocaleTimeString()}`;
-    
-    if (apiResponse) {
-      setResults(prev => `${prev}\n${statusMessage}\nAPI Response: ${apiResponse}`);
-      
-      try {
-        // Try to parse the API response as JSON
-        const statusData = JSON.parse(apiResponse);
-        if (statusData.active === "active") {
-          setStatus("running");
-        } else {
-          setStatus("idle");
-        }
-      } catch (e) {
-        console.error("Failed to parse status response as JSON:", e);
-      }
-    } else {
-      setResults(prev => `${prev}\n${statusMessage}`);
-    }
-    
-    toast({
-      title: "Status Updated",
-      description: `Algorithm is currently ${status}`,
-    });
+    await checkBotStatus();
   };
 
   const handleGoogleSignIn = async () => {
@@ -591,7 +624,7 @@ const Account = () => {
                 <div className="flex flex-wrap gap-4 mb-6">
                   <Button 
                     onClick={handleStart}
-                    disabled={status === "running"}
+                    disabled={status === "running" || checkingStatus}
                     className="flex items-center gap-2"
                   >
                     <Play className="h-4 w-4" />
@@ -599,7 +632,7 @@ const Account = () => {
                   </Button>
                   <Button 
                     onClick={handleStop}
-                    disabled={status !== "running"}
+                    disabled={status !== "running" || checkingStatus}
                     variant="destructive"
                     className="flex items-center gap-2"
                   >
@@ -609,9 +642,14 @@ const Account = () => {
                   <Button 
                     onClick={handleStatus}
                     variant="outline"
+                    disabled={checkingStatus}
                     className="flex items-center gap-2"
                   >
-                    <Activity className="h-4 w-4" />
+                    {checkingStatus ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Activity className="h-4 w-4" />
+                    )}
                     Status
                   </Button>
                 </div>
@@ -621,7 +659,14 @@ const Account = () => {
                 <div className="mt-4">
                   <h3 className="text-lg font-medium mb-2">Results</h3>
                   <div className="bg-muted p-4 rounded-md h-[200px] overflow-y-auto font-mono text-sm whitespace-pre-line">
-                    {results || "No results to display. Start the algorithm to see output."}
+                    {checkingStatus ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Checking current bot status...</span>
+                      </div>
+                    ) : (
+                      results || "No results to display. Start the algorithm to see output."
+                    )}
                   </div>
                 </div>
 
