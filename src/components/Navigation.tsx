@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { 
   Drawer,
@@ -15,14 +15,17 @@ export const Navigation = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const navLinks = [
+  // Separate main navigation links from account-related links
+  const mainNavLinks = [
     { title: "Home", path: "/" },
     { title: "Features", path: "#features" },
     { title: "Stats", path: "/stats" },
     { title: "Terms of Service", path: "/terms-of-service" },
     { title: "Privacy", path: "/privacy" },
-    { title: "My Account", path: "/account" },
   ];
+  
+  // Make account a separate, highlighted item
+  const accountLink = { title: "My Account", path: "/account" };
 
   return (
     <nav className="fixed w-full bg-white/80 backdrop-blur-md z-50 shadow-sm">
@@ -32,8 +35,8 @@ export const Navigation = () => {
             <Link to="/" className="text-xl font-bold text-primary">Algorithmic Trading</Link>
           </div>
           
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
+          <div className="hidden md:flex items-center space-x-6">
+            {mainNavLinks.map((link) => (
               <Link 
                 key={link.title} 
                 to={link.path} 
@@ -42,6 +45,15 @@ export const Navigation = () => {
                 {link.title}
               </Link>
             ))}
+            
+            {/* Make My Account button more prominent */}
+            <Link to={accountLink.path}>
+              <Button variant="outline" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                {accountLink.title}
+              </Button>
+            </Link>
+            
             <Link to="/get-started">
               <Button>Get Started</Button>
             </Link>
@@ -57,7 +69,7 @@ export const Navigation = () => {
                 </DrawerTrigger>
                 <DrawerContent className="px-4 pb-8 pt-4">
                   <div className="flex flex-col items-center space-y-4">
-                    {navLinks.map((link) => (
+                    {mainNavLinks.map((link) => (
                       <Link 
                         key={link.title} 
                         to={link.path} 
@@ -67,6 +79,17 @@ export const Navigation = () => {
                         {link.title}
                       </Link>
                     ))}
+                    
+                    {/* Make mobile account link more noticeable */}
+                    <Link 
+                      to={accountLink.path} 
+                      className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border bg-muted/50"
+                      onClick={() => setIsDrawerOpen(false)}
+                    >
+                      <User className="h-5 w-5" />
+                      {accountLink.title}
+                    </Link>
+                    
                     <Link 
                       to="/get-started" 
                       className="w-full mt-4" 
