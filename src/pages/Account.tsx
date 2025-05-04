@@ -116,6 +116,10 @@ const Account = () => {
           'Accept': 'application/json',
           'Host': 'decoglobal.us',
           'Connection': 'keep-alive',
+          'User-Agent': 'Mozilla/5.0',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate',
+          'Origin': window.location.origin,
         },
       });
       
