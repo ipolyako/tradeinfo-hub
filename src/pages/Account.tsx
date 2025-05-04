@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -220,7 +221,7 @@ const Account = () => {
     if (statusResponse) {
       // Format the response as a string for display
       const responseStr = JSON.stringify(statusResponse);
-      setResults(`API Response: ${responseStr}`);
+      console.log("Status response received:", responseStr);
       
       // Parse the response and update UI based on "active" status
       if (typeof statusResponse === 'object' && statusResponse !== null) {
@@ -228,23 +229,22 @@ const Account = () => {
         
         if (serviceStatus.active === "failed") {
           setStatus("stopped");
-          setResults(`Bot is currently not running (status: ${serviceStatus.active}).
-You can start it using the Start button.`);
+          setResults(`Bot is currently not running (status: ${serviceStatus.active}).\nYou can start it using the Start button.`);
           toast({
             title: "Bot Status",
             description: "Bot is currently not running",
           });
         } else {
           setStatus("running");
-          setResults(`Bot is currently running (status: ${serviceStatus.active}).
-Service: ${serviceStatus.service}
-PID: ${serviceStatus.pid}
-Enabled: ${serviceStatus.enabled}`);
+          setResults(`Bot is currently running (status: ${serviceStatus.active}).\nService: ${serviceStatus.service}\nPID: ${serviceStatus.pid}\nEnabled: ${serviceStatus.enabled}`);
           toast({
             title: "Bot Status",
             description: "Bot is currently running",
           });
         }
+      } else {
+        // If response isn't in expected format
+        setResults(`API Response: ${responseStr}\n\nUnable to determine bot status from response.`);
       }
     } else {
       setResults("Failed to check bot status. Please try again.");
