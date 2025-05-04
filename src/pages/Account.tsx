@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,15 +102,16 @@ const Account = () => {
     }
     
     try {
+      // Ensure exact URL format without any undefined or extra parts
       const url = `http://decoglobal.us/services/${userProfile.trader_service_name}/${endpoint}`;
       setResults(prev => `${prev}\nCalling: ${url}`);
       console.log(`Making API call to: ${url}`); // Debug log
-      console.log(`Using token: ${userProfile.trader_secret}`); // Debug log (remove in production)
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${userProfile.trader_secret}`,
+          // Don't include Content-Type for GET requests as it can cause preflight issues
           'Accept': 'application/json',
         },
       });
@@ -122,9 +122,9 @@ const Account = () => {
         throw new Error(`API returned ${response.status}: ${response.statusText}`);
       }
       
-      const data = await response.text();
+      const data = await response.json(); // Parse as JSON instead of text
       console.log('Response data:', data); // Debug log
-      return data;
+      return JSON.stringify(data); // Return as string for consistent display
     } catch (error: any) {
       console.error('API call error:', error); // Debug log
       setResults(prev => `${prev}\nAPI Error: ${error.message}`);
@@ -301,7 +301,7 @@ const Account = () => {
 
   const handleStatus = async () => {
     console.log("Checking status for profile:", userProfile); // Debug log
-    // Call the status endpoint
+    // Call the status endpoint without any extra parameters
     const apiResponse = await callTraderServiceAPI("status");
     
     const statusMessage = `Current status: ${status}\nTimestamp: ${new Date().toLocaleTimeString()}`;
