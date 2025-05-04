@@ -89,7 +89,7 @@ const Account = () => {
     }
   };
   
-  // Call the trader service API - simplified for same-domain requests
+  // Call the trader service API - updated for SSL port
   const callTraderServiceAPI = async (endpoint: string, method: 'GET' | 'POST' = 'GET') => {
     if (!userProfile?.trader_service_name || !userProfile?.trader_secret) {
       setResults(prev => `${prev}\nError: Missing trader service credentials`);
@@ -102,23 +102,23 @@ const Account = () => {
     }
     
     try {
-      // Create URL for the API request on the same domain
+      // Create URL for the API request with SSL port
+      const baseUrl = "https://decoglobal.us:8443"; // Use SSL port 8443
       const path = `/services/${userProfile.trader_service_name}/${endpoint}`;
-      const url = `${path}`; // Use relative URL since we're on the same domain
+      const url = `${baseUrl}${path}`;
       
       // Log request details for debugging
       console.log(`Making API ${method} call to: ${url}`);
       console.log(`Request path: ${path}`);
       setResults(prev => `${prev}\nCalling: ${url} with ${method} method`);
       
-      // Make the API request (simplified since we're on same domain)
+      // Make the API request
       const response = await fetch(url, {
         method: method,
         headers: {
           'Authorization': `Bearer ${userProfile.trader_secret}`,
           'Accept': 'application/json',
           'Content-Type': 'application/json'
-          // No need for Origin header or CORS settings on same domain
         }
       });
       
