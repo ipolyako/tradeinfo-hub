@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
-import { Activity, Play, Square, LogOut, Loader2, Mail, MessageSquare } from "lucide-react";
+import { Activity, Play, Square, LogOut, Loader2, Mail, MessageSquare, RefreshCw } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -49,9 +49,9 @@ const Account = () => {
   const [loading, setLoading] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "signup">("login");
-  const [results, setResults] = useState<string>("Checking current bot status...");
+  const [results, setResults] = useState<string>("Click the Status button to check your bot status.");
   const [status, setStatus] = useState<"idle" | "running" | "stopped">("idle");
-  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [checkingStatus, setCheckingStatus] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -156,7 +156,7 @@ const Account = () => {
     }
   };
 
-  // Check for authentication on component mount
+  // Check for authentication on component mount - removing automatic status checking
   useEffect(() => {
     const getSession = async () => {
       setLoading(true);
@@ -167,18 +167,10 @@ const Account = () => {
             console.log('Auth state changed:', event); // Debug log
             setSession(currentSession);
             
-            // When user logs in, fetch their profile and check service status
+            // When user logs in, fetch their profile but don't check status automatically
             if (event === 'SIGNED_IN' && currentSession?.user) {
               console.log('User signed in, fetching profile'); // Debug log
-              const profile = await fetchUserProfile(currentSession.user.id);
-              
-              // Simply check if profile exists and proceed with status check
-              // Don't add additional conditions that might block the status check
-              if (profile) {
-                setResults("Checking current bot status...");
-                setCheckingStatus(true);
-                setTimeout(() => checkBotStatus(), 500);
-              }
+              await fetchUserProfile(currentSession.user.id);
             }
           }
         );
@@ -189,21 +181,8 @@ const Account = () => {
         setSession(currentSession);
         
         if (currentSession?.user) {
-          const profile = await fetchUserProfile(currentSession.user.id);
-          
-          // Simply proceed with the status check if we have a profile
-          // Don't add additional conditions that might block the status check
-          if (profile) {
-            setResults("Checking current bot status...");
-            setCheckingStatus(true);
-            setTimeout(() => checkBotStatus(), 500);
-          } else {
-            setCheckingStatus(false);
-            setResults("Unable to retrieve your profile. Please try logging in again.");
-          }
+          await fetchUserProfile(currentSession.user.id);
         } else {
-          // If no user is logged in, reset the checking status
-          setCheckingStatus(false);
           setResults("Please log in to access your trading algorithm.");
         }
         
@@ -213,7 +192,6 @@ const Account = () => {
       } catch (error) {
         console.error("Error checking auth status:", error);
         setLoading(false);
-        setCheckingStatus(false);
         setResults("Error checking authentication status. Please try again.");
       }
     };
@@ -225,8 +203,6 @@ const Account = () => {
   const checkBotStatus = async () => {
     console.log("Checking bot status, userProfile:", userProfile);
     
-    // Don't block the status check based on trader_service_name
-    // Let the API call handle any missing configuration
     setCheckingStatus(true);
     setResults("Checking current bot status...");
     
@@ -668,10 +644,16 @@ const Account = () => {
                     {checkingStatus ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Activity className="h-4 w-4" />
+                      <RefreshCw className="h-4 w-4" />
                     )}
-                    Status
+                    Check Status
                   </Button>
+                </div>
+                
+                <div className="bg-muted/30 p-4 rounded-md mb-6">
+                  <p className="text-sm text-center text-muted-foreground">
+                    Click the <strong>Check Status</strong> button to get the current status of your trading algorithm
+                  </p>
                 </div>
                 
                 <Separator className="my-4" />
