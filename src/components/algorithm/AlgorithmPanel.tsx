@@ -166,7 +166,7 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4 mb-6">
+          <div className="flex flex-wrap gap-4 items-center mb-6">
             <Button 
               onClick={handleStart}
               disabled={status === "running" || checkingStatus}
@@ -197,6 +197,12 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
               )}
               Check Status
             </Button>
+            
+            {tradingAmount && (
+              <div className="text-sm py-2 px-3 bg-muted rounded-md">
+                <span className="font-medium">Trading Amount:</span> {tradingAmount}
+              </div>
+            )}
           </div>
           
           <div className="bg-muted/30 p-4 rounded-md mb-6">
@@ -219,25 +225,6 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
                 results
               )}
             </div>
-          </div>
-
-          <div className="mt-6">
-            <h3 className="text-lg font-medium mb-2">API Configuration</h3>
-            <div className="text-sm mb-2">
-              <span className="font-medium">Service Name:</span> {userProfile?.trader_service_name || "Not configured"}
-            </div>
-            <div className="text-sm mb-2">
-              <span className="font-medium">API Key Status:</span> {userProfile?.trader_secret ? "Configured" : "Not configured"}
-            </div>
-            
-            {/* Trading Amount display */}
-            <div className="text-sm mb-2">
-              <span className="font-medium">Trading Amount:</span> {tradingAmount || "Check status to view"}
-            </div>
-            
-            <p className="text-xs text-muted-foreground mt-2">
-              Note: To update these values, please contact your administrator.
-            </p>
           </div>
         </CardContent>
       </Card>
