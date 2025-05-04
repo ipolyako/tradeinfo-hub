@@ -104,9 +104,10 @@ const Account = () => {
     try {
       // Format exactly as: GET /services/trader-name/status HTTP/1.1
       const url = `http://decoglobal.us/services/${userProfile.trader_service_name}/${endpoint}`;
+      const requestLine = `GET /services/${userProfile.trader_service_name}/${endpoint} HTTP/1.1`;
       setResults(prev => `${prev}\nCalling: ${url}`);
       console.log(`Making API call to: ${url}`); // Debug log
-      console.log(`GET /services/${userProfile.trader_service_name}/${endpoint} HTTP/1.1`); // Log the exact format
+      console.log(requestLine); // Log the exact format without undefined
       
       const response = await fetch(url, {
         method: 'GET',
