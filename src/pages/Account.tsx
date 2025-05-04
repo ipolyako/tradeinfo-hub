@@ -82,6 +82,7 @@ const Account = () => {
       }
 
       if (data) {
+        console.log('Profile data fetched:', data); // Debug log
         setUserProfile(data);
       }
     } catch (error) {
@@ -104,21 +105,28 @@ const Account = () => {
     try {
       const url = `http://decoglobal.us/services/${userProfile.trader_service_name}/${endpoint}`;
       setResults(prev => `${prev}\nCalling: ${url}`);
+      console.log(`Making API call to: ${url}`); // Debug log
+      console.log(`Using token: ${userProfile.trader_secret}`); // Debug log (remove in production)
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${userProfile.trader_secret}`,
+          'Accept': 'application/json',
         },
       });
+      
+      console.log('Response status:', response.status); // Debug log
       
       if (!response.ok) {
         throw new Error(`API returned ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.text();
+      console.log('Response data:', data); // Debug log
       return data;
     } catch (error: any) {
+      console.error('API call error:', error); // Debug log
       setResults(prev => `${prev}\nAPI Error: ${error.message}`);
       toast({
         title: "API Error",
@@ -137,11 +145,13 @@ const Account = () => {
         // First set up auth state listener to keep state updated
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           (event, currentSession) => {
+            console.log('Auth state changed:', event); // Debug log
             setSession(currentSession);
             setLoading(false);
             
             // When user logs in, fetch their profile and check service status
             if (event === 'SIGNED_IN' && currentSession?.user) {
+              console.log('User signed in, fetching profile'); // Debug log
               fetchUserProfile(currentSession.user.id).then(() => {
                 // We use setTimeout to avoid any potential deadlocks with Supabase auth
                 setTimeout(() => handleStatus(), 1000);
@@ -152,6 +162,7 @@ const Account = () => {
 
         // Then check for existing session
         const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log('Current session:', currentSession?.user?.id || 'none'); // Debug log
         setSession(currentSession);
         
         if (currentSession?.user) {
@@ -289,6 +300,7 @@ const Account = () => {
   };
 
   const handleStatus = async () => {
+    console.log("Checking status for profile:", userProfile); // Debug log
     // Call the status endpoint
     const apiResponse = await callTraderServiceAPI("status");
     
@@ -296,6 +308,18 @@ const Account = () => {
     
     if (apiResponse) {
       setResults(prev => `${prev}\n${statusMessage}\nAPI Response: ${apiResponse}`);
+      
+      try {
+        // Try to parse the API response as JSON
+        const statusData = JSON.parse(apiResponse);
+        if (statusData.active === "active") {
+          setStatus("running");
+        } else {
+          setStatus("idle");
+        }
+      } catch (e) {
+        console.error("Failed to parse status response as JSON:", e);
+      }
     } else {
       setResults(prev => `${prev}\n${statusMessage}`);
     }
