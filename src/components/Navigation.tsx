@@ -19,8 +19,7 @@ export const Navigation = () => {
   // Separate main navigation links from account-related links
   const mainNavLinks = [
     { title: "Home", path: "/" },
-    { title: "Features", path: "#features" },
-    { title: "Stats", path: "/stats" },
+    { title: "Trading Performance", path: "/stats" },
     { title: "Terms of Service", path: "/terms-of-service" },
     { title: "Privacy", path: "/privacy" },
   ];

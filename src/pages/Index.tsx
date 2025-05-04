@@ -1,6 +1,6 @@
+
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
-import { Features } from "@/components/Features";
 import { Stats } from "@/components/Stats";
 import { HowItWorks } from "@/components/HowItWorks";
 
@@ -27,7 +27,6 @@ const Index = () => {
       </section>
 
       <HowItWorks />
-      <Features />
       <Stats />
     </div>
   );
