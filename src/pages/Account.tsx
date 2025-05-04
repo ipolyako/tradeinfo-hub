@@ -102,17 +102,19 @@ const Account = () => {
     }
     
     try {
-      // Ensure exact URL format without any undefined or extra parts
+      // Format exactly as: GET /services/trader-name/status HTTP/1.1
       const url = `http://decoglobal.us/services/${userProfile.trader_service_name}/${endpoint}`;
       setResults(prev => `${prev}\nCalling: ${url}`);
       console.log(`Making API call to: ${url}`); // Debug log
+      console.log(`GET /services/${userProfile.trader_service_name}/${endpoint} HTTP/1.1`); // Log the exact format
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${userProfile.trader_secret}`,
-          // Don't include Content-Type for GET requests as it can cause preflight issues
           'Accept': 'application/json',
+          'Host': 'decoglobal.us',
+          'Connection': 'keep-alive',
         },
       });
       
