@@ -1,117 +1,174 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
-import { Activity, Play, Square, LogOut } from "lucide-react";
+import { Activity, Play, Square, LogOut, Loader2 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { supabase } from "@/integrations/supabase/client";
+
+// Form validation schemas
+const loginSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+});
+
+const signupSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters" }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
 const Account = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authUser, setAuthUser] = useState<{name: string, provider: string} | null>(null);
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authTab, setAuthTab] = useState<"login" | "signup">("login");
   const [results, setResults] = useState<string>("");
   const [status, setStatus] = useState<"idle" | "running" | "stopped">("idle");
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check for authentication on component mount and URL params
+  // Initialize forms
+  const loginForm = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const signupForm = useForm({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  // Check for authentication on component mount
   useEffect(() => {
-    // Check if user is already authenticated in session storage
-    const savedAuth = sessionStorage.getItem("authUser");
-    if (savedAuth) {
-      setIsAuthenticated(true);
-      setAuthUser(JSON.parse(savedAuth));
-      return;
-    }
+    const getSession = async () => {
+      setLoading(true);
+      try {
+        // First set up auth state listener to keep state updated
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (event, currentSession) => {
+            setSession(currentSession);
+            setLoading(false);
+          }
+        );
 
-    // Check URL for authentication code/token from OAuth providers
-    const urlParams = new URLSearchParams(location.search);
-    const code = urlParams.get("code");
-    const provider = sessionStorage.getItem("authProvider");
-    
-    if (code && provider) {
-      // In a real implementation, you would exchange this code for access token
-      // with your backend or directly with the provider
-      handleAuthenticationSuccess(provider);
+        // Then check for existing session
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        setSession(currentSession);
+        setLoading(false);
+
+        return () => subscription.unsubscribe();
+      } catch (error) {
+        console.error("Error checking auth status:", error);
+        setLoading(false);
+      }
+    };
+
+    getSession();
+  }, []);
+
+  const handleLogin = async (formData: z.infer<typeof loginSchema>) => {
+    setAuthLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Login Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSignup = async (formData: z.infer<typeof signupSchema>) => {
+    setAuthLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) {
+        toast({
+          title: "Signup Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Signup Successful",
+          description: "Please check your email to verify your account.",
+        });
+        // Switch to login tab after successful signup
+        setAuthTab("login");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Signup Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
       
-      // Clear URL parameters without refreshing the page
-      window.history.replaceState({}, document.title, "/account");
+      // Reset state
+      setResults("");
+      setStatus("idle");
+      
+      toast({
+        title: "Logged Out",
+        description: "You've been successfully logged out",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Logout Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
-  }, [location]);
-
-  // OAuth authentication function
-  const handleLogin = (provider: string) => {
-    // Save the provider to session storage to remember after redirect
-    sessionStorage.setItem("authProvider", provider);
-    
-    // Prepare the redirect URL back to this page after authentication
-    const redirectUrl = encodeURIComponent(window.location.origin + "/account");
-    
-    // Set up OAuth URLs for different providers with proper scopes and parameters
-    const authUrls: Record<string, string> = {
-      Google: `https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=${redirectUrl}&response_type=code&scope=profile email&prompt=select_account&access_type=offline`,
-      Facebook: `https://www.facebook.com/v13.0/dialog/oauth?client_id=YOUR_APP_ID&redirect_uri=${redirectUrl}&state=${generateRandomState()}&scope=email,public_profile`,
-      Outlook: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=${redirectUrl}&response_type=code&scope=openid profile email&response_mode=query`
-    };
-
-    // In a demo environment, we'll simulate the login
-    if (process.env.NODE_ENV !== "production") {
-      console.log(`Demo mode: Would redirect to ${authUrls[provider]}`);
-      setTimeout(() => {
-        handleAuthenticationSuccess(provider);
-      }, 1000);
-      return;
-    }
-
-    // In production, redirect to the authentication URL
-    window.location.href = authUrls[provider];
-  };
-
-  const generateRandomState = () => {
-    return Math.random().toString(36).substring(2, 15);
-  };
-
-  const handleAuthenticationSuccess = (provider: string) => {
-    // In a real app, you'd get actual user info from the provider
-    const mockUser = {
-      name: `User from ${provider}`,
-      provider: provider
-    };
-    
-    // Store authentication in session storage
-    sessionStorage.setItem("authUser", JSON.stringify(mockUser));
-    
-    // Update state
-    setIsAuthenticated(true);
-    setAuthUser(mockUser);
-    
-    // Show success notification
-    toast({
-      title: "Login Successful",
-      description: `You've been authenticated with ${provider}`,
-    });
-  };
-
-  const handleLogout = () => {
-    // Clear authentication
-    sessionStorage.removeItem("authUser");
-    sessionStorage.removeItem("authProvider");
-    
-    // Update state
-    setIsAuthenticated(false);
-    setAuthUser(null);
-    setResults("");
-    setStatus("idle");
-    
-    // Show notification
-    toast({
-      title: "Logged Out",
-      description: "You've been successfully logged out",
-    });
   };
 
   const handleStart = () => {
@@ -141,14 +198,20 @@ const Account = () => {
     });
   };
 
-  // Redirect unauthenticated users trying to access protected routes
-  useEffect(() => {
-    const path = location.pathname;
-    if (path === "/account" && !isAuthenticated && !location.search) {
-      // User is not authenticated and not in auth flow
-      navigate("/account");
-    }
-  }, [isAuthenticated, location, navigate]);
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container max-w-7xl mx-auto pt-24 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">Loading your account...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -157,36 +220,116 @@ const Account = () => {
       <div className="container max-w-7xl mx-auto pt-24 px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold mb-6">My Account</h1>
         
-        {!isAuthenticated ? (
+        {!session ? (
           <Card className="w-full max-w-md mx-auto">
             <CardHeader>
-              <CardTitle>Sign In</CardTitle>
+              <CardTitle>Account Access</CardTitle>
               <CardDescription>
-                Sign in using one of the following methods to access your account
+                Sign in or create a new account to access your trading algorithms
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => handleLogin("Google")}
-              >
-                Sign in with Google
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => handleLogin("Facebook")}
-              >
-                Sign in with Facebook
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => handleLogin("Outlook")}
-              >
-                Sign in with Outlook
-              </Button>
+            <CardContent>
+              <Tabs value={authTab} onValueChange={(v) => setAuthTab(v as "login" | "signup")}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="login">Login</TabsTrigger>
+                  <TabsTrigger value="signup">Sign up</TabsTrigger>
+                </TabsList>
+                <TabsContent value="login">
+                  <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4 mt-4">
+                      <FormField
+                        control={loginForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="your.email@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="••••••••" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full" disabled={authLoading}>
+                        {authLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+                          </>
+                        ) : (
+                          "Login"
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </TabsContent>
+                <TabsContent value="signup">
+                  <Form {...signupForm}>
+                    <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4 mt-4">
+                      <FormField
+                        control={signupForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="your.email@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={signupForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="••••••••" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={signupForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirm Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="••••••••" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" className="w-full" disabled={authLoading}>
+                        {authLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+                          </>
+                        ) : (
+                          "Create Account"
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </TabsContent>
+              </Tabs>
             </CardContent>
             <CardFooter className="flex justify-center text-sm text-muted-foreground">
               By signing in, you agree to our Terms of Service and Privacy Policy
@@ -204,7 +347,7 @@ const Account = () => {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-muted-foreground">
-                    Signed in as {authUser?.name}
+                    Signed in as {session.user?.email}
                   </span>
                   <Button 
                     variant="outline" 
