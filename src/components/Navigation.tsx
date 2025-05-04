@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { 
   Drawer,
   DrawerContent,
@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export const Navigation = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isMobile = useIsMobile();
+  const location = useLocation();
 
   // Separate main navigation links from account-related links
   const mainNavLinks = [
@@ -40,7 +41,11 @@ export const Navigation = () => {
               <Link 
                 key={link.title} 
                 to={link.path} 
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className={`text-muted-foreground hover:text-primary transition-colors ${
+                  (location.pathname === link.path || 
+                   (location.hash === link.path && link.path.startsWith('#'))) ? 
+                   'text-primary font-medium' : ''
+                }`}
               >
                 {link.title}
               </Link>
@@ -48,14 +53,19 @@ export const Navigation = () => {
             
             {/* Make My Account button more prominent */}
             <Link to={accountLink.path}>
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button 
+                variant={location.pathname === accountLink.path ? "default" : "outline"} 
+                className="flex items-center gap-2"
+              >
                 <User className="h-4 w-4" />
                 {accountLink.title}
               </Button>
             </Link>
             
             <Link to="/get-started">
-              <Button>Get Started</Button>
+              <Button variant={location.pathname === "/get-started" ? "secondary" : "default"}>
+                Get Started
+              </Button>
             </Link>
           </div>
           
@@ -73,7 +83,11 @@ export const Navigation = () => {
                       <Link 
                         key={link.title} 
                         to={link.path} 
-                        className="w-full text-center py-3 text-lg font-medium border-b border-border"
+                        className={`w-full text-center py-3 text-lg font-medium border-b border-border ${
+                          (location.pathname === link.path || 
+                           (location.hash === link.path && link.path.startsWith('#'))) ? 
+                           'text-primary' : ''
+                        }`}
                         onClick={() => setIsDrawerOpen(false)}
                       >
                         {link.title}
@@ -83,7 +97,10 @@ export const Navigation = () => {
                     {/* Make mobile account link more noticeable */}
                     <Link 
                       to={accountLink.path} 
-                      className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border bg-muted/50"
+                      className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border ${
+                        location.pathname === accountLink.path ? 
+                        'bg-primary/10 text-primary' : 'bg-muted/50'
+                      }`}
                       onClick={() => setIsDrawerOpen(false)}
                     >
                       <User className="h-5 w-5" />
@@ -95,7 +112,12 @@ export const Navigation = () => {
                       className="w-full mt-4" 
                       onClick={() => setIsDrawerOpen(false)}
                     >
-                      <Button className="w-full">Get Started</Button>
+                      <Button 
+                        className="w-full"
+                        variant={location.pathname === "/get-started" ? "secondary" : "default"}
+                      >
+                        Get Started
+                      </Button>
                     </Link>
                   </div>
                 </DrawerContent>
