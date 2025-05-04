@@ -600,7 +600,7 @@ const Account = () => {
                   </Button>
                   <Button 
                     onClick={handleStop}
-                    disabled={status === "idle" || status === "stopped"}
+                    disabled={status !== "running"}
                     variant="destructive"
                     className="flex items-center gap-2"
                   >
