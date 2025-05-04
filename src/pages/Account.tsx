@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -283,7 +282,7 @@ const Account = () => {
     setResults("Algorithm started. Processing market data...");
     
     // Call the start endpoint
-    const apiResponse = await callTraderServiceAPI("start");
+    const apiResponse = await callTraderServiceAPI("start", "POST");
     if (apiResponse) {
       setResults(prev => `${prev}\nAPI Response: ${apiResponse}`);
     }
@@ -313,8 +312,8 @@ const Account = () => {
 
   const handleStatus = async () => {
     console.log("Checking status for profile:", userProfile); // Debug log
-    // Call the status endpoint without any extra parameters
-    const apiResponse = await callTraderServiceAPI("status");
+    // Call the status endpoint explicitly with GET method
+    const apiResponse = await callTraderServiceAPI("status", "GET");
     
     const statusMessage = `Current status: ${status}\nTimestamp: ${new Date().toLocaleTimeString()}`;
     
@@ -650,4 +649,3 @@ const Account = () => {
 };
 
 export default Account;
-
