@@ -11,8 +11,7 @@ type Transaction = {
   symbol: string;
   type: string;
   quantity: number;
-  price: number;
-  // Removed amount field from type definition
+  // Removed price field from type definition
 };
 
 const TransactionsHistory = () => {
@@ -47,7 +46,7 @@ const TransactionsHistory = () => {
     fetchTransactionsData();
   }, []);
 
-  // Simple CSV parser function - updated to not include amount
+  // Simple CSV parser function - updated to not include price
   const parseCSV = (csvText: string): Transaction[] => {
     const lines = csvText.split("\n");
     // Skip the header row and empty lines
@@ -61,8 +60,7 @@ const TransactionsHistory = () => {
           symbol: values[1] || "",
           type: values[2] || "",
           quantity: parseFloat(values[3]) || 0,
-          price: parseFloat(values[4]) || 0,
-          // Removed amount field
+          // Removed price field
         };
       });
     return data;
@@ -104,14 +102,13 @@ const TransactionsHistory = () => {
                       <TableHead>Symbol</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead className="text-right">Quantity</TableHead>
-                      <TableHead className="text-right">Price ($)</TableHead>
-                      {/* Removed Amount column header */}
+                      {/* Removed Price column header */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {transactions.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-4">
+                        <TableCell colSpan={4} className="text-center py-4">
                           No transactions found
                         </TableCell>
                       </TableRow>
@@ -122,8 +119,7 @@ const TransactionsHistory = () => {
                           <TableCell>{transaction.symbol}</TableCell>
                           <TableCell>{transaction.type}</TableCell>
                           <TableCell className="text-right">{transaction.quantity.toLocaleString()}</TableCell>
-                          <TableCell className="text-right">${transaction.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                          {/* Removed Amount column cell */}
+                          {/* Removed Price column cell */}
                         </TableRow>
                       ))
                     )}
