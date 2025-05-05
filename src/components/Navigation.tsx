@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User } from "lucide-react";
+import { Menu, User, List } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Drawer,
@@ -20,6 +20,7 @@ export const Navigation = () => {
   const mainNavLinks = [
     { title: "Home", path: "/" },
     { title: "Trading Performance", path: "/stats" },
+    { title: "Transactions History", path: "/transactions" },
     { title: "Terms of Service", path: "/terms-of-service" },
     { title: "Privacy", path: "/privacy" },
   ];
