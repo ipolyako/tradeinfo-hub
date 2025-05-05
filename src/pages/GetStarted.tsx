@@ -28,7 +28,7 @@ const GetStarted = () => {
             
             <li>
               <strong>Contact Customer Service:</strong>
-              <p className="mt-2">Once your brokerage account is set up, please notify Deco Global Customer Services at <span className="text-primary">support@decoglobal.us</span></p>
+              <p className="mt-2">Once your brokerage account is set up, please notify Deco Global Customer Services at <a href="mailto:support@decoglobal.us" className="text-primary hover:underline">support@decoglobal.us</a></p>
             </li>
             
             <li>
