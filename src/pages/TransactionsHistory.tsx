@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
@@ -54,11 +55,13 @@ const TransactionsHistory = () => {
         
         // Map the data from Supabase to our Transaction type
         const mappedData: Transaction[] = data.map((item: any) => ({
-          date: new Date(item.alerttime).toISOString().split('T')[0], // Extract date part
+          // Store date part (YYYY-MM-DD) in date field
+          date: new Date(item.alerttime).toISOString().split('T')[0],
           symbol: item.symbol || "",
           action: item.action || "",
           quantity: item.tradesize || 0,
-          alertTime: new Date(item.alerttime).toISOString().split('T')[1].substring(0, 8), // Extract time part (HH:MM:SS)
+          // Store time part (HH:MM:SS) in alertTime field
+          alertTime: new Date(item.alerttime).toISOString().split('T')[1].substring(0, 8),
           tradeprice: item.tradeprice || 0,
         }));
         
@@ -102,10 +105,16 @@ const TransactionsHistory = () => {
     fetchTransactionsData();
   }, []);
 
-  // Function to format the complete date and time
-  const formatAlertDateTime = (date: string, time: string): string => {
-    // Format the date and time as "YYYY-MM-DD HH:MM:SS"
-    return `${date} ${time}`;
+  // Format the date and time to show in a readable format
+  const formatAlertDateTime = (dateStr: string, timeStr: string): string => {
+    // Create a new date object from the database timestamp
+    try {
+      // Format: YYYY-MM-DD HH:MM:SS
+      return `${dateStr} ${timeStr}`;
+    } catch (error) {
+      console.error("Error formatting date time:", error);
+      return `${dateStr} ${timeStr}`;
+    }
   };
   
   // Calculate pagination
