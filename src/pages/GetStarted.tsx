@@ -15,7 +15,7 @@ const GetStarted = () => {
           Back to Home
         </Link>
         
-        <h1 className="text-3xl font-bold mb-8">Getting Started with TradePro</h1>
+        <h1 className="text-3xl font-bold mb-8">Getting Started</h1>
         
         <div className="space-y-6 text-lg">
           <p>To begin using our algorithmic trading service, please follow these steps:</p>
@@ -23,7 +23,7 @@ const GetStarted = () => {
           <ol className="list-decimal pl-6 space-y-4">
             <li>
               <strong>Open a Brokerage Account:</strong>
-              <p className="mt-2">You'll need to create and fund a trading account with either Charles Schwab or TradeStation. These are the currently supported brokers where our algorithms will execute trades.</p>
+              <p className="mt-2">You'll need to create and fund a trading account with either Charles Schwab or TradeStation. These are the currently supported brokers where our algorithms will execute trades. The minimum recommended account balance is 30,000.</p>
             </li>
             
             <li>
