@@ -23,6 +23,7 @@ type Transaction = {
   action: string;
   quantity: number;
   alertTime: string;
+  tradeprice?: number;
 };
 
 const TransactionsHistory = () => {
@@ -40,7 +41,7 @@ const TransactionsHistory = () => {
         
         console.log("Fetching data from Supabase alerthist table");
         
-        // Fetch data from Supabase alerthist table
+        // Fetch data from Supabase alerthist table with explicit ASCENDING order
         const { data, error } = await supabase
           .from('alerthist')
           .select('*')
@@ -59,7 +60,15 @@ const TransactionsHistory = () => {
           action: item.action || "",
           quantity: item.tradesize || 0,
           alertTime: new Date(item.alerttime).toISOString().split('T')[1].substring(0, 8), // Extract time part (HH:MM:SS)
+          tradeprice: item.tradeprice || 0,
         }));
+        
+        // Double check the order is correct
+        mappedData.sort((a, b) => {
+          const dateA = new Date(`${a.date}T${a.alertTime}`);
+          const dateB = new Date(`${b.date}T${b.alertTime}`);
+          return dateA.getTime() - dateB.getTime();
+        });
         
         setTransactions(mappedData);
         toast({
@@ -170,13 +179,14 @@ const TransactionsHistory = () => {
                         <TableHead>Action</TableHead> 
                         <TableHead>Symbol</TableHead>
                         <TableHead className="text-right">Quantity</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
                         <TableHead>Alert Date & Time</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {paginatedTransactions.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-4">
+                          <TableCell colSpan={5} className="text-center py-4">
                             No transactions found
                           </TableCell>
                         </TableRow>
@@ -186,6 +196,9 @@ const TransactionsHistory = () => {
                             <TableCell>{transaction.action}</TableCell>
                             <TableCell>{transaction.symbol}</TableCell>
                             <TableCell className="text-right">{transaction.quantity.toLocaleString()}</TableCell>
+                            <TableCell className="text-right">
+                              {transaction.tradeprice ? transaction.tradeprice.toFixed(2) : 'N/A'}
+                            </TableCell>
                             <TableCell>{formatAlertDateTime(transaction.date, transaction.alertTime)}</TableCell>
                           </TableRow>
                         ))
