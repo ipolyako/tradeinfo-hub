@@ -9,9 +9,9 @@ import { Link } from "react-router-dom";
 type Transaction = {
   date: string;
   symbol: string;
-  type: string;
+  action: string; // Renamed from 'type' to 'action' for clarity
   quantity: number;
-  // Removed price field from type definition
+  alertTime: string; // Added alertTime field
 };
 
 const TransactionsHistory = () => {
@@ -46,7 +46,7 @@ const TransactionsHistory = () => {
     fetchTransactionsData();
   }, []);
 
-  // Simple CSV parser function - updated to not include price
+  // CSV parser function updated to include alertTime and rename type to action
   const parseCSV = (csvText: string): Transaction[] => {
     const lines = csvText.split("\n");
     // Skip the header row and empty lines
@@ -56,11 +56,11 @@ const TransactionsHistory = () => {
       .map(line => {
         const values = line.split(",");
         return {
-          date: values[0] || "",
-          symbol: values[1] || "",
-          type: values[2] || "",
-          quantity: parseFloat(values[3]) || 0,
-          // Removed price field
+          action: values[0] || "", // ACTION column (was incorrectly mapped to date)
+          symbol: values[1] || "", // SYMBOL
+          quantity: parseFloat(values[3]) || 0, // TRADESIZE
+          date: "", // This was incorrectly mapped, so we'll leave it empty
+          alertTime: values[4] || "", // ALERTTIME
         };
       });
     return data;
@@ -98,11 +98,10 @@ const TransactionsHistory = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Action</TableHead> 
                       <TableHead>Symbol</TableHead>
-                      <TableHead>Type</TableHead>
                       <TableHead className="text-right">Quantity</TableHead>
-                      {/* Removed Price column header */}
+                      <TableHead>Alert Time</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -115,11 +114,10 @@ const TransactionsHistory = () => {
                     ) : (
                       transactions.map((transaction, index) => (
                         <TableRow key={index}>
-                          <TableCell>{transaction.date}</TableCell>
+                          <TableCell>{transaction.action}</TableCell>
                           <TableCell>{transaction.symbol}</TableCell>
-                          <TableCell>{transaction.type}</TableCell>
                           <TableCell className="text-right">{transaction.quantity.toLocaleString()}</TableCell>
-                          {/* Removed Price column cell */}
+                          <TableCell>{transaction.alertTime}</TableCell>
                         </TableRow>
                       ))
                     )}
