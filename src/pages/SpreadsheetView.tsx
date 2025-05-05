@@ -1,7 +1,7 @@
 
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Spreadsheet } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const SpreadsheetView = () => {
@@ -16,7 +16,7 @@ const SpreadsheetView = () => {
         </Link>
         
         <div className="flex items-center mb-8">
-          <Spreadsheet className="h-6 w-6 mr-3 text-primary" />
+          <FileSpreadsheet className="h-6 w-6 mr-3 text-primary" />
           <h1 className="text-3xl font-bold">Transactions History</h1>
         </div>
         
