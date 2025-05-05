@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import { Stats } from "@/components/Stats";
 import { HowItWorks } from "@/components/HowItWorks";
+import { UserControl } from "@/components/UserControl";
 
 const Index = () => {
   return (
@@ -27,6 +28,7 @@ const Index = () => {
       </section>
 
       <HowItWorks />
+      <UserControl />
       <Stats />
     </div>
   );
