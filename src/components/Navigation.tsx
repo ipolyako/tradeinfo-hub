@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User, Atom } from "lucide-react";
+import { Menu, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Drawer,
@@ -33,7 +33,13 @@ export const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-primary flex items-center">
-              <Atom className="h-6 w-6 mr-2 text-primary" />
+              <div className="h-8 w-8 mr-2 overflow-hidden">
+                <img 
+                  src="/lovable-uploads/88b166b0-b5a4-48e9-b060-622318765743.png" 
+                  alt="DECO GLOBAL Logo" 
+                  className="h-full w-full object-contain"
+                />
+              </div>
               <span>Algorithmic Trading</span>
             </Link>
           </div>
