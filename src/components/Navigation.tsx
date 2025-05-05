@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, User } from "lucide-react";
@@ -33,7 +32,7 @@ export const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-primary flex items-center">
-              <div className="h-16 w-16 mr-4 overflow-hidden bg-white rounded-md flex items-center justify-center">
+              <div className="h-16 w-16 mr-4 overflow-hidden">
                 <img 
                   src="/lovable-uploads/88b166b0-b5a4-48e9-b060-622318765743.png" 
                   alt="DECO GLOBAL Logo" 
