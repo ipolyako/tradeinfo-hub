@@ -23,7 +23,7 @@ const GetStarted = () => {
           <ol className="list-decimal pl-6 space-y-4">
             <li>
               <strong>Open a Brokerage Account:</strong>
-              <p className="mt-2">You'll need to create and fund a trading account with either Charles Schwab or TradeStation. These are the currently supported brokers where our algorithms will execute trades. The minimum recommended account balance is 30,000.</p>
+              <p className="mt-2">You'll need to create and fund a trading account with either Charles Schwab or TradeStation. These are the currently supported brokers where our algorithms will execute trades. The minimum recommended account balance is $30,000.</p>
             </li>
             
             <li>
