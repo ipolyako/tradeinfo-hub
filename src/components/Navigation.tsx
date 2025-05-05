@@ -33,7 +33,7 @@ export const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-primary flex items-center">
-              <div className="h-8 w-8 mr-2 overflow-hidden">
+              <div className="h-12 w-12 mr-3 overflow-hidden">
                 <img 
                   src="/lovable-uploads/88b166b0-b5a4-48e9-b060-622318765743.png" 
                   alt="DECO GLOBAL Logo" 
