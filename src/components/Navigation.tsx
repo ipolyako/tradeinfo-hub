@@ -20,7 +20,6 @@ export const Navigation = () => {
   const mainNavLinks = [
     { title: "Home", path: "/" },
     { title: "Trading Performance", path: "/stats" },
-    { title: "Performance Comparison", path: "/comparison" },
     { title: "Terms of Service", path: "/terms-of-service" },
     { title: "Privacy", path: "/privacy" },
   ];
