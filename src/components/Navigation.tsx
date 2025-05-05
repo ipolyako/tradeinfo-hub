@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User } from "lucide-react";
+import { Menu, User, ChartLine } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Drawer,
@@ -32,7 +31,10 @@ export const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-primary">Algorithmic Trading</Link>
+            <Link to="/" className="text-xl font-bold text-primary flex items-center">
+              <ChartLine className="h-5 w-5 mr-2 text-primary" />
+              Algorithmic Trading
+            </Link>
           </div>
           
           <div className="hidden md:flex items-center space-x-6">
