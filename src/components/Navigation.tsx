@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User, MicrochipIcon } from "lucide-react";
+import { Menu, User, Atom } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Drawer,
@@ -33,13 +33,7 @@ export const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-primary flex items-center">
-              <div className="relative w-8 h-8 mr-2 overflow-hidden rounded-md">
-                <img 
-                  src="/lovable-uploads/d64971fd-6342-4411-83ad-2a905ee8b2e7.png" 
-                  alt="Circuit Board" 
-                  className="object-cover w-full h-full"
-                />
-              </div>
+              <Atom className="h-6 w-6 mr-2 text-primary" />
               <span>Algorithmic Trading</span>
             </Link>
           </div>
