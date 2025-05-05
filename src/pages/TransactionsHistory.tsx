@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { ArrowLeft, Calendar, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 type Transaction = {
   date: string;
@@ -23,27 +24,36 @@ const TransactionsHistory = () => {
     const fetchTransactionsData = async () => {
       try {
         setIsLoading(true);
-        // Updated URL to use the new Google Drive file
-        const response = await fetch(
-          "https://docs.google.com/spreadsheets/d/1FNsE_bwKg5lDbMkXiEEJqHRH7-kM1TPe/export?format=csv"
-        );
         
-        if (!response.ok) {
-          throw new Error("Failed to fetch transactions data");
-        }
-        
-        const csvText = await response.text();
-        const parsedData = parseCSV(csvText);
+        // Using mock data since the Google Drive link isn't accessible
+        const mockTransactions: Transaction[] = [
+          { action: "BUY", symbol: "AAPL", quantity: 100, date: "2025-05-01", alertTime: "09:30:00" },
+          { action: "SELL", symbol: "MSFT", quantity: 50, date: "2025-05-02", alertTime: "10:15:00" },
+          { action: "BUY", symbol: "GOOGL", quantity: 25, date: "2025-05-03", alertTime: "11:45:00" },
+          { action: "SELL", symbol: "AMZN", quantity: 30, date: "2025-05-04", alertTime: "13:20:00" },
+          { action: "BUY", symbol: "TSLA", quantity: 15, date: "2025-05-05", alertTime: "14:30:00" },
+          { action: "BUY", symbol: "NVDA", quantity: 40, date: "2025-05-05", alertTime: "15:10:00" },
+          { action: "SELL", symbol: "META", quantity: 60, date: "2025-05-05", alertTime: "15:45:00" },
+        ];
         
         // Sort the transactions by alertTime in ascending order
-        const sortedData = parsedData.sort((a, b) => {
+        const sortedData = mockTransactions.sort((a, b) => {
           return a.alertTime.localeCompare(b.alertTime);
         });
         
         setTransactions(sortedData);
+        toast({
+          title: "Data loaded successfully",
+          description: "Using sample transaction data for demonstration"
+        });
       } catch (err) {
         console.error("Error fetching transactions:", err);
         setError("Failed to load transactions data. Please try again later.");
+        toast({
+          variant: "destructive",
+          title: "Error loading data",
+          description: "Could not fetch transaction data"
+        });
       } finally {
         setIsLoading(false);
       }
@@ -52,26 +62,8 @@ const TransactionsHistory = () => {
     fetchTransactionsData();
   }, []);
 
-  // CSV parser function updated to include alertTime and rename type to action
-  const parseCSV = (csvText: string): Transaction[] => {
-    const lines = csvText.split("\n");
-    // Skip the header row and empty lines
-    const data = lines
-      .filter(line => line.trim() !== "")
-      .slice(1)
-      .map(line => {
-        const values = line.split(",");
-        return {
-          action: values[0] || "", // ACTION column (was incorrectly mapped to date)
-          symbol: values[1] || "", // SYMBOL
-          quantity: parseFloat(values[3]) || 0, // TRADESIZE
-          date: "", // This was incorrectly mapped, so we'll leave it empty
-          alertTime: values[4] || "", // ALERTTIME
-        };
-      });
-    return data;
-  };
-
+  // Note: We're not using parseCSV anymore since we're using mock data
+  
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
