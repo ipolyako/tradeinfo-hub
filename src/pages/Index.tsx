@@ -1,11 +1,15 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import { Stats } from "@/components/Stats";
 import { HowItWorks } from "@/components/HowItWorks";
 import { UserControl } from "@/components/UserControl";
+import { StrategyDetails } from "@/components/StrategyDetails";
 
 const Index = () => {
+  const [showStrategyDetails, setShowStrategyDetails] = useState(false);
+
   return (
     <div className="min-h-screen">
       <Navigation />
@@ -20,12 +24,18 @@ const Index = () => {
             <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto fade-in">
               Strategic day trading powered by proprietary algorithms, designed for long-term performance without overnight exposure
             </p>
-            <Button size="lg" className="bg-white text-primary hover:bg-gray-100 fade-in">
+            <Button 
+              size="lg" 
+              className="bg-white text-primary hover:bg-gray-100 fade-in"
+              onClick={() => setShowStrategyDetails(true)}
+            >
               Learn More About Our Strategy
             </Button>
           </div>
         </div>
       </section>
+
+      {showStrategyDetails && <StrategyDetails onClose={() => setShowStrategyDetails(false)} />}
 
       <HowItWorks />
       <UserControl />
