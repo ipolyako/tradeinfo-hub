@@ -5,6 +5,7 @@ import { Stats } from "@/components/Stats";
 import { HowItWorks } from "@/components/HowItWorks";
 import { UserControl } from "@/components/UserControl";
 import { StrategyDetails } from "@/components/StrategyDetails";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
@@ -21,18 +22,28 @@ const Index = () => {
             <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto fade-in">
               Strategic day trading powered by proprietary algorithms, designed for long-term performance without overnight exposure
             </p>
-            <Button 
-              size="lg" 
-              className="bg-white text-primary hover:bg-gray-100 fade-in"
-              onClick={() => {
-                const strategySection = document.getElementById('strategy-section');
-                if (strategySection) {
-                  strategySection.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-            >
-              Learn More About Our Strategy
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center fade-in">
+              <Button 
+                size="lg" 
+                className="bg-white text-primary hover:bg-gray-100"
+                onClick={() => {
+                  const strategySection = document.getElementById('strategy-section');
+                  if (strategySection) {
+                    strategySection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                Learn More About Our Strategy
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="border-white text-white hover:bg-white/10"
+                asChild
+              >
+                <Link to="/performance">View Performance Data</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
