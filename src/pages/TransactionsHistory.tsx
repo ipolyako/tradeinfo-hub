@@ -11,7 +11,6 @@ import {
   Pagination, 
   PaginationContent, 
   PaginationItem, 
-  PaginationLink, 
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
@@ -210,16 +209,11 @@ const TransactionsHistory = () => {
                           </PaginationItem>
                         )}
                         
-                        {[...Array(totalPages)].map((_, i) => (
-                          <PaginationItem key={i}>
-                            <PaginationLink 
-                              isActive={currentPage === i + 1}
-                              onClick={() => setCurrentPage(i + 1)}
-                            >
-                              {i + 1}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ))}
+                        <PaginationItem className="flex items-center px-4">
+                          <span className="text-sm">
+                            Page {currentPage} of {totalPages}
+                          </span>
+                        </PaginationItem>
                         
                         {currentPage < totalPages && (
                           <PaginationItem>
