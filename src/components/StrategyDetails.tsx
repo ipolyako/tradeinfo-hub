@@ -15,8 +15,20 @@ export const StrategyDetails = ({ onClose }: { onClose: () => void }) => {
           <div className="space-y-4 text-muted-foreground">
             <h3 className="text-xl font-semibold text-foreground">Algorithmic Day Trading Strategy</h3>
             <p>
-              Our proprietary trading algorithm specializes in opposite-directional ETF trading, 
-              designed to capitalize on intraday market volatility while eliminating overnight exposure risk.
+              Our strategy uses time-tested intensive backend validation strategies aimed to deliver 
+              consistent results over various market conditions. We trade only the most popular high 
+              liquidity ETFs such as TQQQ and SQQQ.
+            </p>
+            
+            <p>
+              Our sophisticated algorithms take advantage of directional price movements irrespective 
+              of markets going up or down. The bot is tuned to deliver results in all market conditions.
+            </p>
+
+            <p>
+              With our bot, you get statistical advantage over a long period of time. We aim at long-term 
+              investment performance without the risks of nightly surprises when the market is closed. 
+              You will never be caught in a position with markets gapping down.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
@@ -72,6 +84,7 @@ export const StrategyDetails = ({ onClose }: { onClose: () => void }) => {
               <li>Systematic approach eliminates emotional trading decisions</li>
               <li>Consistent execution through automated trading systems</li>
               <li>Diversified strategy that can perform in various market conditions</li>
+              <li>Focus on high liquidity ETFs to ensure reliable execution</li>
             </ul>
           </div>
           
