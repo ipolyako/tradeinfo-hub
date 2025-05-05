@@ -35,14 +35,6 @@ const Index = () => {
               >
                 Learn More About Our Strategy
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="border-white text-white hover:bg-white/10"
-                asChild
-              >
-                <Link to="/performance">View Performance Data</Link>
-              </Button>
             </div>
           </div>
         </div>
