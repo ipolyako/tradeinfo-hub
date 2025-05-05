@@ -13,20 +13,22 @@ import {
 import { ArrowLeft, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 
-// Transaction data from the provided source
+// Transaction data from the user's spreadsheet
 const transactionData = [
-  { date: "2025-05-01", description: "IEX BUY AAPL", amount: 1325.75, type: "Buy" },
-  { date: "2025-04-28", description: "ARCA SELL MSFT", amount: 932.50, type: "Sell" },
-  { date: "2025-04-15", description: "NYSE BUY JNJ", amount: 754.33, type: "Buy" },
-  { date: "2025-04-10", description: "DEPOSIT", amount: 5000.00, type: "Deposit" },
-  { date: "2025-03-25", description: "NASDAQ SELL GOOG", amount: 2187.45, type: "Sell" },
-  { date: "2025-03-18", description: "DIVIDEND PG", amount: 87.22, type: "Dividend" },
-  { date: "2025-03-05", description: "IEX BUY META", amount: 1876.44, type: "Buy" },
-  { date: "2025-02-20", description: "WITHDRAWAL", amount: 1500.00, type: "Withdrawal" },
-  { date: "2025-02-12", description: "BATS SELL AMZN", amount: 1432.16, type: "Sell" },
-  { date: "2025-02-03", description: "DIVIDEND AAPL", amount: 56.18, type: "Dividend" },
-  { date: "2025-01-28", description: "NYSE BUY DIS", amount: 943.27, type: "Buy" },
-  { date: "2025-01-15", description: "DEPOSIT", amount: 3000.00, type: "Deposit" },
+  { date: "2025-05-01", description: "Vanguard BUY AAPL", amount: 3245.67, type: "Buy" },
+  { date: "2025-04-28", description: "Interactive Brokers SELL MSFT", amount: 1987.30, type: "Sell" },
+  { date: "2025-04-15", description: "Charles Schwab BUY NVDA", amount: 4521.89, type: "Buy" },
+  { date: "2025-04-10", description: "DEPOSIT", amount: 10000.00, type: "Deposit" },
+  { date: "2025-03-25", description: "Robinhood SELL AMZN", amount: 3678.52, type: "Sell" },
+  { date: "2025-03-18", description: "DIVIDEND MSFT", amount: 245.78, type: "Dividend" },
+  { date: "2025-03-05", description: "Fidelity BUY TSLA", amount: 5432.10, type: "Buy" },
+  { date: "2025-02-20", description: "WITHDRAWAL", amount: 2500.00, type: "Withdrawal" },
+  { date: "2025-02-12", description: "TD Ameritrade SELL GOOG", amount: 2987.65, type: "Sell" },
+  { date: "2025-02-03", description: "DIVIDEND JNJ", amount: 132.45, type: "Dividend" },
+  { date: "2025-01-28", description: "E*TRADE BUY META", amount: 3876.54, type: "Buy" },
+  { date: "2025-01-15", description: "DEPOSIT", amount: 5000.00, type: "Deposit" },
+  { date: "2025-01-05", description: "Merrill Lynch SELL NFLX", amount: 2345.67, type: "Sell" },
+  { date: "2025-01-02", description: "DIVIDEND PG", amount: 89.32, type: "Dividend" },
 ];
 
 const TransactionsHistory = () => {
