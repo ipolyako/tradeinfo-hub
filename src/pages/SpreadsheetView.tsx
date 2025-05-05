@@ -32,10 +32,11 @@ const SpreadsheetView = () => {
             
             <div className="aspect-[16/9] w-full border border-border rounded-md overflow-hidden">
               <iframe 
-                src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQJMnM8I1YPCr-GYc8qFOt57vUeXXeE7FdgFH3D9ENvf_ZqXQAG71TErJSkpBc-UOlTPnMD6UFoVJwz/pubhtml?widget=true&amp;headers=false"
+                src="https://drive.google.com/file/d/1hXfQPf1ZjM6E8HjTW_DbUHpY8E4IBtg8/preview"
                 className="w-full h-full"
                 title="Transactions History Spreadsheet"
                 loading="lazy"
+                allow="autoplay"
               ></iframe>
             </div>
           </CardContent>
