@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
@@ -41,10 +40,11 @@ const TransactionsHistory = () => {
         
         console.log("Fetching data from Supabase alerthist table");
         
-        // Fetch data from Supabase alerthist table with explicit ASCENDING order
+        // Fetch data from Supabase alerthist table, sorted by symbol, then alerttime ascending
         const { data, error } = await supabase
           .from('alerthist')
           .select('*')
+          .order('symbol', { ascending: true })
           .order('alerttime', { ascending: true });
         
         if (error) {
@@ -62,13 +62,6 @@ const TransactionsHistory = () => {
           alertTime: new Date(item.alerttime).toISOString().split('T')[1].substring(0, 8), // Extract time part (HH:MM:SS)
           tradeprice: item.tradeprice || 0,
         }));
-        
-        // Double check the order is correct
-        mappedData.sort((a, b) => {
-          const dateA = new Date(`${a.date}T${a.alertTime}`);
-          const dateB = new Date(`${b.date}T${b.alertTime}`);
-          return dateA.getTime() - dateB.getTime();
-        });
         
         setTransactions(mappedData);
         toast({
