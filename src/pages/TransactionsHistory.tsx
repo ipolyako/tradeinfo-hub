@@ -34,7 +34,13 @@ const TransactionsHistory = () => {
         
         const csvText = await response.text();
         const parsedData = parseCSV(csvText);
-        setTransactions(parsedData);
+        
+        // Sort the transactions by alertTime in ascending order
+        const sortedData = parsedData.sort((a, b) => {
+          return a.alertTime.localeCompare(b.alertTime);
+        });
+        
+        setTransactions(sortedData);
       } catch (err) {
         console.error("Error fetching transactions:", err);
         setError("Failed to load transactions data. Please try again later.");
