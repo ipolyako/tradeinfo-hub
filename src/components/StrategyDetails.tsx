@@ -1,17 +1,18 @@
 
 import { ArrowDownUp, Clock, Shield, TrendingUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-export const StrategyDetails = ({ onClose }: { onClose: () => void }) => {
+export const StrategyDetails = () => {
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Our Trading Strategy</h2>
-            <Button variant="ghost" size="sm" onClick={onClose}>×</Button>
-          </div>
-          
+    <section className="bg-muted py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold mb-4">Our Trading Strategy</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Learn how our algorithmic trading system works to deliver consistent results
+          </p>
+        </div>
+        
+        <div className="bg-background rounded-lg shadow-lg p-6 space-y-6">
           <div className="space-y-4 text-muted-foreground">
             <h3 className="text-xl font-semibold text-foreground">Algorithmic Day Trading Strategy</h3>
             <p>
@@ -87,12 +88,8 @@ export const StrategyDetails = ({ onClose }: { onClose: () => void }) => {
               <li>Focus on high liquidity ETFs to ensure reliable execution</li>
             </ul>
           </div>
-          
-          <div className="pt-6 flex justify-end">
-            <Button onClick={onClose}>Close</Button>
-          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };

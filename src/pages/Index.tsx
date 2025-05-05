@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import { Stats } from "@/components/Stats";
@@ -8,8 +7,6 @@ import { UserControl } from "@/components/UserControl";
 import { StrategyDetails } from "@/components/StrategyDetails";
 
 const Index = () => {
-  const [showStrategyDetails, setShowStrategyDetails] = useState(false);
-
   return (
     <div className="min-h-screen">
       <Navigation />
@@ -27,7 +24,12 @@ const Index = () => {
             <Button 
               size="lg" 
               className="bg-white text-primary hover:bg-gray-100 fade-in"
-              onClick={() => setShowStrategyDetails(true)}
+              onClick={() => {
+                const strategySection = document.getElementById('strategy-section');
+                if (strategySection) {
+                  strategySection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
             >
               Learn More About Our Strategy
             </Button>
@@ -35,9 +37,12 @@ const Index = () => {
         </div>
       </section>
 
-      {showStrategyDetails && <StrategyDetails onClose={() => setShowStrategyDetails(false)} />}
-
       <HowItWorks />
+      
+      <div id="strategy-section">
+        <StrategyDetails />
+      </div>
+      
       <UserControl />
       <Stats />
     </div>
