@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -37,46 +38,33 @@ const TransactionsHistory = () => {
         setIsLoading(true);
         setError(null);
         
-        // Use a CORS proxy or a direct download link alternative
-        // Option 1: Use a raw data URL if available
-        const fileId = "1FNsE_bwKg5lDbMkXiEEJqHRH7-kM1TPe";
+        console.log("Fetching data from Supabase alerthist table");
         
-        // First attempt with direct download link
-        const url = `https://drive.google.com/uc?export=download&id=${fileId}`;
+        // Fetch data from Supabase alerthist table
+        const { data, error } = await supabase
+          .from('alerthist')
+          .select('*')
+          .order('alerttime', { ascending: true });
         
-        // Log the URL being used
-        console.log("Fetching data from:", url);
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+        if (error) {
+          throw new Error(`Failed to fetch data: ${error.message}`);
         }
         
-        // Try to parse the response as JSON
-        const data = await response.json();
         console.log("Data fetched successfully:", data.slice(0, 2)); // Log first 2 items
         
-        // Map the data to our Transaction type
+        // Map the data from Supabase to our Transaction type
         const mappedData: Transaction[] = data.map((item: any) => ({
-          date: item.Date || "",
-          symbol: item.Symbol || "",
-          action: item.Action || "",
-          quantity: parseInt(item.Quantity) || 0,
-          alertTime: item["Alert Time"] || "",
+          date: new Date(item.alerttime).toISOString().split('T')[0], // Extract date part
+          symbol: item.symbol || "",
+          action: item.action || "",
+          quantity: item.tradesize || 0,
+          alertTime: new Date(item.alerttime).toISOString().split('T')[1].substring(0, 8), // Extract time part (HH:MM:SS)
         }));
         
-        // Sort the transactions by date and alertTime in ascending order
-        const sortedData = mappedData.sort((a, b) => {
-          const dateTimeA = `${a.date} ${a.alertTime}`;
-          const dateTimeB = `${b.date} ${b.alertTime}`;
-          return dateTimeA.localeCompare(dateTimeB);
-        });
-        
-        setTransactions(sortedData);
+        setTransactions(mappedData);
         toast({
           title: "Data loaded successfully",
-          description: "Transactions data loaded from the provided link"
+          description: "Transactions data loaded from the database"
         });
       } catch (err: any) {
         console.error("Error fetching transactions:", err);
@@ -84,68 +72,27 @@ const TransactionsHistory = () => {
         toast({
           variant: "destructive",
           title: "Error loading data",
-          description: "Could not fetch transaction data from the provided link"
+          description: "Could not fetch transaction data from the database"
         });
         
-        // Try alternative data source using JSONP approach or direct file
-        try {
-          console.log("Attempting alternative data fetch method...");
-          
-          // Alternative 1: Try with export=view parameter
-          const alternativeUrl = `https://drive.google.com/file/d/${fileId}/view?alt=media`;
-          console.log("Alternative URL:", alternativeUrl);
-          
-          const alternativeResponse = await fetch(alternativeUrl);
-          
-          if (!alternativeResponse.ok) {
-            throw new Error("Alternative fetch method failed");
-          }
-          
-          const alternativeData = await alternativeResponse.json();
-          
-          // Map the data
-          const mappedData: Transaction[] = alternativeData.map((item: any) => ({
-            date: item.Date || "",
-            symbol: item.Symbol || "",
-            action: item.Action || "",
-            quantity: parseInt(item.Quantity) || 0,
-            alertTime: item["Alert Time"] || "",
-          }));
-          
-          const sortedData = mappedData.sort((a, b) => {
-            const dateTimeA = `${a.date} ${a.alertTime}`;
-            const dateTimeB = `${b.date} ${b.alertTime}`;
-            return dateTimeA.localeCompare(dateTimeB);
-          });
-          
-          setTransactions(sortedData);
-          setError(null);
-          toast({
-            title: "Data loaded successfully",
-            description: "Transactions data loaded from alternative source"
-          });
-        } catch (alternativeErr) {
-          console.error("Alternative fetch also failed:", alternativeErr);
-          
-          // Fallback to mock data if all fetch methods fail
-          const mockTransactions: Transaction[] = [
-            { action: "BUY", symbol: "AAPL", quantity: 100, date: "2025-05-01", alertTime: "09:30:00" },
-            { action: "SELL", symbol: "MSFT", quantity: 50, date: "2025-05-02", alertTime: "10:15:00" },
-            { action: "BUY", symbol: "GOOGL", quantity: 25, date: "2025-05-03", alertTime: "11:45:00" },
-            { action: "SELL", symbol: "AMZN", quantity: 30, date: "2025-05-04", alertTime: "13:20:00" },
-            { action: "BUY", symbol: "TSLA", quantity: 15, date: "2025-05-05", alertTime: "14:30:00" },
-            { action: "BUY", symbol: "NVDA", quantity: 40, date: "2025-05-05", alertTime: "15:10:00" },
-            { action: "SELL", symbol: "META", quantity: 60, date: "2025-05-05", alertTime: "15:45:00" },
-            { action: "BUY", symbol: "AMD", quantity: 75, date: "2025-05-06", alertTime: "09:45:00" },
-            { action: "SELL", symbol: "INTC", quantity: 55, date: "2025-05-06", alertTime: "11:30:00" },
-            { action: "BUY", symbol: "NFLX", quantity: 20, date: "2025-05-07", alertTime: "10:00:00" },
-            { action: "SELL", symbol: "DIS", quantity: 40, date: "2025-05-07", alertTime: "14:15:00" },
-            { action: "BUY", symbol: "PYPL", quantity: 35, date: "2025-05-08", alertTime: "09:30:00" },
-          ];
-          
-          setTransactions(mockTransactions);
-          setError("⚠️ Using demo data - Could not connect to data source");
-        }
+        // Fallback to mock data if database fetch fails
+        const mockTransactions: Transaction[] = [
+          { action: "BUY", symbol: "AAPL", quantity: 100, date: "2025-05-01", alertTime: "09:30:00" },
+          { action: "SELL", symbol: "MSFT", quantity: 50, date: "2025-05-02", alertTime: "10:15:00" },
+          { action: "BUY", symbol: "GOOGL", quantity: 25, date: "2025-05-03", alertTime: "11:45:00" },
+          { action: "SELL", symbol: "AMZN", quantity: 30, date: "2025-05-04", alertTime: "13:20:00" },
+          { action: "BUY", symbol: "TSLA", quantity: 15, date: "2025-05-05", alertTime: "14:30:00" },
+          { action: "BUY", symbol: "NVDA", quantity: 40, date: "2025-05-05", alertTime: "15:10:00" },
+          { action: "SELL", symbol: "META", quantity: 60, date: "2025-05-05", alertTime: "15:45:00" },
+          { action: "BUY", symbol: "AMD", quantity: 75, date: "2025-05-06", alertTime: "09:45:00" },
+          { action: "SELL", symbol: "INTC", quantity: 55, date: "2025-05-06", alertTime: "11:30:00" },
+          { action: "BUY", symbol: "NFLX", quantity: 20, date: "2025-05-07", alertTime: "10:00:00" },
+          { action: "SELL", symbol: "DIS", quantity: 40, date: "2025-05-07", alertTime: "14:15:00" },
+          { action: "BUY", symbol: "PYPL", quantity: 35, date: "2025-05-08", alertTime: "09:30:00" },
+        ];
+        
+        setTransactions(mockTransactions);
+        setError("⚠️ Using demo data - Could not connect to database");
       } finally {
         setIsLoading(false);
       }
