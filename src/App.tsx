@@ -11,6 +11,7 @@ import TermsOfService from "./pages/TermsOfService";
 import Privacy from "./pages/Privacy";
 import Account from "./pages/Account";
 import PerformanceTable from "./pages/PerformanceTable";
+import ComparisonTable from "./pages/ComparisonTable";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/account" element={<Account />} />
           <Route path="/performance" element={<PerformanceTable />} />
+          <Route path="/comparison" element={<ComparisonTable />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
