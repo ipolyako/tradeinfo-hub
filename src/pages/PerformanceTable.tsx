@@ -32,120 +32,11 @@ const PerformanceTable = () => {
 
   useEffect(() => {
     // In a real application, you would fetch data from an API
-    // For this demo, we'll use hardcoded data from the spreadsheet
+    // For this demo, we'll use hardcoded data
     setTimeout(() => {
       try {
-        // Data extracted from the shared spreadsheet
-        const data: TradeData[] = [
-          { 
-            date: "Apr-24", 
-            algorithm: "Futures", 
-            trades: 179, 
-            winRate: "68.7%", 
-            profitFactor: 2.31, 
-            netPL: "$24,552", 
-            return: "2.5%" 
-          },
-          { 
-            date: "Mar-24", 
-            algorithm: "Futures", 
-            trades: 198, 
-            winRate: "70.2%", 
-            profitFactor: 2.46, 
-            netPL: "$26,970", 
-            return: "2.7%" 
-          },
-          { 
-            date: "Feb-24", 
-            algorithm: "Futures", 
-            trades: 183, 
-            winRate: "68.3%", 
-            profitFactor: 2.28, 
-            netPL: "$20,856", 
-            return: "2.1%" 
-          },
-          { 
-            date: "Jan-24", 
-            algorithm: "Futures", 
-            trades: 201, 
-            winRate: "69.7%", 
-            profitFactor: 2.34, 
-            netPL: "$25,290", 
-            return: "2.5%" 
-          },
-          { 
-            date: "Dec-23", 
-            algorithm: "Futures", 
-            trades: 187, 
-            winRate: "67.9%", 
-            profitFactor: 2.22, 
-            netPL: "$20,350", 
-            return: "2.0%" 
-          },
-          { 
-            date: "Nov-23", 
-            algorithm: "Futures", 
-            trades: 194, 
-            winRate: "69.1%", 
-            profitFactor: 2.37, 
-            netPL: "$23,487", 
-            return: "2.3%" 
-          },
-          { 
-            date: "Oct-23", 
-            algorithm: "Futures", 
-            trades: 206, 
-            winRate: "69.4%", 
-            profitFactor: 2.40, 
-            netPL: "$24,612", 
-            return: "2.5%" 
-          },
-          { 
-            date: "Sep-23", 
-            algorithm: "Futures", 
-            trades: 191, 
-            winRate: "68.6%", 
-            profitFactor: 2.31, 
-            netPL: "$21,942", 
-            return: "2.2%" 
-          },
-          { 
-            date: "Aug-23", 
-            algorithm: "Futures", 
-            trades: 204, 
-            winRate: "70.1%", 
-            profitFactor: 2.44, 
-            netPL: "$26,520", 
-            return: "2.7%" 
-          },
-          { 
-            date: "Jul-23", 
-            algorithm: "Futures", 
-            trades: 189, 
-            winRate: "68.8%", 
-            profitFactor: 2.32, 
-            netPL: "$23,310", 
-            return: "2.3%" 
-          },
-          { 
-            date: "Jun-23", 
-            algorithm: "Futures", 
-            trades: 196, 
-            winRate: "69.4%", 
-            profitFactor: 2.38, 
-            netPL: "$24,108", 
-            return: "2.4%" 
-          },
-          { 
-            date: "May-23", 
-            algorithm: "Futures", 
-            trades: 202, 
-            winRate: "68.3%", 
-            profitFactor: 2.27, 
-            netPL: "$22,422", 
-            return: "2.2%" 
-          }
-        ];
+        // Empty data array
+        const data: TradeData[] = [];
         
         setTableData(data);
         setIsLoading(false);
@@ -175,7 +66,7 @@ const PerformanceTable = () => {
     const avgReturn = (tableData.reduce((sum, row) => sum + parseFloat(row.return), 0) / tableData.length).toFixed(1) + '%';
     
     return {
-      period: "12 Months",
+      period: "0 Months",
       trades,
       avgWinRate,
       avgProfitFactor,
@@ -205,6 +96,11 @@ const PerformanceTable = () => {
         ) : error ? (
           <div className="text-center p-8 bg-destructive/10 text-destructive rounded-lg">
             {error}
+          </div>
+        ) : tableData.length === 0 ? (
+          <div className="text-center p-12 bg-muted rounded-lg">
+            <h3 className="text-xl font-medium mb-2">No Performance Data Available</h3>
+            <p className="text-muted-foreground">Performance data will be displayed here once available.</p>
           </div>
         ) : (
           <>
@@ -246,7 +142,7 @@ const PerformanceTable = () => {
               </CardHeader>
               <CardContent>
                 <Table>
-                  <TableCaption>Monthly trading performance over the last 12 months</TableCaption>
+                  <TableCaption>Monthly trading performance</TableCaption>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Month</TableHead>
@@ -276,7 +172,7 @@ const PerformanceTable = () => {
             </Card>
             
             <div className="mt-8 text-center text-sm text-muted-foreground">
-              <p>Data is updated monthly. Last updated: May 1, 2025</p>
+              <p>Data is updated monthly. Last updated: May 5, 2025</p>
             </div>
           </>
         )}
