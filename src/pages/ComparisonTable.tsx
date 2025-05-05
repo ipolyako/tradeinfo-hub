@@ -77,7 +77,8 @@ const ComparisonTable = () => {
           Back to Home
         </Link>
         
-        <h1 className="text-3xl font-bold mb-8">ETF Pair Trading Performance</h1>
+        <h1 className="text-3xl font-bold mb-2">ETF Pair Trading Performance</h1>
+        <p className="text-lg text-muted-foreground mb-8">Latest Version - Updated May 2025</p>
         
         <Card className="mb-8">
           <CardHeader>
