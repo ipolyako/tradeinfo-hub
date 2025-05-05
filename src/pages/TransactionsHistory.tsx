@@ -62,8 +62,12 @@ const TransactionsHistory = () => {
     fetchTransactionsData();
   }, []);
 
-  // Note: We're not using parseCSV anymore since we're using mock data
-  
+  // Function to format the complete date and time
+  const formatAlertDateTime = (date: string, time: string): string => {
+    // Format the date and time as "YYYY-MM-DD HH:MM:SS"
+    return `${date} ${time}`;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -99,7 +103,7 @@ const TransactionsHistory = () => {
                       <TableHead>Action</TableHead> 
                       <TableHead>Symbol</TableHead>
                       <TableHead className="text-right">Quantity</TableHead>
-                      <TableHead>Alert Time</TableHead>
+                      <TableHead>Alert Date & Time</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -115,7 +119,7 @@ const TransactionsHistory = () => {
                           <TableCell>{transaction.action}</TableCell>
                           <TableCell>{transaction.symbol}</TableCell>
                           <TableCell className="text-right">{transaction.quantity.toLocaleString()}</TableCell>
-                          <TableCell>{transaction.alertTime}</TableCell>
+                          <TableCell>{formatAlertDateTime(transaction.date, transaction.alertTime)}</TableCell>
                         </TableRow>
                       ))
                     )}
