@@ -23,9 +23,9 @@ const TransactionsHistory = () => {
     const fetchTransactionsData = async () => {
       try {
         setIsLoading(true);
-        // Using the CSV version of the Google Sheets for direct data access
+        // Updated URL to use the new Google Drive file
         const response = await fetch(
-          "https://docs.google.com/spreadsheets/d/1FBZGz441RnGxQQd7h470adxTtHrOvZ6d/export?format=csv"
+          "https://docs.google.com/spreadsheets/d/1FNsE_bwKg5lDbMkXiEEJqHRH7-kM1TPe/export?format=csv"
         );
         
         if (!response.ok) {
