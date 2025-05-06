@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
 
 const GetStarted = () => {
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "success" | "failed">("idle");
@@ -35,10 +36,20 @@ const GetStarted = () => {
             },
             onApprove: function(data) {
               console.log("Subscription approved:", data.subscriptionID);
+              toast({
+                title: "Subscription Successful",
+                description: "Your subscription has been processed successfully.",
+                variant: "default",
+              });
               setPaymentStatus("success");
             },
             onError: function(err) {
               console.error("PayPal error:", err);
+              toast({
+                title: "Payment Failed",
+                description: "There was an issue processing your payment.",
+                variant: "destructive",
+              });
               setPaymentStatus("failed");
             },
             onCancel: function() {
