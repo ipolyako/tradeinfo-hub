@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User, List, History } from "lucide-react";
+import { Menu, User, List, History, CreditCard } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Drawer,
@@ -25,8 +25,11 @@ export const Navigation = () => {
     { title: "Privacy", path: "/privacy" },
   ];
   
-  // Make account a separate, highlighted item
-  const accountLink = { title: "My Account", path: "/account" };
+  // Account and Payments links
+  const accountLinks = [
+    { title: "My Account", path: "/account", icon: User },
+    { title: "Payments", path: "/payments", icon: CreditCard },
+  ];
 
   return (
     <nav className="fixed w-full bg-white/80 backdrop-blur-md z-50 shadow-sm">
@@ -60,16 +63,20 @@ export const Navigation = () => {
               </Link>
             ))}
             
-            {/* Make My Account button more prominent */}
-            <Link to={accountLink.path}>
-              <Button 
-                variant={location.pathname === accountLink.path ? "default" : "outline"} 
-                className="flex items-center gap-2"
-              >
-                <User className="h-4 w-4" />
-                {accountLink.title}
-              </Button>
-            </Link>
+            {/* Account related links */}
+            <div className="flex items-center space-x-3">
+              {accountLinks.map((link) => (
+                <Link key={link.title} to={link.path}>
+                  <Button 
+                    variant={location.pathname === link.path ? "default" : "outline"} 
+                    className="flex items-center gap-2"
+                  >
+                    <link.icon className="h-4 w-4" />
+                    {link.title}
+                  </Button>
+                </Link>
+              ))}
+            </div>
             
             <Link to="/get-started">
               <Button variant={location.pathname === "/get-started" ? "secondary" : "default"}>
@@ -103,18 +110,21 @@ export const Navigation = () => {
                       </Link>
                     ))}
                     
-                    {/* Make mobile account link more noticeable */}
-                    <Link 
-                      to={accountLink.path} 
-                      className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border ${
-                        location.pathname === accountLink.path ? 
-                        'bg-primary/10 text-primary' : 'bg-muted/50'
-                      }`}
-                      onClick={() => setIsDrawerOpen(false)}
-                    >
-                      <User className="h-5 w-5" />
-                      {accountLink.title}
-                    </Link>
+                    {/* Mobile account links */}
+                    {accountLinks.map((link) => (
+                      <Link 
+                        key={link.title}
+                        to={link.path} 
+                        className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border ${
+                          location.pathname === link.path ? 
+                          'bg-primary/10 text-primary' : 'bg-muted/50'
+                        }`}
+                        onClick={() => setIsDrawerOpen(false)}
+                      >
+                        <link.icon className="h-5 w-5" />
+                        {link.title}
+                      </Link>
+                    ))}
                     
                     <Link 
                       to="/get-started" 
