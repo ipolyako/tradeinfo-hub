@@ -3,18 +3,65 @@ import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const GetStarted = () => {
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "success" | "failed">("idle");
 
-  const handlePaymentSuccess = () => {
-    setPaymentStatus("success");
-  };
+  // Initialize PayPal script
+  useEffect(() => {
+    if (paymentStatus === "idle") {
+      // Create PayPal script element
+      const script = document.createElement("script");
+      script.src = "https://www.paypal.com/sdk/js?client-id=ARrwQMysQqyFM7j3lPuiPnUII7WXGkNWzBLTdVm2HvVUa-shV1LA0EMANtgTSMKWa-UQ-Leig0VywPD7&vault=true";
+      script.setAttribute("data-sdk-integration-source", "button-factory");
+      script.async = true;
+      
+      // When the script loads, render the PayPal buttons
+      script.onload = () => {
+        if (window.paypal) {
+          window.paypal.Buttons({
+            style: {
+              shape: 'rect',
+              color: 'gold',
+              layout: 'vertical',
+              label: 'subscribe',
+            },
+            createSubscription: function(data, actions) {
+              return actions.subscription.create({
+                'plan_id': 'P-64T954128V783625HL3ITKJY'
+              });
+            },
+            onApprove: function(data) {
+              console.log("Subscription approved:", data.subscriptionID);
+              setPaymentStatus("success");
+            },
+            onError: function(err) {
+              console.error("PayPal error:", err);
+              setPaymentStatus("failed");
+            },
+            onCancel: function() {
+              setPaymentStatus("failed");
+            }
+          }).render('#paypal-button-container');
+        }
+      };
+      
+      // Add script to document
+      document.body.appendChild(script);
+      
+      // Clean up
+      return () => {
+        if (document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
+      };
+    }
+  }, [paymentStatus]);
 
-  const handlePaymentCancel = () => {
-    setPaymentStatus("failed");
+  const handleRetry = () => {
+    setPaymentStatus("idle");
   };
 
   return (
@@ -52,39 +99,19 @@ const GetStarted = () => {
                   {paymentStatus === "idle" && (
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <span className="font-medium">Setup Fee:</span>
+                        <span className="font-medium">Subscription Fee:</span>
                         <span className="font-bold">$199.00 USD</span>
                       </div>
                       
                       <div id="paypal-button-container" className="w-full">
                         {/* PayPal Button will be rendered here */}
-                        <div className="flex flex-col space-y-4">
-                          <div className="relative h-12 w-full overflow-hidden rounded border border-border">
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <img 
-                                src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/checkout-logo-large.png" 
-                                alt="PayPal Checkout" 
-                                className="h-full object-contain" 
-                              />
-                            </div>
-                            <div className="absolute inset-0 opacity-0">
-                              <Button 
-                                className="h-full w-full" 
-                                onClick={handlePaymentSuccess} 
-                                aria-label="Pay with PayPal"
-                              >
-                                Pay with PayPal
-                              </Button>
-                            </div>
-                          </div>
-                          
-                          <div className="text-center text-sm text-muted-foreground">
-                            By clicking the payment button, you agree to our
-                            <Link to="/terms-of-service" className="mx-1 text-primary hover:underline">Terms of Service</Link>
-                            and
-                            <Link to="/privacy" className="mx-1 text-primary hover:underline">Privacy Policy</Link>
-                          </div>
-                        </div>
+                      </div>
+                      
+                      <div className="text-center text-sm text-muted-foreground">
+                        By proceeding with the payment, you agree to our
+                        <Link to="/terms-of-service" className="mx-1 text-primary hover:underline">Terms of Service</Link>
+                        and
+                        <Link to="/privacy" className="mx-1 text-primary hover:underline">Privacy Policy</Link>
                       </div>
                     </div>
                   )}
@@ -98,8 +125,8 @@ const GetStarted = () => {
                           </svg>
                         </div>
                       </div>
-                      <h3 className="text-xl font-medium text-green-700">Payment Successful!</h3>
-                      <p className="mt-2">Thank you for your payment. Our team will review your application and contact you shortly.</p>
+                      <h3 className="text-xl font-medium text-green-700">Subscription Successful!</h3>
+                      <p className="mt-2">Thank you for your subscription. Our team will review your application and contact you shortly.</p>
                     </div>
                   )}
 
@@ -114,7 +141,7 @@ const GetStarted = () => {
                       </div>
                       <h3 className="text-xl font-medium text-red-700">Payment Cancelled</h3>
                       <p className="mt-2">Your payment was not processed. Please try again or contact our support team.</p>
-                      <Button className="mt-4" onClick={() => setPaymentStatus("idle")}>Try Again</Button>
+                      <Button className="mt-4" onClick={handleRetry}>Try Again</Button>
                     </div>
                   )}
                 </CardContent>
