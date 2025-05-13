@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User, List, History, CreditCard } from "lucide-react";
+import { Menu, User, List, History, CreditCard, WalletCards } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Drawer,
@@ -12,6 +12,15 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 
 export const Navigation = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -44,10 +53,10 @@ export const Navigation = () => {
     { title: "Privacy", path: "/privacy" },
   ];
   
-  // Account and Payments links - only shown when authenticated
-  const accountLinks = [
-    { title: "My Account", path: "/account", icon: User },
-    ...(session ? [{ title: "Payments", path: "/payments", icon: CreditCard }] : []),
+  // Account menu items
+  const accountMenuItems = [
+    { title: "Profile", path: "/account", icon: User },
+    { title: "Payments", path: "/payments", icon: WalletCards },
   ];
 
   return (
@@ -82,20 +91,48 @@ export const Navigation = () => {
               </Link>
             ))}
             
-            {/* Account related links */}
-            <div className="flex items-center space-x-3">
-              {accountLinks.map((link) => (
-                <Link key={link.title} to={link.path}>
-                  <Button 
-                    variant={location.pathname === link.path ? "default" : "outline"} 
-                    className="flex items-center gap-2"
-                  >
-                    <link.icon className="h-4 w-4" />
-                    {link.title}
-                  </Button>
-                </Link>
-              ))}
-            </div>
+            {/* Account dropdown for authenticated users */}
+            {session && (
+              <NavigationMenu>
+                <NavigationMenuList>
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger>My Account</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid w-[200px] gap-2 p-2">
+                        {accountMenuItems.map((item) => (
+                          <li key={item.title}>
+                            <NavigationMenuLink asChild>
+                              <Link
+                                to={item.path}
+                                className={`flex items-center gap-2 p-2 rounded-md hover:bg-accent ${
+                                  location.pathname === item.path ? 'bg-primary/10 text-primary' : ''
+                                }`}
+                              >
+                                <item.icon className="h-4 w-4" />
+                                {item.title}
+                              </Link>
+                            </NavigationMenuLink>
+                          </li>
+                        ))}
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
+            )}
+            
+            {/* If not authenticated, show "My Account" button */}
+            {!session && (
+              <Link to="/account">
+                <Button 
+                  variant={location.pathname === "/account" ? "default" : "outline"} 
+                  className="flex items-center gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  My Account
+                </Button>
+              </Link>
+            )}
             
             <Link to="/get-started">
               <Button variant={location.pathname === "/get-started" ? "secondary" : "default"}>
@@ -129,21 +166,43 @@ export const Navigation = () => {
                       </Link>
                     ))}
                     
-                    {/* Mobile account links */}
-                    {accountLinks.map((link) => (
+                    {/* Mobile account section */}
+                    {session && (
+                      <>
+                        <div className="w-full text-center py-2 text-lg font-medium mt-2">
+                          My Account
+                        </div>
+                        {accountMenuItems.map((item) => (
+                          <Link 
+                            key={item.title}
+                            to={item.path} 
+                            className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border ${
+                              location.pathname === item.path ? 
+                              'bg-primary/10 text-primary' : 'bg-muted/50'
+                            }`}
+                            onClick={() => setIsDrawerOpen(false)}
+                          >
+                            <item.icon className="h-5 w-5" />
+                            {item.title}
+                          </Link>
+                        ))}
+                      </>
+                    )}
+                    
+                    {/* If not authenticated, show My Account link */}
+                    {!session && (
                       <Link 
-                        key={link.title}
-                        to={link.path} 
+                        to="/account" 
                         className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border ${
-                          location.pathname === link.path ? 
+                          location.pathname === "/account" ? 
                           'bg-primary/10 text-primary' : 'bg-muted/50'
                         }`}
                         onClick={() => setIsDrawerOpen(false)}
                       >
-                        <link.icon className="h-5 w-5" />
-                        {link.title}
+                        <User className="h-5 w-5" />
+                        My Account
                       </Link>
-                    ))}
+                    )}
                     
                     <Link 
                       to="/get-started" 
