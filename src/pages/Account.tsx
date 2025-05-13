@@ -54,21 +54,7 @@ const Account = () => {
     const getSession = async () => {
       setLoading(true);
       try {
-        // First set up auth state listener to keep state updated
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, currentSession) => {
-            console.log('Auth state changed:', event);
-            setSession(currentSession);
-            
-            // When user logs in, fetch their profile but don't check status automatically
-            if (event === 'SIGNED_IN' && currentSession?.user) {
-              console.log('User signed in, fetching profile');
-              await fetchUserProfile(currentSession.user.id);
-            }
-          }
-        );
-
-        // Then check for existing session
+        // First check for existing session
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         console.log('Current session:', currentSession?.user?.id || 'none');
         setSession(currentSession);
@@ -77,7 +63,24 @@ const Account = () => {
           await fetchUserProfile(currentSession.user.id);
         }
         
+        // Always set loading to false after initial check
         setLoading(false);
+
+        // Then set up auth state listener to keep state updated
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, newSession) => {
+            console.log('Auth state changed:', event);
+            setSession(newSession);
+            
+            // When user logs in, fetch their profile
+            if (event === 'SIGNED_IN' && newSession?.user) {
+              console.log('User signed in, fetching profile');
+              await fetchUserProfile(newSession.user.id);
+            } else if (event === 'SIGNED_OUT') {
+              setUserProfile(null);
+            }
+          }
+        );
 
         return () => subscription.unsubscribe();
       } catch (error) {
