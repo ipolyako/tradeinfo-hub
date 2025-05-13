@@ -13,7 +13,7 @@ export const PayPalButton = ({ onStatusChange, onSubscriptionUpdate }: PayPalBut
   useEffect(() => {
     // Create PayPal script element
     const script = document.createElement("script");
-    script.src = "https://www.paypal.com/sdk/js?client-id=ARrwQMysQqyFM7j3lPuiPnUII7WXGkNWzBLTdVm2HvVUa-shV1LA0EMANtgTSMKWa-UQ-Leig0VywPD7&vault=true";
+    script.src = "https://www.paypal.com/sdk/js?client-id=AehBHwNlULYPYFGpYzx1kxtEEha4Fw1rvUgx1xv8kNwyYZA0Dqi7H0M2YDxpTn-2v7A-houXY4xlzY2I&vault=true";
     script.setAttribute("data-sdk-integration-source", "button-factory");
     script.async = true;
     
