@@ -4,30 +4,49 @@ import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CreditCard } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Payments = () => {
+  const navigate = useNavigate();
   const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "success" | "failed">("idle");
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   // Check authentication status
   useEffect(() => {
     const getSession = async () => {
+      setLoading(true);
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       setSession(currentSession);
+      setLoading(false);
+      
+      // If not logged in, redirect to login
+      if (!currentSession) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to access payment options.",
+          variant: "destructive",
+        });
+        navigate("/account");
+      }
     };
 
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
       setSession(currentSession);
+      
+      // If logged out during session, redirect to login
+      if (event === 'SIGNED_OUT') {
+        navigate("/account");
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   // Initialize PayPal script when component mounts
   useEffect(() => {
@@ -95,8 +114,8 @@ const Payments = () => {
     setPaymentStatus("idle");
   };
 
-  // If not logged in, redirect to login
-  if (!session) {
+  // Show loading state while checking auth
+  if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
@@ -104,18 +123,15 @@ const Payments = () => {
           <h1 className="text-3xl font-bold mb-8">Payments</h1>
           <Card>
             <CardContent className="pt-6">
-              <p className="text-center py-6">Please log in to access payment options.</p>
-              <div className="flex justify-center">
-                <Link to="/account">
-                  <Button>Log In</Button>
-                </Link>
-              </div>
+              <p className="text-center py-6">Loading payment options...</p>
             </CardContent>
           </Card>
         </div>
       </div>
     );
   }
+
+  // If not logged in, already redirected in useEffect
 
   return (
     <div className="min-h-screen bg-background">

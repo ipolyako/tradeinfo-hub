@@ -10,11 +10,30 @@ import {
   DrawerClose
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export const Navigation = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const isMobile = useIsMobile();
   const location = useLocation();
+
+  // Check authentication status for navigation
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      setSession(currentSession);
+    };
+
+    getSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      setSession(currentSession);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Separate main navigation links from account-related links
   const mainNavLinks = [
@@ -25,10 +44,10 @@ export const Navigation = () => {
     { title: "Privacy", path: "/privacy" },
   ];
   
-  // Account and Payments links
+  // Account and Payments links - only shown when authenticated
   const accountLinks = [
     { title: "My Account", path: "/account", icon: User },
-    { title: "Payments", path: "/payments", icon: CreditCard },
+    ...(session ? [{ title: "Payments", path: "/payments", icon: CreditCard }] : []),
   ];
 
   return (
