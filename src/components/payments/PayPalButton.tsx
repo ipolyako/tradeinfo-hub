@@ -22,14 +22,13 @@ export const PayPalButton = ({
   className,
   accountValue = 0
 }: PayPalButtonProps) => {
-  const paypalContainerId = `paypal-button-container-${Math.random().toString(36).substring(2, 9)}`;
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
   const [renderAttempts, setRenderAttempts] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const containerId = `paypal-button-container-${PLAN_ID}`;
   
-  // Create a fresh container each render attempt
   const refreshPayPalContainer = () => {
     setRenderAttempts(prev => prev + 1);
     setScriptError(false);
@@ -56,53 +55,30 @@ export const PayPalButton = ({
   };
   
   const renderPayPalButtons = () => {
-    if (!window.paypal) {
-      console.error('PayPal SDK not loaded');
-      setScriptError(true);
-      return;
-    }
-    
-    // Use containerRef to get the current container element
-    const container = containerRef.current;
-    if (!container) {
-      console.error('PayPal container element not found via ref');
+    if (!window.paypal || !containerRef.current) {
+      console.error('PayPal SDK not loaded or container not found');
       setScriptError(true);
       return;
     }
     
     try {
-      // Clear any previous buttons
-      container.innerHTML = '';
+      // Clear any previous buttons to ensure clean rendering
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+      }
       
-      // Set appropriate button style based on device
-      const buttonStyle = isMobile ? {
-        shape: 'rect',
-        color: 'gold',
-        layout: 'vertical',
-        label: 'subscribe',
-        height: 45 // Slightly larger buttons for mobile
-      } : {
-        shape: 'rect',
-        color: 'gold',
-        layout: 'vertical',
-        label: 'subscribe'
-      };
-      
-      const paypalButtons = window.paypal.Buttons({
-        style: buttonStyle,
+      // Using the exact configuration from your provided code
+      window.paypal.Buttons({
+        style: {
+          shape: 'rect',
+          color: 'silver',
+          layout: 'vertical',
+          label: 'subscribe'
+        },
         createSubscription: function(data, actions) {
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: 1,
-            application_context: {
-              brand_name: 'DECO GLOBAL SERVICES, INC.',
-              shipping_preference: 'NO_SHIPPING',
-              user_action: 'SUBSCRIBE_NOW',
-              payment_method: {
-                payer_selected: 'PAYPAL',
-                payee_preferred: 'IMMEDIATE_PAYMENT_REQUIRED'
-              }
-            }
+            quantity: 1
           });
         },
         onApprove: function(data) {
@@ -132,16 +108,9 @@ export const PayPalButton = ({
             description: "You've cancelled the subscription process.",
           });
         }
-      });
-
-      // Render the PayPal buttons but don't chain .then() since it returns void
-      if (document.body.contains(container)) {
-        paypalButtons.render(container);
-        console.log('PayPal buttons rendered in container');
-      } else {
-        console.error('Container no longer in DOM');
-        setScriptError(true);
-      }
+      }).render(`#${containerId}`);
+      
+      console.log('PayPal buttons rendered using direct selector');
     } catch (err) {
       console.error("Failed to initialize PayPal buttons:", err);
       onStatusChange("failed");
@@ -158,23 +127,19 @@ export const PayPalButton = ({
   useEffect(() => {
     loadPayPalScript();
     
-    // Cleanup function to handle unmounting properly
     return () => {
       console.log('PayPal button component unmounting');
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-render buttons when scriptLoaded changes or render attempts change
+  // Render buttons when script is loaded
   useEffect(() => {
-    if (scriptLoaded && window.paypal && containerRef.current) {
-      // Mobile devices need a small delay to ensure DOM is properly updated
+    if (scriptLoaded && window.paypal) {
+      // Add delay to ensure DOM is ready, longer on mobile
+      const delay = isMobile ? 500 : 200;
       const timer = setTimeout(() => {
-        if (containerRef.current) {
-          console.log('Attempting to render PayPal buttons, container exists:', !!containerRef.current);
-          renderPayPalButtons();
-        }
-      }, isMobile ? 300 : 100); // Longer delay for mobile
+        renderPayPalButtons();
+      }, delay);
       
       return () => clearTimeout(timer);
     }
@@ -187,7 +152,7 @@ export const PayPalButton = ({
         <span className="font-bold">Monthly Plan</span>
       </div>
       
-      <div className="w-full min-h-[220px]"> {/* Increased height for mobile */}
+      <div className="w-full min-h-[250px]"> {/* Increased height for stability */}
         {scriptError ? (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>
@@ -203,7 +168,7 @@ export const PayPalButton = ({
             </AlertDescription>
           </Alert>
         ) : (
-          <div className="w-full min-h-[220px] flex flex-col items-center justify-center">
+          <div className="w-full min-h-[250px] flex flex-col items-center justify-center">
             {!scriptLoaded && (
               <div className="flex flex-col items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -212,12 +177,13 @@ export const PayPalButton = ({
                 </p>
               </div>
             )}
+            
             <div 
-              ref={containerRef} 
+              ref={containerRef}
+              id={containerId}
               className="w-full paypal-button-container"
-              id={paypalContainerId}
               key={`paypal-container-${renderAttempts}`}
-              style={{ minHeight: isMobile ? "100px" : "80px" }}
+              style={{ minHeight: isMobile ? "150px" : "120px" }}
             ></div>
           </div>
         )}

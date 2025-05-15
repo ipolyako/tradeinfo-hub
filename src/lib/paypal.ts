@@ -37,7 +37,7 @@ export function initializePayPalScript() {
     
     // Create and add the script if it doesn't exist
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription&components=buttons`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription`;
     script.async = true;
     script.setAttribute('data-sdk-integration-source', 'button-factory');
     
