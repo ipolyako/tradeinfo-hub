@@ -123,8 +123,10 @@ export const PayPalButton = ({
         }
       });
 
-      // Render the PayPal button
-      paypalButtons.render(`#${paypalContainerId}`).catch((err: any) => {
+      // Render the PayPal button - fix for TypeScript error by handling the promise properly
+      paypalButtons.render(`#${paypalContainerId}`).then(() => {
+        console.log('PayPal buttons rendered successfully');
+      }).catch((err: any) => {
         console.error('Failed to render PayPal buttons:', err);
         setScriptError(true);
       });
