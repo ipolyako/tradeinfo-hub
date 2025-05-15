@@ -1,8 +1,8 @@
 
 // PayPal utility functions and types
-import { useEffect, useState } from 'react';
 
-export const CLIENT_ID = 'AehBHwNlULYPYFGpYzx1kxtEEha4Fw1rvUgx1xv8kNwyYZA0Dqi7H0M2YDxpTn-2v7A-houXY4xlzY2I';
+export const CLIENT_ID = 'ARrwQMysQqyFM7j3lPuiPnUII7WXGkNWzBLTdVm2HvVUa-shV1LA0EMANtgTSMKWa-UQ-Leig0VywPD7';
+export const PLAN_ID = 'P-3CD17662R8975905JNASUSYA';
 
 // Initialize PayPal script in main app
 export function initializePayPalScript() {
@@ -12,11 +12,12 @@ export function initializePayPalScript() {
   }
   
   const script = document.createElement('script');
-  script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD`;
+  script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription`;
   script.async = true;
+  script.setAttribute('data-sdk-integration-source', 'button-factory');
   
   document.body.appendChild(script);
-  console.log('PayPal script added to document');
+  console.log('PayPal subscription script added to document');
 }
 
 // Legacy hook kept for backward compatibility

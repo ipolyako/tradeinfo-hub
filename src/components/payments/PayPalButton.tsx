@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { CLIENT_ID } from "@/lib/paypal";
+import { CLIENT_ID, PLAN_ID } from "@/lib/paypal";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,6 @@ export const PayPalButton = ({
   accountValue = 0
 }: PayPalButtonProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const subscriptionFee = accountValue < 100000 ? 200 : 300;
   
   useEffect(() => {
     // Start with loading state
@@ -45,53 +44,41 @@ export const PayPalButton = ({
     try {
       const paypalButtons = window.paypal.Buttons({
         style: { 
-          layout: 'vertical', 
-          color: 'gold', 
-          shape: 'pill', 
-          label: 'paypal' 
+          shape: 'rect',
+          color: 'gold',
+          layout: 'vertical',
+          label: 'subscribe'
         },
-        createOrder: (data: any, actions: any) => {
-          return actions.order.create({
-            purchase_units: [
-              { amount: { value: subscriptionFee.toString() } }
-            ]
+        createSubscription: function(data, actions) {
+          return actions.subscription.create({
+            plan_id: PLAN_ID,
+            quantity: 1
           });
         },
-        onApprove: async (data: any, actions: any) => {
-          try {
-            const details = await actions.order.capture();
-            console.log("Payment successful:", details);
-            toast({
-              title: "Payment Successful",
-              description: "Your payment has been processed successfully.",
-            });
-            onStatusChange("success");
-            onSubscriptionUpdate(true);
-          } catch (err) {
-            console.error("Payment capture error:", err);
-            toast({
-              title: "Payment Failed",
-              description: "There was an issue processing your payment.",
-              variant: "destructive",
-            });
-            onStatusChange("failed");
-          }
+        onApprove: function(data) {
+          console.log("Subscription successful:", data.subscriptionID);
+          toast({
+            title: "Subscription Successful",
+            description: "Your subscription has been processed successfully.",
+          });
+          onStatusChange("success");
+          onSubscriptionUpdate(true);
         },
         onError: (err: any) => {
           console.error("PayPal error:", err);
           toast({
-            title: "Payment Failed",
-            description: "There was an issue processing your payment.",
+            title: "Subscription Failed",
+            description: "There was an issue processing your subscription.",
             variant: "destructive",
           });
           onStatusChange("failed");
         },
         onCancel: () => {
-          console.log("Payment cancelled");
+          console.log("Subscription cancelled");
           onStatusChange("idle");
           toast({
-            title: "Payment Cancelled",
-            description: "You've cancelled the payment process.",
+            title: "Subscription Cancelled",
+            description: "You've cancelled the subscription process.",
           });
         }
       });
@@ -106,20 +93,20 @@ export const PayPalButton = ({
       onStatusChange("failed");
       toast({
         title: "PayPal Error",
-        description: "Could not initialize payment system. Please try again later.",
+        description: "Could not initialize subscription system. Please try again later.",
         variant: "destructive",
       });
     }
-  }, [subscriptionFee, onStatusChange, onSubscriptionUpdate]);
+  }, [onStatusChange, onSubscriptionUpdate]);
 
   return (
     <div className={cn("space-y-6", className)}>
       <div className="flex items-center justify-between">
-        <span className="font-medium">Payment Amount:</span>
-        <span className="font-bold">${subscriptionFee}.00 USD</span>
+        <span className="font-medium">Subscription:</span>
+        <span className="font-bold">Monthly Plan</span>
       </div>
       
-      <div ref={containerRef} className="w-full min-h-[150px]">
+      <div ref={containerRef} className="w-full min-h-[150px]" id="paypal-button-container">
         {/* PayPal Buttons will render here */}
         <div className="flex flex-col items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -130,7 +117,7 @@ export const PayPalButton = ({
       </div>
       
       <div className="text-center text-sm text-muted-foreground">
-        By proceeding with the payment, you agree to our
+        By proceeding with the subscription, you agree to our
         <Link to="/terms-of-service" className="mx-1 text-primary hover:underline">Terms of Service</Link>
         and
         <Link to="/privacy" className="mx-1 text-primary hover:underline">Privacy Policy</Link>

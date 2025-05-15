@@ -29,10 +29,6 @@ const Payments = () => {
       const savedSubscription = localStorage.getItem("hasSubscription");
       if (savedSubscription === "true") {
         setHasActiveSubscription(true);
-        toast({
-          title: "Payment Complete",
-          description: "Your payment has been processed successfully.",
-        });
       }
     }
   }, [loading, session]);
