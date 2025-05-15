@@ -7,7 +7,6 @@ import { PaymentHistory } from "@/components/payments/PaymentHistory";
 import { LoadingState } from "@/components/payments/LoadingState";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { toast } from "@/hooks/use-toast";
-import { initializePayPalScript } from "@/lib/paypal";
 
 const Payments = () => {
   const { loading, session } = useAuthRedirect("/account");
@@ -15,12 +14,7 @@ const Payments = () => {
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [accountValue] = useState(75000); // Example account value, in a real app would come from user data
 
-  // Initialize PayPal SDK on mount
-  useEffect(() => {
-    initializePayPalScript();
-  }, []);
-
-  // Reset payment status on mount
+  // Reset payment status on mount and check subscription status
   useEffect(() => {
     if (!loading && session) {
       // Check if the user already has a subscription
@@ -35,6 +29,8 @@ const Payments = () => {
 
   const handleRetry = () => {
     setPaymentStatus("idle");
+    // Force reload to reinitialize PayPal
+    window.location.reload();
   };
 
   // Show loading state while checking auth

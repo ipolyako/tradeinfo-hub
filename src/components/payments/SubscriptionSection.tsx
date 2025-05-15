@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { PayPalButton } from "./PayPalButton";
 import { PaymentStatus } from "./PaymentStatus";
 import { ActiveSubscription } from "./ActiveSubscription";
+import { useEffect } from "react";
 
 interface SubscriptionSectionProps {
   hasActiveSubscription: boolean;
@@ -21,6 +22,13 @@ export const SubscriptionSection = ({
   onSubscriptionUpdate,
   accountValue = 0
 }: SubscriptionSectionProps) => {
+  // Ensure we start from a clean state when component remounts
+  useEffect(() => {
+    if (paymentStatus !== "success" && paymentStatus !== "loading") {
+      onStatusChange("idle");
+    }
+  }, []);
+
   return (
     <Card className="mb-8">
       <CardHeader>

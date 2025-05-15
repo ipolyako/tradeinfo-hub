@@ -1,8 +1,8 @@
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { CLIENT_ID, PLAN_ID } from "@/lib/paypal";
+import { CLIENT_ID, PLAN_ID, initializePayPalScript } from "@/lib/paypal";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,25 +22,54 @@ export const PayPalButton = ({
   accountValue = 0
 }: PayPalButtonProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [scriptError, setScriptError] = useState(false);
   
   useEffect(() => {
     // Start with loading state
     onStatusChange("loading");
     
-    // Check if PayPal SDK is loaded
-    if (!window.paypal) {
-      console.error('PayPal SDK not loaded.');
-      onStatusChange("failed");
-      toast({
-        title: "PayPal Error",
-        description: "Could not load payment system. Please try again later.",
-        variant: "destructive",
-      });
+    let isMounted = true;
+    
+    const loadPayPalScript = async () => {
+      try {
+        await initializePayPalScript();
+        if (isMounted) {
+          setScriptLoaded(true);
+          onStatusChange("idle");
+        }
+      } catch (err) {
+        console.error('Failed to load PayPal script:', err);
+        if (isMounted) {
+          setScriptError(true);
+          onStatusChange("failed");
+          toast({
+            title: "PayPal Error",
+            description: "Could not load payment system. Please try again later.",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+    
+    loadPayPalScript();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [onStatusChange]);
+  
+  // Effect to render PayPal buttons once the script is loaded
+  useEffect(() => {
+    if (!scriptLoaded || !window.paypal || !containerRef.current) {
       return;
     }
     
-    onStatusChange("idle");
-
+    // Clear any previous content
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
+    
     try {
       const paypalButtons = window.paypal.Buttons({
         style: { 
@@ -85,19 +114,19 @@ export const PayPalButton = ({
 
       // Render the PayPal button
       if (containerRef.current) {
-        containerRef.current.innerHTML = '';
         paypalButtons.render(containerRef.current);
       }
     } catch (err) {
       console.error("Failed to initialize PayPal buttons:", err);
       onStatusChange("failed");
+      setScriptError(true);
       toast({
         title: "PayPal Error",
         description: "Could not initialize subscription system. Please try again later.",
         variant: "destructive",
       });
     }
-  }, [onStatusChange, onSubscriptionUpdate]);
+  }, [scriptLoaded, onStatusChange, onSubscriptionUpdate]);
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -106,14 +135,32 @@ export const PayPalButton = ({
         <span className="font-bold">Monthly Plan</span>
       </div>
       
-      <div ref={containerRef} className="w-full min-h-[150px]" id="paypal-button-container">
-        {/* PayPal Buttons will render here */}
-        <div className="flex flex-col items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="mt-2 text-sm text-muted-foreground">
-            Loading PayPal...
-          </p>
-        </div>
+      <div className="w-full min-h-[150px]" id="paypal-button-container">
+        {scriptError ? (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>
+              Could not load the payment system. Please refresh the page or try again later.
+              <Button 
+                variant="outline" 
+                className="w-full mt-2"
+                onClick={() => window.location.reload()}
+              >
+                Refresh Page
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <div ref={containerRef} className="w-full min-h-[150px]">
+            {!scriptLoaded && (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Loading PayPal...
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       <div className="text-center text-sm text-muted-foreground">

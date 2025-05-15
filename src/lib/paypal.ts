@@ -7,18 +7,45 @@ export const PLAN_ID = 'P-3CD17662R8975905JNASUSYA';
 
 // Initialize PayPal script in main app
 export function initializePayPalScript() {
-  if (window.paypal || document.querySelector('script[src*="paypal.com/sdk/js"]')) {
-    console.log('PayPal script already loaded');
-    return;
-  }
-  
-  const script = document.createElement('script');
-  script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription`;
-  script.async = true;
-  script.setAttribute('data-sdk-integration-source', 'button-factory');
-  
-  document.body.appendChild(script);
-  console.log('PayPal subscription script added to document');
+  return new Promise((resolve, reject) => {
+    // Check if PayPal script is already loaded
+    if (window.paypal) {
+      console.log('PayPal script already loaded');
+      resolve(window.paypal);
+      return;
+    }
+    
+    // If script is already being loaded, don't add another one
+    if (document.querySelector('script[src*="paypal.com/sdk/js"]')) {
+      const checkPayPalInterval = setInterval(() => {
+        if (window.paypal) {
+          console.log('PayPal script loaded from existing script tag');
+          clearInterval(checkPayPalInterval);
+          resolve(window.paypal);
+        }
+      }, 100);
+      return;
+    }
+    
+    // Create and add the script if it doesn't exist
+    const script = document.createElement('script');
+    script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription`;
+    script.async = true;
+    script.setAttribute('data-sdk-integration-source', 'button-factory');
+    
+    script.onload = () => {
+      console.log('PayPal subscription script loaded successfully');
+      resolve(window.paypal);
+    };
+    
+    script.onerror = (err) => {
+      console.error('Error loading PayPal script:', err);
+      reject(new Error('Failed to load PayPal script'));
+    };
+    
+    document.body.appendChild(script);
+    console.log('PayPal subscription script added to document');
+  });
 }
 
 // Legacy hook kept for backward compatibility
@@ -27,36 +54,12 @@ export function usePayPalScript(options: any) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (window.paypal) {
-      setLoaded(true);
-      return;
-    }
-    
-    const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${options.clientId}&currency=USD`;
-    script.async = true;
-    
-    const onScriptLoad = () => {
-      console.log('PayPal script loaded successfully');
-      setLoaded(true);
-    };
-    
-    const onScriptError = () => {
-      console.error('Failed to load PayPal script');
-      setError(new Error('Failed to load PayPal script'));
-    };
-    
-    script.addEventListener('load', onScriptLoad);
-    script.addEventListener('error', onScriptError);
-    
-    document.body.appendChild(script);
-    
+    initializePayPalScript()
+      .then(() => setLoaded(true))
+      .catch((err) => setError(err));
+      
     return () => {
-      if (document.body.contains(script)) {
-        script.removeEventListener('load', onScriptLoad);
-        script.removeEventListener('error', onScriptError);
-        document.body.removeChild(script);
-      }
+      // No cleanup needed as script should persist
     };
   }, [options.clientId]);
 
