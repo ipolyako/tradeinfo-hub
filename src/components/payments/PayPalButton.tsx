@@ -7,6 +7,7 @@ import { Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PayPalButtonProps {
   onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
@@ -21,11 +22,12 @@ export const PayPalButton = ({
   className,
   accountValue = 0
 }: PayPalButtonProps) => {
-  const paypalContainerId = `paypal-button-container`;
+  const paypalContainerId = `paypal-button-container-${Math.random().toString(36).substring(2, 9)}`;
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
   const [renderAttempts, setRenderAttempts] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   
   // Create a fresh container each render attempt
   const refreshPayPalContainer = () => {
@@ -72,13 +74,22 @@ export const PayPalButton = ({
       // Clear any previous buttons
       container.innerHTML = '';
       
+      // Set appropriate button style based on device
+      const buttonStyle = isMobile ? {
+        shape: 'rect',
+        color: 'gold',
+        layout: 'vertical',
+        label: 'subscribe',
+        height: 45 // Slightly larger buttons for mobile
+      } : {
+        shape: 'rect',
+        color: 'gold',
+        layout: 'vertical',
+        label: 'subscribe'
+      };
+      
       const paypalButtons = window.paypal.Buttons({
-        style: { 
-          shape: 'rect',
-          color: 'gold',
-          layout: 'vertical',
-          label: 'subscribe'
-        },
+        style: buttonStyle,
         createSubscription: function(data, actions) {
           return actions.subscription.create({
             plan_id: PLAN_ID,
@@ -123,13 +134,13 @@ export const PayPalButton = ({
         }
       });
 
-      // Check if the component is still mounted
+      // Render the PayPal buttons but don't chain .then() since it returns void
       if (document.body.contains(container)) {
-        // Render the PayPal button directly in the container reference
         paypalButtons.render(container);
-        console.log('PayPal buttons rendered directly in container ref');
+        console.log('PayPal buttons rendered in container');
       } else {
         console.error('Container no longer in DOM');
+        setScriptError(true);
       }
     } catch (err) {
       console.error("Failed to initialize PayPal buttons:", err);
@@ -157,15 +168,17 @@ export const PayPalButton = ({
   // Re-render buttons when scriptLoaded changes or render attempts change
   useEffect(() => {
     if (scriptLoaded && window.paypal && containerRef.current) {
-      console.log('Attempting to render PayPal buttons, container exists:', !!containerRef.current);
-      // Small delay to ensure DOM is fully ready
+      // Mobile devices need a small delay to ensure DOM is properly updated
       const timer = setTimeout(() => {
-        renderPayPalButtons();
-      }, 100);
+        if (containerRef.current) {
+          console.log('Attempting to render PayPal buttons, container exists:', !!containerRef.current);
+          renderPayPalButtons();
+        }
+      }, isMobile ? 300 : 100); // Longer delay for mobile
       
       return () => clearTimeout(timer);
     }
-  }, [scriptLoaded, renderAttempts]);
+  }, [scriptLoaded, renderAttempts, isMobile]);
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -174,7 +187,7 @@ export const PayPalButton = ({
         <span className="font-bold">Monthly Plan</span>
       </div>
       
-      <div className="w-full min-h-[200px]">
+      <div className="w-full min-h-[220px]"> {/* Increased height for mobile */}
         {scriptError ? (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>
@@ -190,7 +203,7 @@ export const PayPalButton = ({
             </AlertDescription>
           </Alert>
         ) : (
-          <div className="w-full min-h-[200px] flex flex-col items-center justify-center">
+          <div className="w-full min-h-[220px] flex flex-col items-center justify-center">
             {!scriptLoaded && (
               <div className="flex flex-col items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -202,7 +215,9 @@ export const PayPalButton = ({
             <div 
               ref={containerRef} 
               className="w-full paypal-button-container"
+              id={paypalContainerId}
               key={`paypal-container-${renderAttempts}`}
+              style={{ minHeight: isMobile ? "100px" : "80px" }}
             ></div>
           </div>
         )}
