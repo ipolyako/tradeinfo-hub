@@ -1,16 +1,34 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { PaymentHeader } from "@/components/payments/PaymentHeader";
 import { SubscriptionSection } from "@/components/payments/SubscriptionSection";
 import { PaymentHistory } from "@/components/payments/PaymentHistory";
 import { LoadingState } from "@/components/payments/LoadingState";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
+import { toast } from "@/hooks/use-toast";
 
 const Payments = () => {
   const { loading, session } = useAuthRedirect("/account");
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "success" | "failed" | "loading">("idle");
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+
+  // Reset payment status on mount
+  useEffect(() => {
+    if (!loading && session) {
+      // Check if the user already has a subscription
+      // This would normally come from your backend
+      // For demo purposes, we'll just use localStorage
+      const savedSubscription = localStorage.getItem("hasSubscription");
+      if (savedSubscription === "true") {
+        setHasActiveSubscription(true);
+        toast({
+          title: "Subscription Active",
+          description: "Your subscription is currently active.",
+        });
+      }
+    }
+  }, [loading, session]);
 
   const handleRetry = () => {
     setPaymentStatus("idle");
@@ -35,7 +53,12 @@ const Payments = () => {
           paymentStatus={paymentStatus}
           onRetry={handleRetry}
           onStatusChange={setPaymentStatus}
-          onSubscriptionUpdate={setHasActiveSubscription}
+          onSubscriptionUpdate={(hasSubscription) => {
+            setHasActiveSubscription(hasSubscription);
+            if (hasSubscription) {
+              localStorage.setItem("hasSubscription", "true");
+            }
+          }}
         />
         
         <PaymentHistory hasActiveSubscription={hasActiveSubscription} />

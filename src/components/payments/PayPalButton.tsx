@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { usePayPalScript, CLIENT_ID, PLAN_ID, type PayPalButtonsConfig } from "@/lib/paypal";
+import { usePayPalScript, CLIENT_ID, PLAN_ID } from "@/lib/paypal";
 import { Button } from "@/components/ui/button";
 import { Loader2, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,7 @@ export const PayPalButton = ({
 }: PayPalButtonProps) => {
   const [activeTab, setActiveTab] = useState<'paypal' | 'card'>('paypal');
   const buttonContainerRef = useRef<HTMLDivElement>(null);
+  const [isRendering, setIsRendering] = useState(false);
   
   const { loaded, error } = usePayPalScript({
     clientId: CLIENT_ID,
@@ -28,6 +29,18 @@ export const PayPalButton = ({
     intent: 'subscription',
     vault: true
   });
+
+  // Handle initial loading state
+  useEffect(() => {
+    if (!loaded) {
+      onStatusChange("loading");
+    } else {
+      // Only set to idle if we're not currently rendering buttons
+      if (!isRendering) {
+        onStatusChange("idle");
+      }
+    }
+  }, [loaded, isRendering, onStatusChange]);
 
   // Render PayPal buttons when the script is loaded
   useEffect(() => {
@@ -39,6 +52,9 @@ export const PayPalButton = ({
     if (buttonContainerRef.current.firstChild) {
       buttonContainerRef.current.innerHTML = '';
     }
+
+    // Set rendering flag to true
+    setIsRendering(true);
 
     const buttonsConfig = {
       style: {
@@ -84,8 +100,14 @@ export const PayPalButton = ({
     if (activeTab === 'paypal' && buttonContainerRef.current) {
       window.paypal.Buttons(buttonsConfig)
         .render(buttonContainerRef.current)
+        .then(() => {
+          setIsRendering(false);
+          onStatusChange("idle");
+        })
         .catch((err: Error) => {
           console.error('PayPal button render error:', err);
+          setIsRendering(false);
+          onStatusChange("failed");
         });
     }
   }, [loaded, activeTab, onStatusChange, onSubscriptionUpdate]);
@@ -102,15 +124,6 @@ export const PayPalButton = ({
       onStatusChange("failed");
     }
   }, [error, onStatusChange]);
-
-  // Set loading state when script is loading
-  useEffect(() => {
-    if (!loaded) {
-      onStatusChange("loading");
-    } else {
-      onStatusChange("idle");
-    }
-  }, [loaded, onStatusChange]);
 
   const handleCardPayment = () => {
     // In a production app, this would integrate with PayPal's hosted fields for credit card processing
@@ -156,20 +169,22 @@ export const PayPalButton = ({
         </button>
       </div>
       
-      {!loaded && (
+      {(!loaded || isRendering) && (
         <div className="flex flex-col items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="mt-2 text-sm text-muted-foreground">Loading payment options...</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {isRendering ? "Initializing payment options..." : "Loading payment options..."}
+          </p>
         </div>
       )}
       
-      {loaded && activeTab === 'paypal' && (
+      {loaded && !isRendering && activeTab === 'paypal' && (
         <div ref={buttonContainerRef} className="w-full min-h-[150px]">
           {/* PayPal Buttons will render here */}
         </div>
       )}
       
-      {loaded && activeTab === 'card' && (
+      {loaded && !isRendering && activeTab === 'card' && (
         <div className="space-y-4">
           <div className="p-4 border rounded-lg bg-muted/50">
             <div className="flex items-center mb-4">

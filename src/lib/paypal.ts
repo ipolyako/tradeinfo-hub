@@ -34,7 +34,13 @@ export function usePayPalScript(options: PayPalScriptOptions) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // Remove any existing PayPal script
+    // If script is already loaded, don't load it again
+    if (window.paypal) {
+      setLoaded(true);
+      return;
+    }
+
+    // Remove any existing PayPal script to avoid conflicts
     const existingScript = document.querySelector('script[data-namespace="paypal-sdk"]');
     if (existingScript) {
       document.body.removeChild(existingScript);
@@ -57,6 +63,7 @@ export function usePayPalScript(options: PayPalScriptOptions) {
     script.addEventListener('error', onScriptError);
     
     document.body.appendChild(script);
+    console.log('PayPal script added to document:', script.src);
     
     return () => {
       if (document.body.contains(script)) {
