@@ -1,5 +1,6 @@
 
 // PayPal utility functions and types
+import { useState, useEffect } from "react";
 
 export const CLIENT_ID = 'ARrwQMysQqyFM7j3lPuiPnUII7WXGkNWzBLTdVm2HvVUa-shV1LA0EMANtgTSMKWa-UQ-Leig0VywPD7';
 export const PLAN_ID = 'P-3CD17662R8975905JNASUSYA';
