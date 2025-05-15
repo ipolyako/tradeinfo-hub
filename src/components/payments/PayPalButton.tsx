@@ -123,13 +123,12 @@ export const PayPalButton = ({
         }
       });
 
-      // Render the PayPal button - fix for TypeScript error by handling the promise properly
-      paypalButtons.render(`#${paypalContainerId}`).then(() => {
-        console.log('PayPal buttons rendered successfully');
-      }).catch((err: any) => {
-        console.error('Failed to render PayPal buttons:', err);
-        setScriptError(true);
-      });
+      // Render the PayPal button - handle as void instead of Promise
+      paypalButtons.render(`#${paypalContainerId}`);
+      console.log('PayPal buttons render method called');
+      
+      // Log success after render attempt regardless of promise
+      console.log('PayPal buttons rendering attempted');
     } catch (err) {
       console.error("Failed to initialize PayPal buttons:", err);
       onStatusChange("failed");
