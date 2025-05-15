@@ -1,12 +1,25 @@
 
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface PaymentStatusProps {
-  status: "success" | "failed";
+  status: "success" | "failed" | "loading";
   onRetry?: () => void;
 }
 
 export const PaymentStatus = ({ status, onRetry }: PaymentStatusProps) => {
+  if (status === "loading") {
+    return (
+      <div className="py-4 text-center">
+        <div className="mb-4 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+        <h3 className="text-xl font-medium">Processing Payment</h3>
+        <p className="mt-2 text-muted-foreground">Please wait while we process your payment...</p>
+      </div>
+    );
+  }
+
   if (status === "success") {
     return (
       <div className="py-4 text-center">

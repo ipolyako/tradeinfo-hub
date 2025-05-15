@@ -9,7 +9,7 @@ import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 const Payments = () => {
   const { loading, session } = useAuthRedirect("/account");
-  const [paymentStatus, setPaymentStatus] = useState<"idle" | "success" | "failed">("idle");
+  const [paymentStatus, setPaymentStatus] = useState<"idle" | "success" | "failed" | "loading">("idle");
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   const handleRetry = () => {

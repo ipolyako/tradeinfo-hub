@@ -6,9 +6,9 @@ import { ActiveSubscription } from "./ActiveSubscription";
 
 interface SubscriptionSectionProps {
   hasActiveSubscription: boolean;
-  paymentStatus: "idle" | "success" | "failed";
+  paymentStatus: "idle" | "success" | "failed" | "loading";
   onRetry: () => void;
-  onStatusChange: (status: "idle" | "success" | "failed") => void;
+  onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
   onSubscriptionUpdate: (hasSubscription: boolean) => void;
 }
 
@@ -37,12 +37,8 @@ export const SubscriptionSection = ({
               />
             )}
 
-            {paymentStatus === "success" && (
-              <PaymentStatus status="success" />
-            )}
-
-            {paymentStatus === "failed" && (
-              <PaymentStatus status="failed" onRetry={onRetry} />
+            {(paymentStatus === "success" || paymentStatus === "failed" || paymentStatus === "loading") && (
+              <PaymentStatus status={paymentStatus} onRetry={onRetry} />
             )}
           </>
         )}
