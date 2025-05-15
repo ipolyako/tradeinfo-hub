@@ -6,6 +6,7 @@ import { ActiveSubscription } from "./ActiveSubscription";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { isFirefox } from "@/lib/paypal";
 
 interface SubscriptionSectionProps {
   hasActiveSubscription: boolean;
@@ -25,6 +26,21 @@ export const SubscriptionSection = ({
   accountValue = 0
 }: SubscriptionSectionProps) => {
   const [forceRefresh, setForceRefresh] = useState(0);
+  const isFirefoxBrowser = isFirefox();
+  
+  // Listen for browser focus events (for Firefox popup handling)
+  useEffect(() => {
+    if (isFirefoxBrowser) {
+      const handleFocus = () => {
+        console.log('Window regained focus - Firefox specific handling');
+      };
+      
+      window.addEventListener('focus', handleFocus);
+      return () => {
+        window.removeEventListener('focus', handleFocus);
+      };
+    }
+  }, [isFirefoxBrowser]);
   
   // Ensure we start from a clean state when component remounts
   useEffect(() => {
@@ -72,6 +88,12 @@ export const SubscriptionSection = ({
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Try Again with New Payment Button
                 </Button>
+                
+                {isFirefoxBrowser && (
+                  <p className="text-sm text-muted-foreground mt-2 text-center">
+                    Firefox users: Make sure to allow pop-ups for this site in your browser settings.
+                  </p>
+                )}
               </div>
             )}
           </>

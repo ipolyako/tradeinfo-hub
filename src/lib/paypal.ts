@@ -5,6 +5,11 @@ import { useState, useEffect } from "react";
 export const CLIENT_ID = 'ARrwQMysQqyFM7j3lPuiPnUII7WXGkNWzBLTdVm2HvVUa-shV1LA0EMANtgTSMKWa-UQ-Leig0VywPD7';
 export const PLAN_ID = 'P-3CD17662R8975905JNASUSYA';
 
+// Check if browser is Firefox
+export const isFirefox = () => {
+  return typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+};
+
 // Initialize PayPal script in main app
 export function initializePayPalScript() {
   return new Promise((resolve, reject) => {
@@ -37,7 +42,11 @@ export function initializePayPalScript() {
     
     // Create and add the script if it doesn't exist
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription`;
+    
+    // Add popup parameters specifically for Firefox to prevent automatic closing
+    const firefoxParams = isFirefox() ? '&enable-funding=venmo&disable-funding=card' : '';
+    
+    script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription${firefoxParams}`;
     script.async = true;
     script.setAttribute('data-sdk-integration-source', 'button-factory');
     

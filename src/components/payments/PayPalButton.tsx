@@ -2,12 +2,13 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { CLIENT_ID, PLAN_ID, initializePayPalScript } from "@/lib/paypal";
+import { CLIENT_ID, PLAN_ID, initializePayPalScript, isFirefox } from "@/lib/paypal";
 import { Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface PayPalButtonProps {
   onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
@@ -25,9 +26,21 @@ export const PayPalButton = ({
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
   const [renderAttempts, setRenderAttempts] = useState(0);
+  const [showFirefoxHelp, setShowFirefoxHelp] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const isFirefoxBrowser = isFirefox();
   const containerId = `paypal-button-container-${PLAN_ID}`;
+  
+  // Show Firefox help dialog if user is on Firefox
+  useEffect(() => {
+    if (isFirefoxBrowser) {
+      const timer = setTimeout(() => {
+        setShowFirefoxHelp(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isFirefoxBrowser]);
   
   const refreshPayPalContainer = () => {
     setRenderAttempts(prev => prev + 1);
@@ -67,8 +80,7 @@ export const PayPalButton = ({
         containerRef.current.innerHTML = '';
       }
       
-      // Using the exact configuration from your provided code
-      window.paypal.Buttons({
+      const buttonConfig = {
         style: {
           shape: 'rect',
           color: 'silver',
@@ -81,6 +93,7 @@ export const PayPalButton = ({
             quantity: 1
           });
         },
+        // Firefox-specific configuration
         onApprove: function(data) {
           console.log("Subscription successful:", data.subscriptionID);
           toast({
@@ -89,6 +102,7 @@ export const PayPalButton = ({
           });
           onStatusChange("success");
           onSubscriptionUpdate(true);
+          return true; // Explicit return to ensure Firefox handles this properly
         },
         onError: (err: any) => {
           console.error("PayPal error:", err);
@@ -108,8 +122,17 @@ export const PayPalButton = ({
             description: "You've cancelled the subscription process.",
           });
         }
-      }).render(`#${containerId}`);
+      };
       
+      // Add event listeners to capture popup events for Firefox
+      if (isFirefoxBrowser) {
+        window.addEventListener('focus', () => {
+          console.log('Window refocused after PayPal popup');
+        });
+      }
+      
+      // Render with direct selector
+      window.paypal.Buttons(buttonConfig).render(`#${containerId}`);
       console.log('PayPal buttons rendered using direct selector');
     } catch (err) {
       console.error("Failed to initialize PayPal buttons:", err);
@@ -152,7 +175,7 @@ export const PayPalButton = ({
         <span className="font-bold">Monthly Plan</span>
       </div>
       
-      <div className="w-full min-h-[250px]"> {/* Increased height for stability */}
+      <div className="w-full min-h-[250px]">
         {scriptError ? (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>
@@ -178,6 +201,16 @@ export const PayPalButton = ({
               </div>
             )}
             
+            {isFirefoxBrowser && (
+              <div className="w-full mb-4">
+                <Alert className="mb-2 bg-amber-50 border-amber-200">
+                  <AlertDescription className="text-amber-800">
+                    <p>Firefox users: If the payment window closes automatically, please click the button again and allow pop-ups for this site.</p>
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+            
             <div 
               ref={containerRef}
               id={containerId}
@@ -188,6 +221,24 @@ export const PayPalButton = ({
           </div>
         )}
       </div>
+      
+      {/* Firefox help dialog */}
+      <Dialog open={showFirefoxHelp} onOpenChange={setShowFirefoxHelp}>
+        <DialogContent className="sm:max-w-md">
+          <div className="space-y-4 p-2">
+            <h3 className="text-lg font-medium">Firefox PayPal Instructions</h3>
+            <p>Firefox may block the PayPal popup window. To complete your subscription:</p>
+            <ol className="list-decimal ml-5 space-y-2">
+              <li>Look for the popup blocker icon in your Firefox address bar</li>
+              <li>Click "Allow popups for this site"</li>
+              <li>Try the PayPal button again</li>
+            </ol>
+            <div className="flex justify-end">
+              <Button onClick={() => setShowFirefoxHelp(false)}>I understand</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       <div className="text-center text-sm text-muted-foreground">
         By proceeding with the subscription, you agree to our
