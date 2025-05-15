@@ -25,6 +25,7 @@ export const PayPalButton = ({
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
   const [renderAttempts, setRenderAttempts] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Create a fresh container each render attempt
   const refreshPayPalContainer = () => {
@@ -61,9 +62,15 @@ export const PayPalButton = ({
   };
   
   const renderPayPalButtons = () => {
+    if (!window.paypal) {
+      console.error('PayPal SDK not loaded');
+      setScriptError(true);
+      return;
+    }
+    
     const container = document.getElementById(paypalContainerId);
-    if (!window.paypal || !container) {
-      console.error('PayPal not loaded or container not found');
+    if (!container) {
+      console.error('PayPal container element not found');
       setScriptError(true);
       return;
     }
@@ -123,12 +130,14 @@ export const PayPalButton = ({
         }
       });
 
-      // Render the PayPal button - handle as void instead of Promise
-      paypalButtons.render(`#${paypalContainerId}`);
-      console.log('PayPal buttons render method called');
-      
-      // Log success after render attempt regardless of promise
-      console.log('PayPal buttons rendering attempted');
+      // Check if the component is still mounted
+      if (container && document.body.contains(container)) {
+        // Render the PayPal button - handle as void
+        paypalButtons.render(`#${paypalContainerId}`);
+        console.log('PayPal buttons render method called for container:', paypalContainerId);
+      } else {
+        console.error('Container no longer in DOM');
+      }
     } catch (err) {
       console.error("Failed to initialize PayPal buttons:", err);
       onStatusChange("failed");
@@ -146,6 +155,13 @@ export const PayPalButton = ({
     loadPayPalScript();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-render buttons when scriptLoaded changes
+  useEffect(() => {
+    if (scriptLoaded && window.paypal) {
+      renderPayPalButtons();
+    }
+  }, [scriptLoaded]);
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -171,7 +187,7 @@ export const PayPalButton = ({
           </Alert>
         ) : (
           <div className="w-full min-h-[150px]">
-            <div id={paypalContainerId} className="w-full">
+            <div id={paypalContainerId} className="w-full" ref={containerRef}>
               {!scriptLoaded && (
                 <div className="flex flex-col items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
