@@ -26,24 +26,31 @@ const Payments = () => {
         setHasActiveSubscription(true);
       }
       
-      // Pre-initialize PayPal script
-      if (!paypalInitialized) {
-        initializePayPalScript()
-          .then(() => {
-            console.log("PayPal pre-initialized successfully");
-            setPaypalInitialized(true);
-          })
-          .catch((err) => {
-            console.error("PayPal pre-initialization failed:", err);
-          });
-      }
+      // Don't show loading state for PayPal before user sees the button
+      setPaymentStatus("idle");
+    }
+  }, [loading, session]);
+
+  // Pre-initialize PayPal script once when page loads
+  useEffect(() => {
+    if (!loading && session && !paypalInitialized) {
+      initializePayPalScript()
+        .then(() => {
+          console.log("PayPal pre-initialized successfully");
+          setPaypalInitialized(true);
+        })
+        .catch((err) => {
+          console.error("PayPal pre-initialization failed:", err);
+        });
     }
   }, [loading, session, paypalInitialized]);
 
   const handleRetry = () => {
     setPaymentStatus("idle");
-    // Force reload to reinitialize PayPal
-    window.location.reload();
+    toast({
+      title: "Retrying Payment",
+      description: "Please wait while we set up the payment system...",
+    });
   };
 
   // Show loading state while checking auth
@@ -69,6 +76,10 @@ const Payments = () => {
             setHasActiveSubscription(hasSubscription);
             if (hasSubscription) {
               localStorage.setItem("hasSubscription", "true");
+              toast({
+                title: "Subscription Active",
+                description: "Your subscription is now active. Thank you for your payment!",
+              });
             }
           }}
           accountValue={accountValue}

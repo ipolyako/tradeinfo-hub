@@ -21,7 +21,7 @@ export const PayPalButton = ({
   className,
   accountValue = 0
 }: PayPalButtonProps) => {
-  const paypalContainerId = `paypal-button-container-${Math.random().toString(36).substring(2, 15)}`;
+  const paypalContainerId = `paypal-button-container`;
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
   const [renderAttempts, setRenderAttempts] = useState(0);
@@ -29,13 +29,10 @@ export const PayPalButton = ({
   
   // Create a fresh container each render attempt
   const refreshPayPalContainer = () => {
-    const container = document.getElementById(paypalContainerId);
-    if (container) {
-      container.innerHTML = '';
-      setRenderAttempts(prev => prev + 1);
-      setScriptError(false);
-      loadPayPalScript();
-    }
+    setRenderAttempts(prev => prev + 1);
+    setScriptError(false);
+    setScriptLoaded(false);
+    loadPayPalScript();
   };
   
   const loadPayPalScript = async () => {
@@ -44,11 +41,6 @@ export const PayPalButton = ({
       await initializePayPalScript();
       setScriptLoaded(true);
       onStatusChange("idle");
-      
-      // Short delay to ensure DOM is ready
-      setTimeout(() => {
-        renderPayPalButtons();
-      }, 500);
     } catch (err) {
       console.error('Failed to load PayPal script:', err);
       setScriptError(true);
@@ -68,9 +60,10 @@ export const PayPalButton = ({
       return;
     }
     
-    const container = document.getElementById(paypalContainerId);
+    // Use containerRef to get the current container element
+    const container = containerRef.current;
     if (!container) {
-      console.error('PayPal container element not found');
+      console.error('PayPal container element not found via ref');
       setScriptError(true);
       return;
     }
@@ -131,10 +124,10 @@ export const PayPalButton = ({
       });
 
       // Check if the component is still mounted
-      if (container && document.body.contains(container)) {
-        // Render the PayPal button - handle as void
-        paypalButtons.render(`#${paypalContainerId}`);
-        console.log('PayPal buttons render method called for container:', paypalContainerId);
+      if (document.body.contains(container)) {
+        // Render the PayPal button directly in the container reference
+        paypalButtons.render(container);
+        console.log('PayPal buttons rendered directly in container ref');
       } else {
         console.error('Container no longer in DOM');
       }
@@ -153,15 +146,26 @@ export const PayPalButton = ({
   // Load PayPal script on component mount
   useEffect(() => {
     loadPayPalScript();
+    
+    // Cleanup function to handle unmounting properly
+    return () => {
+      console.log('PayPal button component unmounting');
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-render buttons when scriptLoaded changes
+  // Re-render buttons when scriptLoaded changes or render attempts change
   useEffect(() => {
-    if (scriptLoaded && window.paypal) {
-      renderPayPalButtons();
+    if (scriptLoaded && window.paypal && containerRef.current) {
+      console.log('Attempting to render PayPal buttons, container exists:', !!containerRef.current);
+      // Small delay to ensure DOM is fully ready
+      const timer = setTimeout(() => {
+        renderPayPalButtons();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
-  }, [scriptLoaded]);
+  }, [scriptLoaded, renderAttempts]);
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -170,7 +174,7 @@ export const PayPalButton = ({
         <span className="font-bold">Monthly Plan</span>
       </div>
       
-      <div className="w-full min-h-[150px]">
+      <div className="w-full min-h-[200px]">
         {scriptError ? (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>
@@ -186,17 +190,20 @@ export const PayPalButton = ({
             </AlertDescription>
           </Alert>
         ) : (
-          <div className="w-full min-h-[150px]">
-            <div id={paypalContainerId} className="w-full" ref={containerRef}>
-              {!scriptLoaded && (
-                <div className="flex flex-col items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Loading PayPal...
-                  </p>
-                </div>
-              )}
-            </div>
+          <div className="w-full min-h-[200px] flex flex-col items-center justify-center">
+            {!scriptLoaded && (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Loading PayPal...
+                </p>
+              </div>
+            )}
+            <div 
+              ref={containerRef} 
+              className="w-full paypal-button-container"
+              key={`paypal-container-${renderAttempts}`}
+            ></div>
           </div>
         )}
       </div>

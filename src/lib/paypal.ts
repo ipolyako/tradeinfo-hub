@@ -1,6 +1,5 @@
 
 // PayPal utility functions and types
-import { useState, useEffect } from "react";
 
 export const CLIENT_ID = 'ARrwQMysQqyFM7j3lPuiPnUII7WXGkNWzBLTdVm2HvVUa-shV1LA0EMANtgTSMKWa-UQ-Leig0VywPD7';
 export const PLAN_ID = 'P-3CD17662R8975905JNASUSYA';
@@ -18,10 +17,17 @@ export function initializePayPalScript() {
     // If script is already being loaded, don't add another one
     if (document.querySelector('script[src*="paypal.com/sdk/js"]')) {
       console.log('PayPal script tag already exists, waiting for it to load');
+      
+      // Set a timeout to avoid infinite waiting
+      const timeout = setTimeout(() => {
+        reject(new Error('PayPal script loading timed out'));
+      }, 10000);
+      
       const checkPayPalInterval = setInterval(() => {
         if (window.paypal) {
           console.log('PayPal script loaded from existing script tag');
           clearInterval(checkPayPalInterval);
+          clearTimeout(timeout);
           resolve(window.paypal);
         }
       }, 100);
