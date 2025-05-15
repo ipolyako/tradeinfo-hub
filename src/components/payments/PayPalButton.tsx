@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import { usePayPalScript, CLIENT_ID, PLAN_ID } from "@/lib/paypal";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PayPalButtonProps {
   onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
@@ -20,7 +22,7 @@ export const PayPalButton = ({
   accountValue = 0
 }: PayPalButtonProps) => {
   const buttonContainerRef = useRef<HTMLDivElement>(null);
-  const [isRendering, setIsRendering] = useState(false);
+  const [isScriptFailed, setIsScriptFailed] = useState(false);
   const subscriptionFee = accountValue < 100000 ? 200 : 300;
   
   const { loaded, error } = usePayPalScript({
@@ -34,8 +36,28 @@ export const PayPalButton = ({
   useEffect(() => {
     if (loaded) {
       onStatusChange("idle");
+    } else if (!error) {
+      onStatusChange("loading");
     }
-  }, [loaded, onStatusChange]);
+  }, [loaded, error, onStatusChange]);
+
+  // Function to retry loading the PayPal script
+  const handleRetryLoading = () => {
+    setIsScriptFailed(false);
+    onStatusChange("loading");
+    // Force reload by removing existing script tags
+    const existingScripts = document.querySelectorAll('script[src*="paypal.com/sdk/js"]');
+    existingScripts.forEach(script => {
+      document.body.removeChild(script);
+    });
+    // Clear the global PayPal object to force a reload
+    if (window.paypal) {
+      // @ts-ignore
+      delete window.paypal;
+    }
+    // The useEffect in usePayPalScript will detect the missing script and reload it
+    window.location.reload(); // Last resort - reload the page
+  };
 
   // Render PayPal buttons when the script is loaded
   useEffect(() => {
@@ -48,71 +70,75 @@ export const PayPalButton = ({
       buttonContainerRef.current.innerHTML = '';
     }
 
-    // Set rendering flag to true
-    setIsRendering(true);
+    try {
+      const buttonsConfig = {
+        style: {
+          shape: 'rect',
+          color: 'gold',
+          layout: 'vertical',
+          label: 'subscribe'
+        },
+        createSubscription: function(data: any, actions: any) {
+          return actions.subscription.create({
+            plan_id: PLAN_ID,
+            quantity: 1,
+            application_context: {
+              shipping_preference: 'NO_SHIPPING'
+            }
+          });
+        },
+        onApprove: function(data: any) {
+          console.log("Subscription approved:", data.subscriptionID);
+          toast({
+            title: "Subscription Successful",
+            description: "Your subscription has been processed successfully.",
+            variant: "default",
+          });
+          onStatusChange("success");
+          onSubscriptionUpdate(true);
+        },
+        onError: function(err: any) {
+          console.error("PayPal error:", err);
+          toast({
+            title: "Payment Failed",
+            description: "There was an issue processing your payment.",
+            variant: "destructive",
+          });
+          onStatusChange("failed");
+        },
+        onCancel: function() {
+          onStatusChange("idle");
+          toast({
+            title: "Payment Cancelled",
+            description: "You've cancelled the payment process.",
+            variant: "default",
+          });
+        }
+      };
 
-    const buttonsConfig = {
-      style: {
-        shape: 'rect',
-        color: 'gold',
-        layout: 'vertical',
-        label: 'subscribe'
-      },
-      createSubscription: function(data: any, actions: any) {
-        return actions.subscription.create({
-          plan_id: PLAN_ID,
-          quantity: 1,
-          application_context: {
-            shipping_preference: 'NO_SHIPPING'
-          }
+      window.paypal.Buttons(buttonsConfig)
+        .render(buttonContainerRef.current)
+        .catch((err: Error) => {
+          console.error('PayPal button render error:', err);
+          onStatusChange("failed");
+          toast({
+            title: "PayPal Error",
+            description: "Could not initialize PayPal buttons. Please try again later.",
+            variant: "destructive",
+          });
         });
-      },
-      onApprove: function(data: any) {
-        console.log("Subscription approved:", data.subscriptionID);
-        toast({
-          title: "Subscription Successful",
-          description: "Your subscription has been processed successfully.",
-          variant: "default",
-        });
-        onStatusChange("success");
-        onSubscriptionUpdate(true);
-      },
-      onError: function(err: any) {
-        console.error("PayPal error:", err);
-        toast({
-          title: "Payment Failed",
-          description: "There was an issue processing your payment.",
-          variant: "destructive",
-        });
-        onStatusChange("failed");
-      },
-      onCancel: function() {
-        onStatusChange("idle");
-        toast({
-          title: "Payment Cancelled",
-          description: "You've cancelled the payment process.",
-          variant: "default",
-        });
-      }
-    };
-
-    window.paypal.Buttons(buttonsConfig)
-      .render(buttonContainerRef.current)
-      .then(() => {
-        setIsRendering(false);
-        onStatusChange("idle");
-      })
-      .catch((err: Error) => {
-        console.error('PayPal button render error:', err);
-        setIsRendering(false);
-        onStatusChange("failed");
-      });
+    } catch (err) {
+      console.error("Failed to initialize PayPal buttons:", err);
+      setIsScriptFailed(true);
+      onStatusChange("failed");
+    }
   }, [loaded, onStatusChange, onSubscriptionUpdate]);
 
   // Handle script loading error
   useEffect(() => {
     if (error) {
       console.error("Failed to load PayPal script:", error);
+      setIsScriptFailed(true);
       toast({
         title: "PayPal Error",
         description: "Could not load payment system. Please try again later.",
@@ -129,18 +155,32 @@ export const PayPalButton = ({
         <span className="font-bold">${subscriptionFee}.00 USD / month</span>
       </div>
       
-      {(!loaded || isRendering) ? (
+      {isScriptFailed ? (
+        <Alert variant="destructive" className="bg-red-50 border-red-200">
+          <AlertDescription className="py-2">
+            <p className="mb-3">Failed to load PayPal payment system. This could be due to:</p>
+            <ul className="list-disc pl-5 mb-4 space-y-1">
+              <li>Network connectivity issues</li>
+              <li>Ad blockers or browser extensions</li>
+              <li>Temporary PayPal service unavailability</li>
+            </ul>
+            <Button onClick={handleRetryLoading} className="w-full">
+              Retry Loading PayPal
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : (!loaded ? (
         <div className="flex flex-col items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="mt-2 text-sm text-muted-foreground">
-            {isRendering ? "Initializing PayPal..." : "Loading PayPal..."}
+            Loading PayPal...
           </p>
         </div>
       ) : (
         <div ref={buttonContainerRef} className="w-full min-h-[150px]">
           {/* PayPal Buttons will render here */}
         </div>
-      )}
+      ))}
       
       <div className="text-center text-sm text-muted-foreground">
         By proceeding with the payment, you agree to our
