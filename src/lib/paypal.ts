@@ -21,6 +21,8 @@ interface PayPalScriptOptions {
   components?: string;
   currency?: string;
   intent?: string;
+  'client-id'?: string;
+  vault?: boolean;
 }
 
 // Your actual plan ID for the $200 subscription
@@ -42,6 +44,7 @@ export function usePayPalScript(options: PayPalScriptOptions) {
     const script = document.createElement('script');
     script.src = constructPayPalScriptUrl(options);
     script.async = true;
+    script.dataset.sdkIntegrationSource = 'button-factory';
     
     const onScriptLoad = () => {
       console.log('PayPal script loaded successfully');
@@ -66,7 +69,7 @@ export function usePayPalScript(options: PayPalScriptOptions) {
         document.body.removeChild(script);
       }
     };
-  }, [options.clientId, options.components, options.currency]);
+  }, [options.clientId, options.components, options.currency, options.vault]);
 
   return { loaded, error };
 }
@@ -75,12 +78,13 @@ function constructPayPalScriptUrl(options: PayPalScriptOptions): string {
   const params = new URLSearchParams();
   
   // Required parameters
-  params.append('client-id', options.clientId);
+  params.append('client-id', options.clientId || options['client-id'] || '');
   
   // Optional parameters
   if (options.components) params.append('components', options.components);
   if (options.currency) params.append('currency', options.currency);
   if (options.intent) params.append('intent', options.intent);
+  if (options.vault === true) params.append('vault', 'true');
   
   return `https://www.paypal.com/sdk/js?${params.toString()}`;
 }

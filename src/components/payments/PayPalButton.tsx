@@ -27,9 +27,9 @@ export const PayPalButton = ({
   
   const { loaded, error } = usePayPalScript({
     clientId: CLIENT_ID,
-    components: 'buttons',
     currency: 'USD',
-    intent: 'subscription'
+    components: 'buttons',
+    vault: true
   });
 
   // Handle initial loading state
@@ -71,7 +71,9 @@ export const PayPalButton = ({
     }
 
     try {
-      const buttonsConfig = {
+      console.log('Setting up PayPal buttons with plan ID:', PLAN_ID);
+      
+      window.paypal.Buttons({
         style: {
           shape: 'rect',
           color: 'gold',
@@ -79,11 +81,11 @@ export const PayPalButton = ({
           label: 'subscribe'
         },
         createSubscription: function(data: any, actions: any) {
+          console.log('Creating subscription with plan ID:', PLAN_ID);
           return actions.subscription.create({
-            plan_id: PLAN_ID,
-            quantity: 1,
-            application_context: {
-              shipping_preference: 'NO_SHIPPING'
+            'plan_id': PLAN_ID,
+            'application_context': {
+              'shipping_preference': 'NO_SHIPPING'
             }
           });
         },
@@ -92,7 +94,6 @@ export const PayPalButton = ({
           toast({
             title: "Subscription Successful",
             description: "Your subscription has been processed successfully.",
-            variant: "default",
           });
           onStatusChange("success");
           onSubscriptionUpdate(true);
@@ -107,19 +108,17 @@ export const PayPalButton = ({
           onStatusChange("failed");
         },
         onCancel: function() {
+          console.log("Payment cancelled");
           onStatusChange("idle");
           toast({
             title: "Payment Cancelled",
             description: "You've cancelled the payment process.",
-            variant: "default",
           });
         }
-      };
-
-      window.paypal.Buttons(buttonsConfig)
-        .render(buttonContainerRef.current)
+      }).render(buttonContainerRef.current)
         .catch((err: Error) => {
           console.error('PayPal button render error:', err);
+          setIsScriptFailed(true);
           onStatusChange("failed");
           toast({
             title: "PayPal Error",
