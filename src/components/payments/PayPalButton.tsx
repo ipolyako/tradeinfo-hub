@@ -4,7 +4,7 @@ import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { usePayPalScript, CLIENT_ID, PLAN_ID, type PayPalButtonsConfig } from "@/lib/paypal";
 import { Button } from "@/components/ui/button";
-import { Loader2, CreditCard, PaypalIcon } from "lucide-react";
+import { Loader2, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PayPalButtonProps {
@@ -40,19 +40,19 @@ export const PayPalButton = ({
       buttonContainerRef.current.innerHTML = '';
     }
 
-    const buttonsConfig: PayPalButtonsConfig = {
+    const buttonsConfig = {
       style: {
         shape: 'rect',
         color: 'gold',
         layout: 'vertical',
         label: 'subscribe',
       },
-      createSubscription: function(data, actions) {
+      createSubscription: function(data: any, actions: any) {
         return actions.subscription.create({
           plan_id: PLAN_ID
         });
       },
-      onApprove: function(data) {
+      onApprove: function(data: any) {
         console.log("Subscription approved:", data.subscriptionID);
         toast({
           title: "Subscription Successful",
@@ -62,7 +62,7 @@ export const PayPalButton = ({
         onStatusChange("success");
         onSubscriptionUpdate(true);
       },
-      onError: function(err) {
+      onError: function(err: any) {
         console.error("PayPal error:", err);
         toast({
           title: "Payment Failed",
@@ -82,7 +82,11 @@ export const PayPalButton = ({
     };
 
     if (activeTab === 'paypal' && buttonContainerRef.current) {
-      window.paypal.Buttons(buttonsConfig).render(buttonContainerRef.current);
+      window.paypal.Buttons(buttonsConfig)
+        .render(buttonContainerRef.current)
+        .catch((err: Error) => {
+          console.error('PayPal button render error:', err);
+        });
     }
   }, [loaded, activeTab, onStatusChange, onSubscriptionUpdate]);
 
@@ -195,8 +199,8 @@ export const PayPalButton = ({
   );
 };
 
-// Manually define PayPal icon since it's not in lucide-react
-export const PaypalIcon = (props: React.SVGProps<SVGSVGElement>) => (
+// Create a custom PayPal icon component
+export const PayPalLogo = (props: React.SVGProps<SVGSVGElement>) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
     viewBox="0 0 24 24" 

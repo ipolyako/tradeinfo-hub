@@ -2,10 +2,11 @@
 // PayPal utility functions and types
 import { useEffect, useState } from 'react';
 
+// Update the interface to match PayPal's actual types
 export interface PayPalButtonsConfig {
   style: {
     layout: 'vertical' | 'horizontal';
-    color: 'gold' | 'blue' | 'silver' | 'black' | 'white';
+    color: 'gold' | 'blue' | 'silver' | 'black';
     shape: 'rect' | 'pill';
     label?: 'paypal' | 'checkout' | 'buynow' | 'pay' | 'installment' | 'subscribe';
     height?: number;
@@ -50,7 +51,7 @@ export function usePayPalScript(options: PayPalScriptOptions) {
     script.async = true;
     
     const onScriptLoad = () => setLoaded(true);
-    const onScriptError = (e: Event) => setError(new Error('Failed to load PayPal script'));
+    const onScriptError = () => setError(new Error('Failed to load PayPal script'));
     
     script.addEventListener('load', onScriptLoad);
     script.addEventListener('error', onScriptError);
