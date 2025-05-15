@@ -24,8 +24,8 @@ export const SubscriptionSection = ({
   return (
     <Card className="mb-8">
       <CardHeader>
-        <CardTitle>Subscription</CardTitle>
-        <CardDescription>Subscribe to our algorithmic trading service</CardDescription>
+        <CardTitle>Payment</CardTitle>
+        <CardDescription>Complete payment to access our algorithmic trading service</CardDescription>
       </CardHeader>
       <CardContent>
         {hasActiveSubscription ? (

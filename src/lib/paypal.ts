@@ -2,49 +2,37 @@
 // PayPal utility functions and types
 import { useEffect, useState } from 'react';
 
-export interface PayPalButtonsConfig {
-  style: {
-    layout: 'vertical' | 'horizontal';
-    color: 'gold' | 'blue' | 'silver' | 'black';
-    shape: 'rect' | 'pill';
-    label?: 'paypal' | 'checkout' | 'buynow' | 'pay' | 'installment' | 'subscribe';
-    height?: number;
-  };
-  createSubscription: (data: any, actions: any) => Promise<string>;
-  onApprove: (data: any, actions?: any) => void;
-  onError: (err: any) => void;
-  onCancel: () => void;
-}
-
-interface PayPalScriptOptions {
-  clientId: string;
-  components?: string;
-  currency?: string;
-  intent?: string;
-  'client-id'?: string;
-  vault?: boolean;
-}
-
-// Your actual plan ID for the $200 subscription
-export const PLAN_ID = 'P-64T954128V783625HL3ITKJY';
 export const CLIENT_ID = 'AehBHwNlULYPYFGpYzx1kxtEEha4Fw1rvUgx1xv8kNwyYZA0Dqi7H0M2YDxpTn-2v7A-houXY4xlzY2I';
 
-export function usePayPalScript(options: PayPalScriptOptions) {
+// Initialize PayPal script in main app
+export function initializePayPalScript() {
+  if (window.paypal || document.querySelector('script[src*="paypal.com/sdk/js"]')) {
+    console.log('PayPal script already loaded');
+    return;
+  }
+  
+  const script = document.createElement('script');
+  script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&currency=USD`;
+  script.async = true;
+  
+  document.body.appendChild(script);
+  console.log('PayPal script added to document');
+}
+
+// Legacy hook kept for backward compatibility
+export function usePayPalScript(options: any) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // If script is already loaded, don't load it again
     if (window.paypal) {
       setLoaded(true);
       return;
     }
-
-    // Create script element
+    
     const script = document.createElement('script');
-    script.src = constructPayPalScriptUrl(options);
+    script.src = `https://www.paypal.com/sdk/js?client-id=${options.clientId}&currency=USD`;
     script.async = true;
-    script.dataset.sdkIntegrationSource = 'button-factory';
     
     const onScriptLoad = () => {
       console.log('PayPal script loaded successfully');
@@ -60,7 +48,6 @@ export function usePayPalScript(options: PayPalScriptOptions) {
     script.addEventListener('error', onScriptError);
     
     document.body.appendChild(script);
-    console.log('PayPal script added to document:', script.src);
     
     return () => {
       if (document.body.contains(script)) {
@@ -69,22 +56,7 @@ export function usePayPalScript(options: PayPalScriptOptions) {
         document.body.removeChild(script);
       }
     };
-  }, [options.clientId, options.components, options.currency, options.vault]);
+  }, [options.clientId]);
 
   return { loaded, error };
-}
-
-function constructPayPalScriptUrl(options: PayPalScriptOptions): string {
-  const params = new URLSearchParams();
-  
-  // Required parameters
-  params.append('client-id', options.clientId || options['client-id'] || '');
-  
-  // Optional parameters
-  if (options.components) params.append('components', options.components);
-  if (options.currency) params.append('currency', options.currency);
-  if (options.intent) params.append('intent', options.intent);
-  if (options.vault === true) params.append('vault', 'true');
-  
-  return `https://www.paypal.com/sdk/js?${params.toString()}`;
 }

@@ -7,7 +7,7 @@ interface ActiveSubscriptionProps {
 }
 
 export const ActiveSubscription = ({ accountValue = 0 }: ActiveSubscriptionProps) => {
-  const subscriptionFee = accountValue < 100000 ? 200 : 300;
+  const paymentAmount = accountValue < 100000 ? 200 : 300;
   
   return (
     <div className="space-y-4">
@@ -15,16 +15,16 @@ export const ActiveSubscription = ({ accountValue = 0 }: ActiveSubscriptionProps
         <div className="flex items-center">
           <CreditCard className="h-5 w-5 text-green-600 mr-3" />
           <div>
-            <p className="font-medium">Active Subscription</p>
+            <p className="font-medium">Payment Complete</p>
             <p className="text-sm text-muted-foreground">Algorithmic Trading Service</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="font-bold">${subscriptionFee}.00/month</p>
-          <p className="text-xs text-muted-foreground">Next billing date: June 6, 2025</p>
+          <p className="font-bold">${paymentAmount}.00</p>
+          <p className="text-xs text-muted-foreground">Processed: {new Date().toLocaleDateString()}</p>
         </div>
       </div>
-      <Button variant="outline">Manage Subscription</Button>
+      <Button variant="outline">View Receipt</Button>
     </div>
   );
 };

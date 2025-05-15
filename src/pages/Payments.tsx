@@ -7,12 +7,18 @@ import { PaymentHistory } from "@/components/payments/PaymentHistory";
 import { LoadingState } from "@/components/payments/LoadingState";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { toast } from "@/hooks/use-toast";
+import { initializePayPalScript } from "@/lib/paypal";
 
 const Payments = () => {
   const { loading, session } = useAuthRedirect("/account");
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "success" | "failed" | "loading">("idle");
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [accountValue] = useState(75000); // Example account value, in a real app would come from user data
+
+  // Initialize PayPal SDK on mount
+  useEffect(() => {
+    initializePayPalScript();
+  }, []);
 
   // Reset payment status on mount
   useEffect(() => {
@@ -24,8 +30,8 @@ const Payments = () => {
       if (savedSubscription === "true") {
         setHasActiveSubscription(true);
         toast({
-          title: "Subscription Active",
-          description: "Your subscription is currently active.",
+          title: "Payment Complete",
+          description: "Your payment has been processed successfully.",
         });
       }
     }
