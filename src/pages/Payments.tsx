@@ -7,25 +7,38 @@ import { PaymentHistory } from "@/components/payments/PaymentHistory";
 import { LoadingState } from "@/components/payments/LoadingState";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { toast } from "@/hooks/use-toast";
+import { initializePayPalScript } from "@/lib/paypal";
 
 const Payments = () => {
   const { loading, session } = useAuthRedirect("/account");
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "success" | "failed" | "loading">("idle");
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [accountValue] = useState(75000); // Example account value, in a real app would come from user data
+  const [paypalInitialized, setPaypalInitialized] = useState(false);
 
   // Reset payment status on mount and check subscription status
   useEffect(() => {
     if (!loading && session) {
       // Check if the user already has a subscription
       // This would normally come from your backend
-      // For demo purposes, we'll just use localStorage
       const savedSubscription = localStorage.getItem("hasSubscription");
       if (savedSubscription === "true") {
         setHasActiveSubscription(true);
       }
+      
+      // Pre-initialize PayPal script
+      if (!paypalInitialized) {
+        initializePayPalScript()
+          .then(() => {
+            console.log("PayPal pre-initialized successfully");
+            setPaypalInitialized(true);
+          })
+          .catch((err) => {
+            console.error("PayPal pre-initialization failed:", err);
+          });
+      }
     }
-  }, [loading, session]);
+  }, [loading, session, paypalInitialized]);
 
   const handleRetry = () => {
     setPaymentStatus("idle");

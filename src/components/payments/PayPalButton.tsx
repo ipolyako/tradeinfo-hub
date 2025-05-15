@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { CLIENT_ID, PLAN_ID, initializePayPalScript } from "@/lib/paypal";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -21,56 +21,57 @@ export const PayPalButton = ({
   className,
   accountValue = 0
 }: PayPalButtonProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const paypalContainerId = `paypal-button-container-${Math.random().toString(36).substring(2, 15)}`;
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
+  const [renderAttempts, setRenderAttempts] = useState(0);
   
-  useEffect(() => {
-    // Start with loading state
-    onStatusChange("loading");
-    
-    let isMounted = true;
-    
-    const loadPayPalScript = async () => {
-      try {
-        await initializePayPalScript();
-        if (isMounted) {
-          setScriptLoaded(true);
-          onStatusChange("idle");
-        }
-      } catch (err) {
-        console.error('Failed to load PayPal script:', err);
-        if (isMounted) {
-          setScriptError(true);
-          onStatusChange("failed");
-          toast({
-            title: "PayPal Error",
-            description: "Could not load payment system. Please try again later.",
-            variant: "destructive",
-          });
-        }
-      }
-    };
-    
-    loadPayPalScript();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [onStatusChange]);
+  // Create a fresh container each render attempt
+  const refreshPayPalContainer = () => {
+    const container = document.getElementById(paypalContainerId);
+    if (container) {
+      container.innerHTML = '';
+      setRenderAttempts(prev => prev + 1);
+      setScriptError(false);
+      loadPayPalScript();
+    }
+  };
   
-  // Effect to render PayPal buttons once the script is loaded
-  useEffect(() => {
-    if (!scriptLoaded || !window.paypal || !containerRef.current) {
+  const loadPayPalScript = async () => {
+    try {
+      onStatusChange("loading");
+      await initializePayPalScript();
+      setScriptLoaded(true);
+      onStatusChange("idle");
+      
+      // Short delay to ensure DOM is ready
+      setTimeout(() => {
+        renderPayPalButtons();
+      }, 500);
+    } catch (err) {
+      console.error('Failed to load PayPal script:', err);
+      setScriptError(true);
+      onStatusChange("failed");
+      toast({
+        title: "PayPal Error",
+        description: "Could not load payment system. Please try again later.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const renderPayPalButtons = () => {
+    const container = document.getElementById(paypalContainerId);
+    if (!window.paypal || !container) {
+      console.error('PayPal not loaded or container not found');
+      setScriptError(true);
       return;
     }
     
-    // Clear any previous content
-    if (containerRef.current) {
-      containerRef.current.innerHTML = '';
-    }
-    
     try {
+      // Clear any previous buttons
+      container.innerHTML = '';
+      
       const paypalButtons = window.paypal.Buttons({
         style: { 
           shape: 'rect',
@@ -81,7 +82,16 @@ export const PayPalButton = ({
         createSubscription: function(data, actions) {
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: 1
+            quantity: 1,
+            application_context: {
+              brand_name: 'DECO GLOBAL SERVICES, INC.',
+              shipping_preference: 'NO_SHIPPING',
+              user_action: 'SUBSCRIBE_NOW',
+              payment_method: {
+                payer_selected: 'PAYPAL',
+                payee_preferred: 'IMMEDIATE_PAYMENT_REQUIRED'
+              }
+            }
           });
         },
         onApprove: function(data) {
@@ -100,6 +110,7 @@ export const PayPalButton = ({
             description: "There was an issue processing your subscription.",
             variant: "destructive",
           });
+          setScriptError(true);
           onStatusChange("failed");
         },
         onCancel: () => {
@@ -113,20 +124,27 @@ export const PayPalButton = ({
       });
 
       // Render the PayPal button
-      if (containerRef.current) {
-        paypalButtons.render(containerRef.current);
-      }
+      paypalButtons.render(`#${paypalContainerId}`).catch((err: any) => {
+        console.error('Failed to render PayPal buttons:', err);
+        setScriptError(true);
+      });
     } catch (err) {
       console.error("Failed to initialize PayPal buttons:", err);
       onStatusChange("failed");
       setScriptError(true);
       toast({
         title: "PayPal Error",
-        description: "Could not initialize subscription system. Please try again later.",
+        description: "Could not initialize subscription system. Please try again.",
         variant: "destructive",
       });
     }
-  }, [scriptLoaded, onStatusChange, onSubscriptionUpdate]);
+  };
+  
+  // Load PayPal script on component mount
+  useEffect(() => {
+    loadPayPalScript();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -135,30 +153,33 @@ export const PayPalButton = ({
         <span className="font-bold">Monthly Plan</span>
       </div>
       
-      <div className="w-full min-h-[150px]" id="paypal-button-container">
+      <div className="w-full min-h-[150px]">
         {scriptError ? (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>
-              Could not load the payment system. Please refresh the page or try again later.
+              <p className="mb-2">Could not load the payment system. Please try again.</p>
               <Button 
                 variant="outline" 
                 className="w-full mt-2"
-                onClick={() => window.location.reload()}
+                onClick={refreshPayPalContainer}
               >
-                Refresh Page
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Payment System
               </Button>
             </AlertDescription>
           </Alert>
         ) : (
-          <div ref={containerRef} className="w-full min-h-[150px]">
-            {!scriptLoaded && (
-              <div className="flex flex-col items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Loading PayPal...
-                </p>
-              </div>
-            )}
+          <div className="w-full min-h-[150px]">
+            <div id={paypalContainerId} className="w-full">
+              {!scriptLoaded && (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Loading PayPal...
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

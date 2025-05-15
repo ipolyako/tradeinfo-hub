@@ -17,6 +17,7 @@ export function initializePayPalScript() {
     
     // If script is already being loaded, don't add another one
     if (document.querySelector('script[src*="paypal.com/sdk/js"]')) {
+      console.log('PayPal script tag already exists, waiting for it to load');
       const checkPayPalInterval = setInterval(() => {
         if (window.paypal) {
           console.log('PayPal script loaded from existing script tag');
@@ -29,7 +30,7 @@ export function initializePayPalScript() {
     
     // Create and add the script if it doesn't exist
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription&components=buttons`;
     script.async = true;
     script.setAttribute('data-sdk-integration-source', 'button-factory');
     
@@ -61,7 +62,7 @@ export function usePayPalScript(options: any) {
     return () => {
       // No cleanup needed as script should persist
     };
-  }, [options.clientId]);
+  }, [options?.clientId]);
 
   return { loaded, error };
 }
