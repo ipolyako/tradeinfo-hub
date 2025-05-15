@@ -2,7 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
 
-export const ActiveSubscription = () => {
+interface ActiveSubscriptionProps {
+  accountValue?: number;
+}
+
+export const ActiveSubscription = ({ accountValue = 0 }: ActiveSubscriptionProps) => {
+  const subscriptionFee = accountValue < 100000 ? 200 : 300;
+  
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50">
@@ -14,7 +20,7 @@ export const ActiveSubscription = () => {
           </div>
         </div>
         <div className="text-right">
-          <p className="font-bold">$199.00/month</p>
+          <p className="font-bold">${subscriptionFee}.00/month</p>
           <p className="text-xs text-muted-foreground">Next billing date: June 6, 2025</p>
         </div>
       </div>

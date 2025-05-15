@@ -12,6 +12,7 @@ const Payments = () => {
   const { loading, session } = useAuthRedirect("/account");
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "success" | "failed" | "loading">("idle");
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [accountValue] = useState(75000); // Example account value, in a real app would come from user data
 
   // Reset payment status on mount
   useEffect(() => {
@@ -59,6 +60,7 @@ const Payments = () => {
               localStorage.setItem("hasSubscription", "true");
             }
           }}
+          accountValue={accountValue}
         />
         
         <PaymentHistory hasActiveSubscription={hasActiveSubscription} />

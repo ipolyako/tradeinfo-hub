@@ -3,44 +3,39 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { usePayPalScript, CLIENT_ID, PLAN_ID } from "@/lib/paypal";
-import { Button } from "@/components/ui/button";
-import { Loader2, CreditCard } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PayPalButtonProps {
   onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
   onSubscriptionUpdate: (hasSubscription: boolean) => void;
   className?: string;
+  accountValue?: number;
 }
 
 export const PayPalButton = ({ 
   onStatusChange, 
   onSubscriptionUpdate,
-  className
+  className,
+  accountValue = 0
 }: PayPalButtonProps) => {
-  const [activeTab, setActiveTab] = useState<'paypal' | 'card'>('paypal');
   const buttonContainerRef = useRef<HTMLDivElement>(null);
   const [isRendering, setIsRendering] = useState(false);
+  const subscriptionFee = accountValue < 100000 ? 200 : 300;
   
   const { loaded, error } = usePayPalScript({
     clientId: CLIENT_ID,
-    components: 'buttons,hosted-fields',
+    components: 'buttons',
     currency: 'USD',
-    intent: 'subscription',
-    vault: true
+    intent: 'subscription'
   });
 
   // Handle initial loading state
   useEffect(() => {
-    if (!loaded) {
-      onStatusChange("loading");
-    } else {
-      // Only set to idle if we're not currently rendering buttons
-      if (!isRendering) {
-        onStatusChange("idle");
-      }
+    if (loaded) {
+      onStatusChange("idle");
     }
-  }, [loaded, isRendering, onStatusChange]);
+  }, [loaded, onStatusChange]);
 
   // Render PayPal buttons when the script is loaded
   useEffect(() => {
@@ -61,11 +56,15 @@ export const PayPalButton = ({
         shape: 'rect',
         color: 'gold',
         layout: 'vertical',
-        label: 'subscribe',
+        label: 'subscribe'
       },
       createSubscription: function(data: any, actions: any) {
         return actions.subscription.create({
-          plan_id: PLAN_ID
+          plan_id: PLAN_ID,
+          quantity: 1,
+          application_context: {
+            shipping_preference: 'NO_SHIPPING'
+          }
         });
       },
       onApprove: function(data: any) {
@@ -97,20 +96,18 @@ export const PayPalButton = ({
       }
     };
 
-    if (activeTab === 'paypal' && buttonContainerRef.current) {
-      window.paypal.Buttons(buttonsConfig)
-        .render(buttonContainerRef.current)
-        .then(() => {
-          setIsRendering(false);
-          onStatusChange("idle");
-        })
-        .catch((err: Error) => {
-          console.error('PayPal button render error:', err);
-          setIsRendering(false);
-          onStatusChange("failed");
-        });
-    }
-  }, [loaded, activeTab, onStatusChange, onSubscriptionUpdate]);
+    window.paypal.Buttons(buttonsConfig)
+      .render(buttonContainerRef.current)
+      .then(() => {
+        setIsRendering(false);
+        onStatusChange("idle");
+      })
+      .catch((err: Error) => {
+        console.error('PayPal button render error:', err);
+        setIsRendering(false);
+        onStatusChange("failed");
+      });
+  }, [loaded, onStatusChange, onSubscriptionUpdate]);
 
   // Handle script loading error
   useEffect(() => {
@@ -125,82 +122,23 @@ export const PayPalButton = ({
     }
   }, [error, onStatusChange]);
 
-  const handleCardPayment = () => {
-    // In a production app, this would integrate with PayPal's hosted fields for credit card processing
-    // For now, we'll simulate the flow with a basic UI
-    onStatusChange("loading");
-    
-    // Simulate processing delay
-    setTimeout(() => {
-      toast({
-        title: "Card Payment Initiated",
-        description: "Credit card processing is in development. Please use PayPal option for now.",
-        variant: "default",
-      });
-      onStatusChange("idle");
-    }, 1500);
-  };
-
   return (
     <div className={cn("space-y-6", className)}>
       <div className="flex items-center justify-between">
         <span className="font-medium">Subscription Fee:</span>
-        <span className="font-bold">$199.00 USD / month</span>
+        <span className="font-bold">${subscriptionFee}.00 USD / month</span>
       </div>
       
-      <div className="flex space-x-2 border-b mb-4">
-        <button 
-          className={cn(
-            "pb-2 px-4 text-sm font-medium",
-            activeTab === 'paypal' ? "border-b-2 border-primary" : "text-muted-foreground"
-          )}
-          onClick={() => setActiveTab('paypal')}
-        >
-          PayPal
-        </button>
-        <button 
-          className={cn(
-            "pb-2 px-4 text-sm font-medium",
-            activeTab === 'card' ? "border-b-2 border-primary" : "text-muted-foreground"
-          )}
-          onClick={() => setActiveTab('card')}
-        >
-          Credit Card
-        </button>
-      </div>
-      
-      {(!loaded || isRendering) && (
+      {(!loaded || isRendering) ? (
         <div className="flex flex-col items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="mt-2 text-sm text-muted-foreground">
-            {isRendering ? "Initializing payment options..." : "Loading payment options..."}
+            {isRendering ? "Initializing PayPal..." : "Loading PayPal..."}
           </p>
         </div>
-      )}
-      
-      {loaded && !isRendering && activeTab === 'paypal' && (
+      ) : (
         <div ref={buttonContainerRef} className="w-full min-h-[150px]">
           {/* PayPal Buttons will render here */}
-        </div>
-      )}
-      
-      {loaded && !isRendering && activeTab === 'card' && (
-        <div className="space-y-4">
-          <div className="p-4 border rounded-lg bg-muted/50">
-            <div className="flex items-center mb-4">
-              <CreditCard className="h-5 w-5 mr-2 text-primary" />
-              <h3 className="font-medium">Credit Card Payment</h3>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Process your subscription payment using a credit or debit card.
-            </p>
-            <Button 
-              className="w-full" 
-              onClick={handleCardPayment}
-            >
-              Pay with Card
-            </Button>
-          </div>
         </div>
       )}
       
@@ -213,26 +151,3 @@ export const PayPalButton = ({
     </div>
   );
 };
-
-// Create a custom PayPal icon component
-export const PayPalLogo = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className="lucide lucide-paypal"
-    {...props}
-  >
-    <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
-    <path d="M7 15h11"></path>
-    <path d="M7 11h5"></path>
-    <path d="M15 11v4"></path>
-    <path d="M18 11v4"></path>
-    <path d="M7 7h2"></path>
-    <path d="M12 7h4"></path>
-  </svg>
-);

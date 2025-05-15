@@ -10,6 +10,7 @@ interface SubscriptionSectionProps {
   onRetry: () => void;
   onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
   onSubscriptionUpdate: (hasSubscription: boolean) => void;
+  accountValue?: number;
 }
 
 export const SubscriptionSection = ({ 
@@ -17,23 +18,25 @@ export const SubscriptionSection = ({
   paymentStatus, 
   onRetry, 
   onStatusChange,
-  onSubscriptionUpdate 
+  onSubscriptionUpdate,
+  accountValue = 0
 }: SubscriptionSectionProps) => {
   return (
     <Card className="mb-8">
       <CardHeader>
         <CardTitle>Subscription</CardTitle>
-        <CardDescription>Manage your subscription to our algorithmic trading service</CardDescription>
+        <CardDescription>Subscribe to our algorithmic trading service</CardDescription>
       </CardHeader>
       <CardContent>
         {hasActiveSubscription ? (
-          <ActiveSubscription />
+          <ActiveSubscription accountValue={accountValue} />
         ) : (
           <>
             {paymentStatus === "idle" && (
               <PayPalButton 
                 onStatusChange={onStatusChange} 
-                onSubscriptionUpdate={onSubscriptionUpdate} 
+                onSubscriptionUpdate={onSubscriptionUpdate}
+                accountValue={accountValue}
               />
             )}
 
