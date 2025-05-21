@@ -2,7 +2,7 @@
 // PayPal utility functions and types
 import { useState, useEffect } from "react";
 
-export const CLIENT_ID = 'ARrwQMysQqyFM7j3lPuiPnUII7WXGkNWzBLTdVm2HvVUa-shV1LA0EMANtgTSMKWa-UQ-Leig0VywPD7';
+export const CLIENT_ID = 'AZ8TpbM9-Bn4ZuY7MLX1BZAkdmFeqKXrt3jNoW-RlDXgWAiSOovArA1hAVfKGH79lqYyA5qtpOVhskY8';
 
 // Define plan IDs for each pricing tier
 export const PLAN_IDS = {

@@ -8,33 +8,36 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS, GET'
 };
 
-// Simplified function that doesn't rely on the Edge Function
-export async function mockCancelSubscription(subscriptionId: string, options?: { action?: 'check' | 'cancel' }) {
+// Function to interact with our PayPal subscription edge function
+export async function handleSubscription(subscriptionId: string, options?: { action?: 'check' | 'cancel' }) {
   try {
-    console.log("Checking subscription status:", subscriptionId, options);
-
-    // For development environments without PayPal credentials
-    // Always simulate a successful subscription check/cancellation
-    return {
-      success: true,
-      message: options?.action === 'cancel' ? 
-        'Subscription cancelled successfully (simulation)' : 
-        'Using simulated PayPal response for development',
-      isActive: options?.action === 'cancel' ? false : true,
-      paypalStatus: options?.action === 'cancel' ? 'CANCELLED_SIMULATED' : 'SIMULATED_ACTIVE',
-      warning: options?.action === 'cancel' ? null : "PayPal API is not fully configured. Using simulated active subscription for development."
-    };
-  } catch (error) {
-    console.error('Error in mockCancelSubscription:', error);
+    console.log("Handling subscription:", subscriptionId, options);
     
-    // For development/testing environments, simulate an active subscription
-    // This allows the UI to function without actual PayPal credentials
+    // Call our Supabase Edge Function
+    const { data, error } = await supabase.functions.invoke('paypal-subscription', {
+      body: {
+        subscriptionId,
+        action: options?.action || 'check'
+      }
+    });
+
+    if (error) {
+      console.error('Error calling PayPal subscription function:', error);
+      throw new Error(`Failed to process subscription: ${error.message}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error in handleSubscription:', error);
     return {
-      success: true,
-      message: 'Using simulated PayPal response for development',
-      isActive: options?.action === 'cancel' ? false : true,
-      paypalStatus: options?.action === 'cancel' ? 'CANCELLED_SIMULATED' : 'SIMULATED_ACTIVE',
-      warning: options?.action === 'cancel' ? null : "PayPal API is not fully configured. Using simulated active subscription for development."
+      success: false,
+      message: `Error processing subscription: ${error.message || 'Unknown error'}`,
+      isActive: false
     };
   }
+}
+
+// For backward compatibility during transition, but now calls real API
+export async function mockCancelSubscription(subscriptionId: string, options?: { action?: 'check' | 'cancel' }) {
+  return handleSubscription(subscriptionId, options);
 }

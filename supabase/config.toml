@@ -2,21 +2,30 @@
 project_id = "uuosgyvftjurmeqwxvvi"
 
 [api]
+enabled = true
 port = 54321
-schemas = ["public", "storage"]
+schemas = ["public", "storage", "graphql_public"]
 
 [db]
 port = 54322
 
-[studio]
-port = 54323
+[realtime]
+enabled = true
 
-[inbucket]
-port = 54324
+[storage]
+enabled = true
 
 [auth]
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://localhost:3000"]
+enabled = true
 
-[functions.cancel-subscription]
-verify_jwt = false
+[analytics]
+enabled = false
+
+[inbucket]
+enabled = false
+
+[studio]
+enabled = false
+
+[functions.paypal-subscription]
+verify_jwt = true
