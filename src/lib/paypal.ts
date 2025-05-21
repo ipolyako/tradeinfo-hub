@@ -2,7 +2,8 @@
 // PayPal utility functions and types
 import { useState, useEffect } from "react";
 
-export const CLIENT_ID = Deno.env.get('PAYPAL_CLIENT_ID') || 'AZ8TpbM9-Bn4ZuY7MLX1BZAkdmFeqKXrt3jNoW-RlDXgWAiSOovArA1hAVfKGH79lqYyA5qtpOVhskY8';
+// Use a default client ID since we can't access Supabase secrets in the browser
+export const CLIENT_ID = 'AZ8TpbM9-Bn4ZuY7MLX1BZAkdmFeqKXrt3jNoW-RlDXgWAiSOovArA1hAVfKGH79lqYyA5qtpOVhskY8';
 
 // Define plan IDs for each pricing tier
 export const PLAN_IDS = {
