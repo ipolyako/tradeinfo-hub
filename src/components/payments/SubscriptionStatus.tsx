@@ -134,26 +134,6 @@ export const SubscriptionStatus = ({
       setCancelLoading(false);
     }
   };
-  
-  // Function to refresh subscription status
-  const handleRefreshStatus = async () => {
-    setRefreshing(true);
-    try {
-      await checkSubscriptionStatus();
-      toast({
-        title: "Status Updated",
-        description: "Your subscription status has been refreshed.",
-      });
-    } catch (error) {
-      toast({
-        title: "Refresh Failed",
-        description: "Could not refresh subscription status.",
-        variant: "destructive",
-      });
-    } finally {
-      setRefreshing(false);
-    }
-  };
 
   // Loading state (waiting for subscription check or parent loading)
   if (isLoading || checkingStatus) {
@@ -177,18 +157,7 @@ export const SubscriptionStatus = ({
   return (
     <Card className="mb-6">
       <CardHeader className="pb-3">
-        <CardTitle className="text-xl flex justify-between">
-          <span>Subscription Status</span>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleRefreshStatus} 
-            disabled={refreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
-            <span className="sr-only sm:not-sr-only">Refresh</span>
-          </Button>
-        </CardTitle>
+        <CardTitle className="text-xl">Subscription Status</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-3 mb-4">
