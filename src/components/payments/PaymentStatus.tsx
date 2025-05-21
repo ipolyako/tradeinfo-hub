@@ -5,9 +5,10 @@ import { Loader2 } from "lucide-react";
 interface PaymentStatusProps {
   status: "success" | "failed" | "loading";
   onRetry?: () => void;
+  price?: number;
 }
 
-export const PaymentStatus = ({ status, onRetry }: PaymentStatusProps) => {
+export const PaymentStatus = ({ status, onRetry, price = 200 }: PaymentStatusProps) => {
   if (status === "loading") {
     return (
       <div className="py-4 text-center">
@@ -31,7 +32,8 @@ export const PaymentStatus = ({ status, onRetry }: PaymentStatusProps) => {
           </div>
         </div>
         <h3 className="text-xl font-medium text-green-700">Subscription Successful!</h3>
-        <p className="mt-2">Thank you for your subscription. Our team will review your application and contact you shortly.</p>
+        <p className="mt-2">Thank you for your subscription of <span className="font-bold">${price}/month</span>.</p>
+        <p className="text-sm text-muted-foreground mt-1">Our team will review your application and contact you shortly.</p>
       </div>
     );
   }
@@ -46,7 +48,8 @@ export const PaymentStatus = ({ status, onRetry }: PaymentStatusProps) => {
         </div>
       </div>
       <h3 className="text-xl font-medium text-red-700">Payment Cancelled</h3>
-      <p className="mt-2">Your payment was not processed. Please try again or contact our support team.</p>
+      <p className="mt-2">Your payment of <span className="font-bold">${price}/month</span> was not processed.</p>
+      <p className="text-sm">Please try again or contact our support team.</p>
       {onRetry && <Button className="mt-4" onClick={onRetry}>Try Again</Button>}
     </div>
   );

@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PayPalButton } from "./PayPalButton";
+import { PayPalButton, getPriceForAccount } from "./PayPalButton";
 import { PaymentStatus } from "./PaymentStatus";
 import { ActiveSubscription } from "./ActiveSubscription";
 import { useEffect, useState } from "react";
@@ -54,6 +54,8 @@ export const SubscriptionSection = ({
     onStatusChange("idle");
   };
 
+  const currentPrice = getPriceForAccount(accountValue);
+
   return (
     <Card className="mb-8">
       <CardHeader>
@@ -75,7 +77,11 @@ export const SubscriptionSection = ({
             )}
 
             {(paymentStatus === "success" || paymentStatus === "failed" || paymentStatus === "loading") && (
-              <PaymentStatus status={paymentStatus} onRetry={onRetry} />
+              <PaymentStatus 
+                status={paymentStatus} 
+                onRetry={onRetry} 
+                price={currentPrice}
+              />
             )}
             
             {paymentStatus === "failed" && (

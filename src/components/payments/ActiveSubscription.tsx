@@ -1,12 +1,15 @@
 
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
+import { getPriceForAccount } from "./PayPalButton";
 
 interface ActiveSubscriptionProps {
   accountValue?: number;
 }
 
 export const ActiveSubscription = ({ accountValue = 0 }: ActiveSubscriptionProps) => {
+  const currentPrice = getPriceForAccount(accountValue);
+  
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50">
@@ -18,7 +21,8 @@ export const ActiveSubscription = ({ accountValue = 0 }: ActiveSubscriptionProps
           </div>
         </div>
         <div className="text-right">
-          <p className="font-bold">Monthly Plan</p>
+          <p className="font-bold">Monthly Plan: ${currentPrice}/month</p>
+          <p className="text-xs text-muted-foreground">Account: ${accountValue.toLocaleString()}</p>
           <p className="text-xs text-muted-foreground">Renewed: {new Date().toLocaleDateString()}</p>
         </div>
       </div>

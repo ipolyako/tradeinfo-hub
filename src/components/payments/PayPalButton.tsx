@@ -16,6 +16,27 @@ interface PayPalButtonProps {
   accountValue?: number;
 }
 
+// Define pricing tiers
+export const pricingTiers = [
+  { min: 1, max: 100000, price: 200 },
+  { min: 100001, max: 200000, price: 350 },
+  { min: 200001, max: 300000, price: 500 },
+  { min: 300001, max: 400000, price: 600 },
+  { min: 400001, max: Infinity, price: 1000 }
+];
+
+// Get the price based on account value
+export const getPriceForAccount = (accountValue: number): number => {
+  if (accountValue <= 0) return 200; // Default price
+  
+  for (const tier of pricingTiers) {
+    if (accountValue >= tier.min && accountValue <= tier.max) {
+      return tier.price;
+    }
+  }
+  return 1000; // Default to highest tier if not found
+};
+
 export const PayPalButton = ({ 
   onStatusChange, 
   onSubscriptionUpdate,
@@ -29,6 +50,9 @@ export const PayPalButton = ({
   const isMobile = useIsMobile();
   const isFirefoxBrowser = isFirefox();
   const containerId = `paypal-button-container-${PLAN_ID}`;
+  
+  // Calculate the applicable price based on account value
+  const currentPrice = getPriceForAccount(accountValue);
   
   const refreshPayPalContainer = () => {
     setRenderAttempts(prev => prev + 1);
@@ -158,9 +182,38 @@ export const PayPalButton = ({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <div className="flex items-center justify-between">
-        <span className="font-medium">Subscription:</span>
-        <span className="font-bold">Monthly Plan</span>
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="font-medium">Subscription:</span>
+          <span className="font-bold">Monthly Plan</span>
+        </div>
+        
+        <div className="bg-muted/50 rounded-lg p-4 border">
+          <h3 className="font-medium mb-2">Pricing Tier</h3>
+          <div className="flex justify-between items-center">
+            <span>Your account balance:</span>
+            <span className="font-bold">${accountValue.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between items-center mt-1">
+            <span>Monthly subscription:</span>
+            <span className="font-bold text-primary">${currentPrice.toLocaleString()}/month</span>
+          </div>
+        </div>
+        
+        <div className="text-xs text-muted-foreground mt-1 space-y-1">
+          <p className="font-medium">Pricing Tiers:</p>
+          {pricingTiers.map((tier, index) => (
+            <div key={index} className={cn(
+              "flex justify-between", 
+              accountValue >= tier.min && accountValue <= tier.max ? "text-primary font-medium" : ""
+            )}>
+              <span>
+                {tier.min.toLocaleString()} - {tier.max === Infinity ? "Unlimited" : tier.max.toLocaleString()}:
+              </span>
+              <span>${tier.price}/month</span>
+            </div>
+          ))}
+        </div>
       </div>
       
       <div className="w-full min-h-[250px]">
