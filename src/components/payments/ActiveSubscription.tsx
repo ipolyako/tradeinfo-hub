@@ -12,16 +12,19 @@ export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: Activ
   // Get the appropriate tier based on selection or default to first tier
   const tierIndex = selectedTier !== undefined ? selectedTier : 0;
   
-  const currentTier = pricingTiers[tierIndex >= 0 ? tierIndex : 0];
-  const currentPrice = currentTier?.price || 200; // Default to first tier price
+  // Look up the tier data from the pricingTiers array
+  const currentTier = pricingTiers[tierIndex >= 0 && tierIndex < pricingTiers.length ? tierIndex : 0];
+  
+  // Use the price directly from the selected tier
+  const currentPrice = currentTier?.price || 0;
   
   // Get the hardcoded quantity for display
-  const quantity = currentTier?.quantity || 10; // Default to first tier quantity
+  const quantity = currentTier?.quantity || 5; // Default to free trial quantity
   
   // Get account balance text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
     ? getAccountBalanceText(selectedTier) 
-    : "under $100,000";
+    : "Free Trial";
   
   // Convert zero-based index to human-readable tier number (1-based)
   const displayTierNumber = tierIndex + 1;
@@ -37,7 +40,11 @@ export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: Activ
           </div>
         </div>
         <div className="text-right">
-          <p className="font-bold">Monthly Plan: ${currentPrice}/month</p>
+          <p className="font-bold">
+            {currentPrice === 0 
+              ? "Monthly Plan: Free Trial" 
+              : `Monthly Plan: $${currentPrice}/month`}
+          </p>
           <p className="text-xs text-muted-foreground">
             Tier {displayTierNumber} • Account balance: {accountBalanceText}
           </p>
