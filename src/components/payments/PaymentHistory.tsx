@@ -21,7 +21,7 @@ export const PaymentHistory = ({ hasActiveSubscription }: PaymentHistoryProps) =
                   <p className="font-medium">May 6, 2025</p>
                   <p className="text-sm text-muted-foreground">Algorithmic Trading Service</p>
                 </div>
-                <span className="font-bold">$200.00</span>
+                <span className="font-bold">$150.00</span>
               </div>
             </div>
           </div>
