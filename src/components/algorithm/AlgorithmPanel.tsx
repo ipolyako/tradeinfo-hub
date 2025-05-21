@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LogOut, Play, Square, RefreshCw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TraderServiceAPI } from "@/utils/traderServiceAPI";
+import { ToastProps } from "@/types/toast";
 
 interface UserProfile {
   id: string;
@@ -36,7 +37,7 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
   const [tradingAmount, setTradingAmount] = useState<string>("");
   const { toast } = useToast();
   
-  const traderAPI = new TraderServiceAPI(userProfile, setResults, toast);
+  const traderAPI = new TraderServiceAPI(userProfile, setResults, toast as (props: ToastProps) => void);
 
   // Check bot status function
   const checkBotStatus = async () => {
@@ -66,6 +67,7 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
           toast({
             title: "Bot Status",
             description: "Bot is currently not running",
+            variant: "warning"
           });
         } else {
           setStatus("running");
@@ -81,6 +83,11 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
       }
     } else {
       setResults("Failed to check bot status. Verify your trader service configuration and try again.");
+      toast({
+        title: "Status Check Failed",
+        description: "Unable to connect to your trading service",
+        variant: "warning"
+      });
     }
   };
 
@@ -115,6 +122,12 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
       setResults(`API Response: ${JSON.stringify(apiResponse)}`);
       // After starting, check status again to update UI
       setTimeout(() => checkBotStatus(), 2000);
+    } else {
+      toast({
+        title: "Start Failed",
+        description: "Unable to start trading algorithm",
+        variant: "destructive"
+      });
     }
     
     toast({
@@ -133,6 +146,12 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
       setResults(`API Response: ${JSON.stringify(apiResponse)}`);
       // After stopping, check status again to update UI
       setTimeout(() => checkBotStatus(), 2000);
+    } else {
+      toast({
+        title: "Stop Failed",
+        description: "Unable to stop trading algorithm",
+        variant: "warning"
+      });
     }
     
     toast({
