@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -48,6 +49,14 @@ export const getAccountBalanceText = (tierIndex: number): string => {
     return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
   }
 };
+
+// Define the PayPalButtonProps interface
+interface PayPalButtonProps {
+  onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
+  onSubscriptionUpdate: (hasSubscription: boolean, tier?: number) => void;
+  className?: string;
+  accountValue?: number;
+}
 
 export const PayPalButton = ({ 
   onStatusChange, 

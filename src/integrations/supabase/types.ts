@@ -37,6 +37,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          server_URL: string | null
           trader_secret: string | null
           trader_service_name: string | null
           updated_at: string | null
@@ -45,6 +46,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id: string
+          server_URL?: string | null
           trader_secret?: string | null
           trader_service_name?: string | null
           updated_at?: string | null
@@ -53,6 +55,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          server_URL?: string | null
           trader_secret?: string | null
           trader_service_name?: string | null
           updated_at?: string | null
