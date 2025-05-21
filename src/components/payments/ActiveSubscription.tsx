@@ -16,7 +16,7 @@ interface ActiveSubscriptionProps {
 
 export const ActiveSubscription = ({ 
   accountValue = 0, 
-  selectedTier =,
+  selectedTier = 0,  // Fixed: Added a default value of 0
   subscriptionId,
   onSubscriptionCancelled
 }: ActiveSubscriptionProps) => {
