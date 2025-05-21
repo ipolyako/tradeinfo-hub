@@ -6,6 +6,7 @@ interface UserProfile {
   username: string | null;
   trader_service_name: string | null;
   trader_secret: string | null;
+  server_URL: string | null;
 }
 
 export class TraderServiceAPI {
@@ -35,8 +36,11 @@ export class TraderServiceAPI {
     }
     
     try {
-      // Create URL for the API request with new domain
-      const baseUrl = "https://auth.decoglobal.us:8443"; // SSL port
+      // Use server_URL from user profile if available, otherwise fallback to default URL
+      const baseUrl = this.userProfile.server_URL 
+        ? `https://${this.userProfile.server_URL}:8443`  // Use server_URL from profile
+        : "https://auth.decoglobal.us:8443";            // Fallback to default
+      
       const path = `/services/${this.userProfile.trader_service_name}/${endpoint}`;
       const url = `${baseUrl}${path}`;
       
