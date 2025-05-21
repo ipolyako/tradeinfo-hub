@@ -9,6 +9,8 @@ import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { toast } from "@/hooks/use-toast";
 import { initializePayPalScript } from "@/lib/paypal";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 interface Subscription {
   id: string;
@@ -25,6 +27,7 @@ const Payments = () => {
   const [accountValue] = useState(75000); // Example account value, in a real app would come from user data
   const [paypalInitialized, setPaypalInitialized] = useState(false);
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Reset payment status on mount and check subscription status
   useEffect(() => {
@@ -80,6 +83,21 @@ const Payments = () => {
         setHasActiveSubscription(false);
         setSubscription(null);
         console.log("No active subscription found");
+        
+        // Check if there are any cancelled subscriptions
+        const { data: cancelledData, error: cancelledError } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .eq('status', 'CANCELLED')
+          .order('updated_at', { ascending: false })
+          .limit(1);
+          
+        if (cancelledError) {
+          console.error("Error fetching cancelled subscriptions:", cancelledError);
+        } else if (cancelledData && cancelledData.length > 0) {
+          console.log("Found cancelled subscription:", cancelledData[0]);
+        }
       }
     } catch (error) {
       console.error("Error checking subscription status:", error);
@@ -114,6 +132,72 @@ const Payments = () => {
       });
     }
   };
+  
+  const handleRefreshStatus = async () => {
+    setIsRefreshing(true);
+    toast({
+      title: "Refreshing Status",
+      description: "Checking your current subscription status...",
+    });
+    
+    await checkSubscriptionStatus();
+    
+    setIsRefreshing(false);
+    toast({
+      title: "Status Updated",
+      description: "Your subscription status has been refreshed.",
+    });
+  };
+
+  // Force a cancellation in our database if needed
+  const handleForceCancel = async () => {
+    if (!subscription?.paypal_subscription_id) {
+      toast({
+        title: "Error",
+        description: "No subscription ID found to cancel",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!window.confirm("Force cancel this subscription in our database? Use this only if PayPal shows it's cancelled but our system still shows active.")) {
+      return;
+    }
+    
+    setIsRefreshing(true);
+    
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({
+          status: 'CANCELLED',
+          updated_at: new Date().toISOString()
+        })
+        .eq('paypal_subscription_id', subscription.paypal_subscription_id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Subscription Cancelled",
+        description: "Your subscription has been marked as cancelled in our database.",
+      });
+      
+      // Refresh subscription status
+      await checkSubscriptionStatus();
+      
+    } catch (error) {
+      console.error("Error forcing cancellation:", error);
+      toast({
+        title: "Error",
+        description: "Could not cancel your subscription. Please try again or contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Show loading state while checking auth
   if (loading) {
@@ -128,6 +212,30 @@ const Payments = () => {
       
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
         <PaymentHeader />
+        
+        <div className="mb-6 flex justify-end gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleRefreshStatus}
+            disabled={isRefreshing || subscriptionLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh Status
+          </Button>
+          
+          {hasActiveSubscription && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleForceCancel}
+              disabled={isRefreshing || subscriptionLoading}
+              className="text-red-500 hover:text-red-600"
+            >
+              Force Cancel
+            </Button>
+          )}
+        </div>
         
         <SubscriptionSection 
           hasActiveSubscription={hasActiveSubscription} 

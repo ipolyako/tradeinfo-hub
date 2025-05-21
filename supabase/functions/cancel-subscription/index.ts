@@ -18,10 +18,14 @@ serve(async (req) => {
   }
   
   try {
+    console.log("Cancel subscription function called");
+    
     // Parse request body
-    const { subscriptionId } = await req.json();
+    const requestData = await req.json();
+    const { subscriptionId } = requestData;
     
     if (!subscriptionId) {
+      console.error("No subscription ID provided");
       return new Response(
         JSON.stringify({ success: false, message: 'No subscription ID provided' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -31,9 +35,9 @@ serve(async (req) => {
     console.log(`Processing cancellation for subscription: ${subscriptionId}`);
     
     // Get Supabase URL and API key from environment variables
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
     if (!supabaseUrl) {
       throw new Error('Supabase URL is not set');
@@ -43,20 +47,21 @@ serve(async (req) => {
       throw new Error('Neither Supabase service role key nor anon key is set');
     }
     
-    // Create a Supabase client using fetch API directly since there's an issue with the client library
-    const authHeader = req.headers.get('Authorization') || '';
+    const apiKey = supabaseServiceRoleKey || supabaseAnonKey;
     
-    // Parse user ID from JWT token if available
+    // Extract user information from the auth header if available
+    const authHeader = req.headers.get('Authorization') || '';
     let userId = null;
+    
     try {
-      // Extract user information from the auth header
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.replace('Bearer ', '');
+        
         // Make a request to Supabase auth API to get user info
         const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'apikey': supabaseAnonKey
+            'apikey': supabaseAnonKey || ''
           }
         });
         
@@ -72,88 +77,66 @@ serve(async (req) => {
       console.error('Error extracting user info:', error);
     }
     
-    // If we couldn't get the user ID, return an error
-    if (!userId) {
-      return new Response(
-        JSON.stringify({ success: false, message: 'Authentication required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-      );
+    // Update the subscription status in our database
+    console.log("Updating subscription in database...");
+    
+    // Create the filter condition using URL parameters
+    let queryParams = new URLSearchParams();
+    queryParams.append('paypal_subscription_id', `eq.${subscriptionId}`);
+    
+    // If we have a user ID, add it to the filter
+    if (userId) {
+      queryParams.append('user_id', `eq.${userId}`);
     }
     
-    console.log(`Cancelling subscription: ${subscriptionId} for user: ${userId}`);
+    // Build the URL with query parameters
+    const updateUrl = `${supabaseUrl}/rest/v1/subscriptions?${queryParams.toString()}`;
     
-    // Skip PayPal API call (which is causing 401 errors) and just update our database
-    // In a production environment, you would properly configure PayPal authentication
-    // But for now, we'll focus on updating our database and showing a warning
-    
-    console.log("Skipping PayPal API call and updating database directly");
-    
-    // Update the subscription status in our database using fetch directly
-    const updateResponse = await fetch(`${supabaseUrl}/rest/v1/subscriptions`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseServiceRoleKey || supabaseAnonKey}`,
-        'apikey': supabaseServiceRoleKey || supabaseAnonKey,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        status: 'CANCELLED',
-        updated_at: new Date().toISOString()
-      })
-    });
-    
-    // Create the filter condition separately
-    const queryParams = new URLSearchParams({
-      paypal_subscription_id: `eq.${subscriptionId}`,
-      user_id: `eq.${userId}`
-    }).toString();
-    
-    // Append the query parameters to the URL
-    const updateUrl = `${supabaseUrl}/rest/v1/subscriptions?${queryParams}`;
-    
-    // Update the subscription status in our database using fetch directly
-    const updateResponse = await fetch(updateUrl, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseServiceRoleKey || supabaseAnonKey}`,
-        'apikey': supabaseServiceRoleKey || supabaseAnonKey,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        status: 'CANCELLED',
-        updated_at: new Date().toISOString()
-      })
-    });
+    try {
+      // Update the subscription status
+      const updateResponse = await fetch(updateUrl, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'apikey': apiKey,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          status: 'CANCELLED',
+          updated_at: new Date().toISOString()
+        })
+      });
       
-    if (!updateResponse.ok) {
-      const errorText = await updateResponse.text();
-      console.error("Database update error:", errorText);
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error("Database update error:", errorText, "Status:", updateResponse.status);
+        throw new Error(`Failed to update subscription in database: ${errorText}`);
+      }
+      
+      console.log("Subscription successfully marked as cancelled in database");
+      
+      // Return success response
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'Failed to update subscription in database', 
-          error: errorText 
+        JSON.stringify({
+          success: true,
+          message: 'Subscription cancelled successfully.',
+          warning: 'This only updates our database. If you haven\'t already, please ensure you\'ve also cancelled in your PayPal account.'
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
+    } catch (dbError) {
+      console.error("Error updating database:", dbError);
+      throw dbError;
     }
-    
-    // Return success response
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Subscription cancelled in our database. Note: You may need to manually cancel in PayPal as well.',
-        warning: 'PayPal API authentication failed, please also cancel in your PayPal account.'
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    );
     
   } catch (error) {
-    console.error("Error in cancel subscription:", error);
+    console.error("Error in cancel subscription handler:", error);
     return new Response(
-      JSON.stringify({ success: false, message: error instanceof Error ? error.message : 'Unknown error occurred' }),
+      JSON.stringify({ 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Unknown error occurred while processing cancellation' 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

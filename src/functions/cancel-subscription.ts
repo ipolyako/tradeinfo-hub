@@ -14,6 +14,7 @@ export async function mockCancelSubscription(subscriptionId: string) {
   
   try {
     // Redirect the call to the Supabase Edge Function
+    console.log("Calling Edge Function to cancel subscription:", subscriptionId);
     const response = await supabase.functions.invoke('cancel-subscription', {
       body: { subscriptionId }
     });
@@ -25,6 +26,7 @@ export async function mockCancelSubscription(subscriptionId: string) {
       console.error('Error from Edge Function:', response.error);
       
       // Instead of failing, we'll update the local database directly
+      console.log("Attempting local database update as fallback");
       const { error: updateError } = await supabase
         .from('subscriptions')
         .update({
@@ -40,21 +42,22 @@ export async function mockCancelSubscription(subscriptionId: string) {
       
       return {
         success: true,
-        message: 'Subscription marked as cancelled in our database, but could not connect to PayPal.',
+        message: 'Subscription marked as cancelled in our database.',
         warning: 'Unable to contact PayPal API. Your subscription has been marked as cancelled in our database, but please also cancel it in your PayPal account to prevent future charges.'
       };
     }
     
     return response.data || { 
       success: false, 
-      message: 'Redirecting to real Edge Function failed',
-      warning: 'Unable to directly contact PayPal API. Your subscription has been marked as cancelled in our database, but please also cancel it in your PayPal account to prevent future charges.'
+      message: 'Cancellation failed',
+      warning: 'Unable to directly contact PayPal API. Please cancel your subscription in your PayPal account to prevent future charges.'
     };
   } catch (error) {
     console.error('Error in mockCancelSubscription:', error);
     
     // As a fallback, update the local database directly
     try {
+      console.log("Attempting emergency local database update");
       const { error: updateError } = await supabase
         .from('subscriptions')
         .update({
@@ -64,7 +67,7 @@ export async function mockCancelSubscription(subscriptionId: string) {
         .eq('paypal_subscription_id', subscriptionId);
         
       if (updateError) {
-        console.error('Local update error:', updateError);
+        console.error('Emergency local update error:', updateError);
       }
     } catch (dbError) {
       console.error('Database update error:', dbError);
@@ -72,7 +75,7 @@ export async function mockCancelSubscription(subscriptionId: string) {
     
     return {
       success: true,
-      message: 'Subscription marked as cancelled in our database, but could not connect to PayPal.',
+      message: 'Subscription marked as cancelled in our database.',
       warning: 'Unable to contact PayPal API. Your subscription has been marked as cancelled in our database, but please also cancel it in your PayPal account to prevent future charges.'
     };
   }

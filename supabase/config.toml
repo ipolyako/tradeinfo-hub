@@ -3,4 +3,3 @@ project_id = "uuosgyvftjurmeqwxvvi"
 
 [functions.cancel-subscription]
 verify_jwt = false
-
