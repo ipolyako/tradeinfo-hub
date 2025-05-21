@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,8 +14,8 @@ import PerformanceTable from "./pages/PerformanceTable";
 import SpreadsheetView from "./pages/SpreadsheetView";
 import TransactionsHistory from "./pages/TransactionsHistory";
 
-// Import mock function to ensure it's included in the build
-// This is crucial for making sure our subscription cancellation works
+// Even though we've moved to a real Edge Function, keep this import
+// to maintain backward compatibility
 import "./functions/cancel-subscription";
 
 const queryClient = new QueryClient();

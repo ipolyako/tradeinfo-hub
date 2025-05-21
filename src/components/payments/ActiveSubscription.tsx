@@ -16,7 +16,7 @@ interface ActiveSubscriptionProps {
 
 export const ActiveSubscription = ({ 
   accountValue = 0, 
-  selectedTier = 0,  // Fixed: Added a default value of 0
+  selectedTier = 0,
   subscriptionId,
   onSubscriptionCancelled
 }: ActiveSubscriptionProps) => {
@@ -60,7 +60,7 @@ export const ActiveSubscription = ({
     try {
       console.log("Attempting to cancel subscription:", subscriptionId);
       
-      // Using our mocked function
+      // Call the real Supabase Edge Function
       const { data, error } = await supabase.functions.invoke('cancel-subscription', {
         body: { subscriptionId }
       });
