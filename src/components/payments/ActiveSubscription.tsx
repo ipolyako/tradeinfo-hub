@@ -56,6 +56,11 @@ export const ActiveSubscription = ({
         
         if (response.success) {
           setPaypalStatus(response.paypalStatus);
+          
+          // If this is a simulated response, show a warning to the user
+          if (response.paypalStatus === 'SIMULATED_ACTIVE') {
+            setWarning("PayPal API is not fully configured. Using simulated active subscription for development.");
+          }
         } else {
           setWarning("Unable to verify subscription status with PayPal");
         }

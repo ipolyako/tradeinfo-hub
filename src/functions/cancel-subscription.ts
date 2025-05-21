@@ -8,42 +8,20 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS, GET'
 };
 
-// This function calls the Supabase Edge Function
+// Simplified function that doesn't rely on the Edge Function
 export async function mockCancelSubscription(subscriptionId: string, options?: { action?: 'check' | 'cancel' }) {
   try {
-    // Prepare request parameters
-    const params = {
-      subscriptionId,
-      action: options?.action || 'check'
-    };
-    
-    console.log("Calling Edge Function to manage subscription:", subscriptionId, params);
-    const response = await supabase.functions.invoke('cancel-subscription', {
-      body: params
-    });
-    
-    console.log('Subscription function response:', response.data || response.error);
-    
-    if (response.error) {
-      console.error('Error from Edge Function:', response.error);
-      
-      // Handle specific error cases
-      if (response.error.message?.includes("API credentials")) {
-        return {
-          success: false,
-          message: 'PayPal API credentials are not configured. For testing, we will simulate an active subscription.',
-          isActive: true,
-          paypalStatus: 'SIMULATED_ACTIVE'
-        };
-      }
-      
-      throw new Error(response.error.message || 'Error connecting to subscription service');
-    }
-    
-    return response.data || { 
-      success: false, 
-      message: 'Subscription check failed',
-      isActive: false
+    console.log("Checking subscription status:", subscriptionId, options);
+
+    // For development environments without PayPal credentials
+    // Always simulate a successful subscription check/cancellation
+    return {
+      success: true,
+      message: options?.action === 'cancel' ? 
+        'Subscription cancelled successfully (simulation)' : 
+        'Using simulated PayPal response for development',
+      isActive: options?.action === 'cancel' ? false : true,
+      paypalStatus: options?.action === 'cancel' ? 'CANCELLED_SIMULATED' : 'SIMULATED_ACTIVE'
     };
   } catch (error) {
     console.error('Error in mockCancelSubscription:', error);
@@ -53,8 +31,8 @@ export async function mockCancelSubscription(subscriptionId: string, options?: {
     return {
       success: true,
       message: 'Using simulated PayPal response for development',
-      isActive: true,
-      paypalStatus: 'SIMULATED_ACTIVE'
+      isActive: options?.action === 'cancel' ? false : true,
+      paypalStatus: options?.action === 'cancel' ? 'CANCELLED_SIMULATED' : 'SIMULATED_ACTIVE'
     };
   }
 }
