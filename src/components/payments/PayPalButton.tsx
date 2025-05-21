@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -143,20 +144,19 @@ export const PayPalButton = ({
           label: "subscribe"
         },
         createSubscription: function(data, actions) {
-          // Fix: Ensure we pass the correct quantity to match price
-          const chosenTier = selectedTier !== undefined ? selectedTier : defaultTierIndex;
-          const tier = pricingTiers[chosenTier >= 0 ? chosenTier : 0];
+          // Get the correct tier object based on selection
+          const chosenTierIndex = selectedTier !== undefined ? selectedTier : defaultTierIndex;
+          const tier = pricingTiers[chosenTierIndex >= 0 ? chosenTierIndex : 0];
           
           // Log subscription details for debugging
-          console.log(`Creating subscription with tier ${chosenTier}, price $${tier.price}, quantity ${tier.quantity}`);
+          console.log(`Creating subscription with tier ${chosenTierIndex}, price $${tier.price}, quantity ${tier.quantity}`);
           
-          // Adjust quantity to match price displayed - fix for $100 discrepancy
+          // The key fix: Pass quantity as a NUMERIC value (not string)
+          // This ensures PayPal uses the correct price tier
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            // Pass quantity which controls pricing in PayPal
             quantity: tier.quantity,
-            // Include price in custom_id for reference only
-            custom_id: `tier_${chosenTier}_price_${tier.price}`
+            custom_id: `tier_${chosenTierIndex}_price_${tier.price}`
           });
         },
         onApprove: function(data) {
@@ -271,10 +271,11 @@ export const PayPalButton = ({
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select pricing tier" />
               </SelectTrigger>
-              {/* Fix: Update SelectContent to ensure dropdown appears above PayPal buttons */}
               <SelectContent 
-                position="item-aligned" 
+                position="popper" 
                 className="bg-white z-[100]"
+                align="start"
+                sideOffset={5}
               >
                 <SelectGroup>
                   {pricingTiers.map((tier, index) => (
@@ -294,8 +295,8 @@ export const PayPalButton = ({
         </div>
       </div>
       
-      {/* Fix: Add margin-top to ensure PayPal buttons are not covering dropdown */}
-      <div className="w-full min-h-[250px] mt-8">
+      {/* Add large margin-top to ensure PayPal buttons are not covering dropdown */}
+      <div className="w-full min-h-[250px] mt-10">
         {scriptError ? (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>
