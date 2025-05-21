@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthPanel } from "@/components/auth/AuthPanel";
 import { AlgorithmPanel } from "@/components/algorithm/AlgorithmPanel";
@@ -33,7 +33,6 @@ const Account = () => {
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [userSubscription, setUserSubscription] = useState<Subscription | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
 
   // Fetch user profile data
@@ -134,33 +133,6 @@ const Account = () => {
     }
   };
 
-  // Manual refresh of subscription status
-  const handleRefreshSubscription = async () => {
-    if (!session?.user) return;
-    
-    setRefreshing(true);
-    
-    toast({
-      title: "Checking subscription...",
-      description: "Verifying your subscription status with PayPal",
-    });
-    
-    if (userSubscription?.paypal_subscription_id) {
-      await checkPayPalStatus(userSubscription.paypal_subscription_id);
-    } else {
-      await fetchSubscriptionInfo(session.user.id);
-    }
-    
-    setRefreshing(false);
-    
-    toast({
-      title: "Subscription Status Updated",
-      description: isActive 
-        ? "Your subscription is active" 
-        : "You don't have an active subscription",
-    });
-  };
-
   // Check for authentication on component mount
   useEffect(() => {
     const getSession = async () => {
@@ -234,26 +206,12 @@ const Account = () => {
           <AuthPanel />
         ) : (
           <>
-            <div className="relative">
-              <div className="mb-4 flex justify-end space-x-2">
-                <Button
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleRefreshSubscription}
-                  disabled={subscriptionLoading || refreshing}
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${subscriptionLoading || refreshing ? 'animate-spin' : ''}`} />
-                  Refresh Status
-                </Button>
-              </div>
-              
-              <SubscriptionStatus 
-                selectedTier={userSubscription?.tier}
-                isLoading={subscriptionLoading || refreshing} 
-                subscriptionId={userSubscription?.paypal_subscription_id}
-                onSubscriptionUpdate={handleSubscriptionUpdate}
-              />
-            </div>
+            <SubscriptionStatus 
+              selectedTier={userSubscription?.tier}
+              isLoading={subscriptionLoading} 
+              subscriptionId={userSubscription?.paypal_subscription_id}
+              onSubscriptionUpdate={handleSubscriptionUpdate}
+            />
             
             <AlgorithmPanel session={session} userProfile={userProfile} />
           </>
