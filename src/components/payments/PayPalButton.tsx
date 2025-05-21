@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { Label } from "@/components/ui/label";
 
 // Define pricing tiers based on the subscription structure
 export const pricingTiers = [
@@ -301,7 +302,7 @@ export const PayPalButton = ({
         <div className="bg-muted/50 rounded-lg p-4 border">
           <h3 className="font-medium mb-2">Pricing Tier</h3>
           <div className="flex justify-between items-center">
-            <span>Your account balance:</span>
+            <Label htmlFor="account-balance" className="font-medium">Account Balance:</Label>
             <span className="font-bold">{accountBalanceText}</span>
           </div>
           
@@ -313,7 +314,7 @@ export const PayPalButton = ({
               value={selectedTier?.toString() || defaultTierIndex.toString()} 
               onValueChange={handleTierChange}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full" id="tier-select">
                 <SelectValue placeholder="Select pricing tier" />
               </SelectTrigger>
               <SelectContent 
