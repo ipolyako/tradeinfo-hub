@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -134,11 +135,44 @@ export const PayPalButton = ({
           // Log subscription details for debugging
           console.log(`Creating subscription with tier ${chosenTierIndex}, price $${tier.price}, quantity ${currentQuantity}`);
           
-          // Use custom_id to pass the pricing tier information
+          // Create a custom plan specific to the selected tier's price
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: "1", // Always use "1" as string quantity
-            custom_id: `tier_${chosenTierIndex}_price_${tier.price}` // Pass tier info in custom_id
+            quantity: '1',
+            application_context: {
+              shipping_preference: 'NO_SHIPPING'
+            },
+            plan: {
+              name: `Algorithmic Trading Service - ${tier.price === 150 ? 'Starter' : tier.price === 200 ? 'Professional' : 'Enterprise'} Plan`,
+              product: {
+                name: 'Algorithmic Trading Service'
+              },
+              billing_cycles: [
+                {
+                  frequency: {
+                    interval_unit: 'MONTH',
+                    interval_count: 1
+                  },
+                  tenure_type: 'REGULAR',
+                  sequence: 1,
+                  total_cycles: 0,
+                  pricing_scheme: {
+                    fixed_price: {
+                      value: tier.price.toString(),
+                      currency_code: 'USD'
+                    }
+                  }
+                }
+              ],
+              payment_preferences: {
+                auto_bill_outstanding: true,
+                setup_fee: {
+                  value: '0',
+                  currency_code: 'USD'
+                }
+              }
+            },
+            custom_id: `tier_${chosenTierIndex}_price_${tier.price}`
           });
         },
         onApprove: function(data) {
