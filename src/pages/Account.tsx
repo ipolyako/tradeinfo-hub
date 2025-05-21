@@ -162,36 +162,42 @@ const Account = () => {
         const subscription = data[0];
         
         // Check if we need to verify with PayPal
-        if (subscription.status === "ACTIVE" && subscription.paypal_subscription_id) {
+        if (subscription.paypal_subscription_id) {
           setSyncingPayPal(true);
           
-          // Verify with PayPal
-          const paypalStatus = await checkPayPalSubscriptionStatus(subscription.paypal_subscription_id);
-          
-          if (paypalStatus && paypalStatus !== "ACTIVE" && paypalStatus !== "APPROVED") {
-            // Subscription has changed in PayPal, update our database
-            await syncSubscriptionStatus(userId, subscription.paypal_subscription_id, paypalStatus);
-            
-            // Refresh subscription data from database after sync
-            const { data: refreshedData, error: refreshError } = await supabase
-              .from('subscriptions')
-              .select('*')
-              .eq('user_id', userId)
-              .eq('id', subscription.id)
-              .single();
-            
-            if (!refreshError && refreshedData) {
-              subscription.status = refreshedData.status;
-              
-              // Notify user if subscription is no longer active
-              if (subscription.status !== "ACTIVE") {
-                toast({
-                  title: "Subscription Update",
-                  description: "Your subscription status has changed. Please check your PayPal account for details.",
-                  variant: "destructive",
-                });
+          // Instead of using PayPal API, force check with our own backend
+          try {
+            const { data: forceSyncData, error: forceSyncError } = await supabase.functions.invoke('cancel-subscription', {
+              body: { 
+                subscriptionId: subscription.paypal_subscription_id,
+                forceCheck: true 
               }
+            });
+            
+            if (forceSyncError) {
+              console.error('Error checking subscription status with edge function:', forceSyncError);
+            } else if (forceSyncData?.status === 'CANCELLED' && subscription.status !== 'CANCELLED') {
+              // Our Edge Function reports this subscription as cancelled, but our database says active
+              // Let's update our database
+              await supabase
+                .from('subscriptions')
+                .update({ 
+                  status: 'CANCELLED', 
+                  updated_at: new Date().toISOString() 
+                })
+                .eq('id', subscription.id);
+                
+              subscription.status = 'CANCELLED';
+              
+              // Notify user about the status change
+              toast({
+                title: "Subscription Status Updated",
+                description: "Your subscription has been marked as cancelled based on our verification.",
+                variant: "warning",
+              });
             }
+          } catch (syncError) {
+            console.error('Error syncing subscription status with edge function:', syncError);
           }
           
           setSyncingPayPal(false);
@@ -231,7 +237,7 @@ const Account = () => {
     
     toast({
       title: "Checking subscription...",
-      description: "Verifying your subscription status with PayPal",
+      description: "Verifying your subscription status",
     });
     
     await checkSubscriptionStatus(session.user.id);
@@ -324,26 +330,8 @@ const Account = () => {
                 isLoading={subscriptionLoading || syncingPayPal} 
                 subscriptionId={userSubscription?.paypal_subscription_id}
                 onSubscriptionUpdate={handleSubscriptionUpdate}
+                onRefreshStatus={handleRefreshSubscription}
               />
-              
-              {session && (
-                <div className="absolute top-4 right-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center gap-1"
-                    onClick={handleRefreshSubscription}
-                    disabled={subscriptionLoading || syncingPayPal}
-                  >
-                    {subscriptionLoading || syncingPayPal ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                    <span className="sr-only sm:not-sr-only sm:ml-1">Refresh</span>
-                  </Button>
-                </div>
-              )}
             </div>
             
             <AlgorithmPanel session={session} userProfile={userProfile} />

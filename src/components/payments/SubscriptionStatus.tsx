@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ interface SubscriptionStatusProps {
   status?: string;
   subscriptionId?: string;
   onSubscriptionUpdate?: (hasSubscription: boolean) => void;
+  onRefreshStatus?: () => Promise<void>;
 }
 
 export const SubscriptionStatus = ({ 
@@ -23,10 +24,12 @@ export const SubscriptionStatus = ({
   isLoading = false,
   status = "ACTIVE",
   subscriptionId,
-  onSubscriptionUpdate
+  onSubscriptionUpdate,
+  onRefreshStatus
 }: SubscriptionStatusProps) => {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   
   // Get tier display text
   const getTierText = (tier: number) => {
@@ -96,6 +99,28 @@ export const SubscriptionStatus = ({
       setCancelLoading(false);
     }
   };
+  
+  // Function to refresh subscription status
+  const handleRefreshStatus = async () => {
+    if (onRefreshStatus) {
+      setRefreshing(true);
+      try {
+        await onRefreshStatus();
+        toast({
+          title: "Status Updated",
+          description: "Your subscription status has been refreshed.",
+        });
+      } catch (error) {
+        toast({
+          title: "Refresh Failed",
+          description: "Could not refresh subscription status.",
+          variant: "destructive",
+        });
+      } finally {
+        setRefreshing(false);
+      }
+    }
+  };
 
   // Loading state
   if (isLoading) {
@@ -119,7 +144,20 @@ export const SubscriptionStatus = ({
   return (
     <Card className="mb-6">
       <CardHeader className="pb-3">
-        <CardTitle className="text-xl">Subscription Status</CardTitle>
+        <CardTitle className="text-xl flex justify-between">
+          <span>Subscription Status</span>
+          {onRefreshStatus && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleRefreshStatus} 
+              disabled={refreshing}
+            >
+              <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="sr-only sm:not-sr-only">Refresh</span>
+            </Button>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-3 mb-4">
