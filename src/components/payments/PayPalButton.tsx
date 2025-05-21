@@ -144,11 +144,18 @@ export const PayPalButton = ({
           label: "subscribe"
         },
         createSubscription: function(data, actions) {
-          // Make sure to use the correct price from the selected tier
+          // The key fix: Only use plan_id and quantity parameters for subscription creation
+          // The price will be determined by the plan configuration in PayPal dashboard
+          const chosenTier = selectedTier !== undefined ? selectedTier : defaultTierIndex;
+          const tier = pricingTiers[chosenTier >= 0 ? chosenTier : 0];
+          
+          console.log(`Creating subscription with tier ${chosenTier}, price $${tier.price}, quantity ${tier.quantity}`);
+          
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: currentQuantity,
-            custom_id: `tier_${selectedTier !== undefined ? selectedTier : defaultTierIndex}_price_${currentPrice}`
+            quantity: tier.quantity,
+            // Include price in custom_id for reference only (doesn't affect actual charging)
+            custom_id: `tier_${chosenTier}_price_${tier.price}`
           });
         },
         onApprove: function(data) {
@@ -224,7 +231,7 @@ export const PayPalButton = ({
       
       return () => clearTimeout(timer);
     }
-  }, [scriptLoaded, renderAttempts, isMobile, selectedTier, currentQuantity]);
+  }, [scriptLoaded, renderAttempts, isMobile, selectedTier]);
 
   const handleTierChange = (value: string) => {
     const tierIndex = parseInt(value, 10);
@@ -330,3 +337,4 @@ export const PayPalButton = ({
     </div>
   );
 };
+
