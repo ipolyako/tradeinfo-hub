@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -326,7 +325,9 @@ export const PayPalButton = ({
                 <SelectGroup>
                   {pricingTiers.map((tier, index) => (
                     <SelectItem key={index} value={index.toString()}>
-                      ${tier.price}/mo: {tier.min.toLocaleString()} - {tier.max === Infinity ? "Unlimited" : tier.max.toLocaleString()}
+                      {tier.min === 1 ? 
+                        `Under $${tier.max.toLocaleString()}: $${tier.price}/mo` : 
+                        `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}: $${tier.price}/mo`}
                     </SelectItem>
                   ))}
                 </SelectGroup>
