@@ -2,18 +2,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
 
 interface SubscriptionStatusProps {
   hasActiveSubscription: boolean;
   selectedTier?: number;
   isLoading?: boolean;
+  status?: string;
 }
 
 export const SubscriptionStatus = ({ 
   hasActiveSubscription, 
   selectedTier = 0,
-  isLoading = false 
+  isLoading = false,
+  status = "ACTIVE" 
 }: SubscriptionStatusProps) => {
   // Get tier display text
   const getTierText = (tier: number) => {
