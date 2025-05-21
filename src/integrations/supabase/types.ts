@@ -60,6 +60,48 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          last_payment_date: string | null
+          next_billing_date: string | null
+          paypal_subscription_id: string
+          plan_id: string
+          price: number
+          status: string
+          tier: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_payment_date?: string | null
+          next_billing_date?: string | null
+          paypal_subscription_id: string
+          plan_id: string
+          price: number
+          status: string
+          tier: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_payment_date?: string | null
+          next_billing_date?: string | null
+          paypal_subscription_id?: string
+          plan_id?: string
+          price?: number
+          status?: string
+          tier?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

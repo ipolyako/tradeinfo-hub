@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -16,13 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface PayPalButtonProps {
-  onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
-  onSubscriptionUpdate: (hasSubscription: boolean, selectedTier?: number) => void;
-  className?: string;
-  accountValue?: number;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 // Define pricing tiers based on the subscription structure
 export const pricingTiers = [
@@ -162,12 +155,53 @@ export const PayPalButton = ({
             }
           });
         },
-        onApprove: function(data) {
+        onApprove: async function(data) {
           console.log("Subscription successful:", data.subscriptionID);
-          toast({
-            title: "Subscription Successful",
-            description: "Your subscription has been processed successfully.",
-          });
+          
+          try {
+            // Get the current user
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (!user) {
+              throw new Error("User not authenticated");
+            }
+            
+            // Get the tier details
+            const chosenTierIndex = selectedTier !== undefined ? selectedTier : defaultTierIndex;
+            const tier = pricingTiers[chosenTierIndex];
+            
+            // Create subscription record in Supabase
+            const { error: insertError } = await supabase
+              .from('subscriptions')
+              .insert({
+                user_id: user.id,
+                paypal_subscription_id: data.subscriptionID,
+                status: 'ACTIVE',
+                plan_id: tier.planId,
+                tier: chosenTierIndex,
+                price: tier.price,
+                last_payment_date: new Date().toISOString()
+              });
+              
+            if (insertError) {
+              console.error("Error saving subscription to database:", insertError);
+              throw insertError;
+            }
+            
+            toast({
+              title: "Subscription Successful",
+              description: "Your subscription has been processed and saved to your account.",
+            });
+            
+          } catch (error) {
+            console.error("Error processing subscription:", error);
+            toast({
+              title: "Subscription Processed",
+              description: "Your PayPal subscription was processed, but we had trouble updating your account. Please contact support if you don't see your subscription active.",
+              variant: "destructive",
+            });
+          }
+          
           onStatusChange("success");
           onSubscriptionUpdate(true, selectedTier);
           return true;

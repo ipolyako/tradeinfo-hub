@@ -5,7 +5,7 @@ import { PaymentStatus } from "./PaymentStatus";
 import { ActiveSubscription } from "./ActiveSubscription";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { isFirefox } from "@/lib/paypal";
 
 interface SubscriptionSectionProps {
@@ -15,6 +15,8 @@ interface SubscriptionSectionProps {
   onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
   onSubscriptionUpdate: (hasSubscription: boolean, tier?: number) => void;
   accountValue?: number;
+  selectedTier?: number;
+  isLoading?: boolean;
 }
 
 export const SubscriptionSection = ({ 
@@ -23,11 +25,18 @@ export const SubscriptionSection = ({
   onRetry, 
   onStatusChange,
   onSubscriptionUpdate,
-  accountValue = 0
+  accountValue = 0,
+  selectedTier,
+  isLoading = false
 }: SubscriptionSectionProps) => {
   const [forceRefresh, setForceRefresh] = useState(0);
-  const [selectedTier, setSelectedTier] = useState<number | undefined>(undefined);
+  const [localSelectedTier, setLocalSelectedTier] = useState<number | undefined>(selectedTier);
   const isFirefoxBrowser = isFirefox();
+  
+  // Update local tier when prop changes
+  useEffect(() => {
+    setLocalSelectedTier(selectedTier);
+  }, [selectedTier]);
   
   // Listen for browser focus events (for Firefox popup handling)
   useEffect(() => {
@@ -56,11 +65,31 @@ export const SubscriptionSection = ({
   };
 
   const handleSubscriptionUpdate = (hasSubscription: boolean, tier?: number) => {
-    setSelectedTier(tier);
+    setLocalSelectedTier(tier);
     onSubscriptionUpdate(hasSubscription, tier);
   };
 
   const currentPrice = getPriceForAccount(accountValue);
+
+  // Show loading state while checking subscription status
+  if (isLoading) {
+    return (
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Subscription</CardTitle>
+          <CardDescription>Checking your subscription status</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <p className="text-muted-foreground">Loading subscription details...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="mb-8">
@@ -70,7 +99,7 @@ export const SubscriptionSection = ({
       </CardHeader>
       <CardContent>
         {hasActiveSubscription ? (
-          <ActiveSubscription accountValue={accountValue} selectedTier={selectedTier} />
+          <ActiveSubscription accountValue={accountValue} selectedTier={localSelectedTier} />
         ) : (
           <>
             {paymentStatus === "idle" && (

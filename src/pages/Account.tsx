@@ -18,11 +18,20 @@ interface UserProfile {
   trader_secret: string | null;
 }
 
+interface Subscription {
+  id: string;
+  status: string;
+  tier: number;
+  price: number;
+}
+
 const Account = () => {
   const [session, setSession] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [userSubscription, setUserSubscription] = useState<Subscription | null>(null);
   const { toast } = useToast();
 
   // Fetch user profile data
@@ -52,12 +61,39 @@ const Account = () => {
     }
   };
 
-  // Check subscription status
-  const checkSubscriptionStatus = () => {
-    // Check if user has active subscription in localStorage
-    // In a real app, this would come from your backend
-    const savedSubscription = localStorage.getItem("hasSubscription");
-    setHasActiveSubscription(savedSubscription === "true");
+  // Check subscription status from Supabase
+  const checkSubscriptionStatus = async (userId: string) => {
+    try {
+      setSubscriptionLoading(true);
+      
+      // Query the subscriptions table for active subscriptions for this user
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'ACTIVE')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if (error) {
+        console.error("Error fetching subscription status:", error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        setHasActiveSubscription(true);
+        setUserSubscription(data[0]);
+        console.log("Found active subscription:", data[0]);
+      } else {
+        setHasActiveSubscription(false);
+        setUserSubscription(null);
+        console.log("No active subscription found");
+      }
+    } catch (error) {
+      console.error("Error checking subscription status:", error);
+    } finally {
+      setSubscriptionLoading(false);
+    }
   };
 
   // Check for authentication on component mount
@@ -72,7 +108,7 @@ const Account = () => {
         
         if (currentSession?.user) {
           await fetchUserProfile(currentSession.user.id);
-          checkSubscriptionStatus();
+          await checkSubscriptionStatus(currentSession.user.id);
         }
         
         // Always set loading to false after initial check
@@ -88,10 +124,11 @@ const Account = () => {
             if (event === 'SIGNED_IN' && newSession?.user) {
               console.log('User signed in, fetching profile');
               await fetchUserProfile(newSession.user.id);
-              checkSubscriptionStatus();
+              await checkSubscriptionStatus(newSession.user.id);
             } else if (event === 'SIGNED_OUT') {
               setUserProfile(null);
               setHasActiveSubscription(false);
+              setUserSubscription(null);
             }
           }
         );
@@ -132,7 +169,11 @@ const Account = () => {
           <AuthPanel />
         ) : (
           <>
-            <SubscriptionStatus hasActiveSubscription={hasActiveSubscription} />
+            <SubscriptionStatus 
+              hasActiveSubscription={hasActiveSubscription} 
+              selectedTier={userSubscription?.tier}
+              isLoading={subscriptionLoading} 
+            />
             <AlgorithmPanel session={session} userProfile={userProfile} />
           </>
         )}
