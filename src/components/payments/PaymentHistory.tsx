@@ -16,7 +16,7 @@ export const PaymentHistory = ({ hasActiveSubscription }: PaymentHistoryProps) =
         {hasActiveSubscription ? (
           <div className="space-y-4">
             <div className="border rounded-lg divide-y">
-              <div className="flex items-center justify-between p-4">
+              <div className="flex items-center justify-between p-4 touch-manipulation">
                 <div>
                   <p className="font-medium">May 6, 2025</p>
                   <p className="text-sm text-muted-foreground">Algorithmic Trading Service</p>

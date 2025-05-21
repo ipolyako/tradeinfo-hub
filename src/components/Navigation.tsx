@@ -59,6 +59,14 @@ export const Navigation = () => {
     { title: "Payments", path: "/payments", icon: WalletCards },
   ];
 
+  // Enhanced mobile link handler with improved touch functionality
+  const handleMobileLinkClick = (onClose: () => void) => {
+    // Add a short delay to ensure the touch event completes fully
+    setTimeout(() => {
+      onClose();
+    }, 50);
+  };
+
   return (
     <nav className="fixed w-full bg-white/80 backdrop-blur-md z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -96,9 +104,9 @@ export const Navigation = () => {
               <NavigationMenu>
                 <NavigationMenuList>
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger>My Account</NavigationMenuTrigger>
+                    <NavigationMenuTrigger className="cursor-pointer" role="button" tabIndex={0}>My Account</NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <ul className="grid w-[200px] gap-2 p-2">
+                      <ul className="grid w-[200px] gap-2 p-2 bg-background shadow-lg">
                         {accountMenuItems.map((item) => (
                           <li key={item.title}>
                             <NavigationMenuLink asChild>
@@ -145,7 +153,7 @@ export const Navigation = () => {
             {isMobile ? (
               <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                 <DrawerTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="touch-manipulation">
                     <Menu className="h-6 w-6" />
                   </Button>
                 </DrawerTrigger>
@@ -155,12 +163,12 @@ export const Navigation = () => {
                       <Link 
                         key={link.title} 
                         to={link.path} 
-                        className={`w-full text-center py-3 text-lg font-medium border-b border-border ${
+                        className={`w-full text-center py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
                           (location.pathname === link.path || 
                            (location.hash === link.path && link.path.startsWith('#'))) ? 
                            'text-primary' : ''
                         }`}
-                        onClick={() => setIsDrawerOpen(false)}
+                        onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
                       >
                         {link.title}
                       </Link>
@@ -176,11 +184,11 @@ export const Navigation = () => {
                           <Link 
                             key={item.title}
                             to={item.path} 
-                            className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border ${
+                            className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
                               location.pathname === item.path ? 
                               'bg-primary/10 text-primary' : 'bg-muted/50'
                             }`}
-                            onClick={() => setIsDrawerOpen(false)}
+                            onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
                           >
                             <item.icon className="h-5 w-5" />
                             {item.title}
@@ -193,11 +201,11 @@ export const Navigation = () => {
                     {!session && (
                       <Link 
                         to="/account" 
-                        className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border ${
+                        className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
                           location.pathname === "/account" ? 
                           'bg-primary/10 text-primary' : 'bg-muted/50'
                         }`}
-                        onClick={() => setIsDrawerOpen(false)}
+                        onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
                       >
                         <User className="h-5 w-5" />
                         My Account
@@ -206,8 +214,8 @@ export const Navigation = () => {
                     
                     <Link 
                       to="/get-started" 
-                      className="w-full mt-4" 
-                      onClick={() => setIsDrawerOpen(false)}
+                      className="w-full mt-4 touch-manipulation" 
+                      onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
                     >
                       <Button 
                         className="w-full"
