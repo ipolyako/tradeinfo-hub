@@ -132,8 +132,11 @@ export const PayPalButton = ({
           const chosenTierIndex = selectedTier !== undefined ? selectedTier : defaultTierIndex;
           const tier = pricingTiers[chosenTierIndex >= 0 ? chosenTierIndex : 0];
           
+          // Display the actual tier number (human-readable, 1-based) in the log
+          const displayTierNumber = chosenTierIndex + 1;
+          
           // Log subscription details for debugging
-          console.log(`Creating subscription with tier ${chosenTierIndex}, price $${tier.price}, quantity ${currentQuantity}`);
+          console.log(`Creating subscription with tier ${displayTierNumber}, price $${tier.price}, quantity ${currentQuantity}`);
           
           // Create a custom plan specific to the selected tier's price
           return actions.subscription.create({
@@ -172,7 +175,7 @@ export const PayPalButton = ({
                 }
               }
             },
-            custom_id: `tier_${chosenTierIndex}_price_${tier.price}`
+            custom_id: `tier_${displayTierNumber}_price_${tier.price}`
           });
         },
         onApprove: function(data) {

@@ -20,6 +20,9 @@ export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: Activ
     ? getAccountBalanceText(selectedTier) 
     : "under $50,000";
   
+  // Convert zero-based index to human-readable tier number (1-based)
+  const displayTierNumber = tierIndex + 1;
+  
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50">
@@ -33,7 +36,7 @@ export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: Activ
         <div className="text-right">
           <p className="font-bold">Monthly Plan: ${currentPrice}/month</p>
           <p className="text-xs text-muted-foreground">
-            Account balance: {accountBalanceText}
+            Tier {displayTierNumber} • Account balance: {accountBalanceText}
           </p>
           <p className="text-xs text-muted-foreground">Renewed: {new Date().toLocaleDateString()}</p>
         </div>
