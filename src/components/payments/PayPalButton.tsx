@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -23,7 +24,7 @@ interface PayPalButtonProps {
   accountValue?: number;
 }
 
-// Define pricing tiers based on the new subscription structure
+// Define pricing tiers based on the subscription structure
 export const pricingTiers = [
   { min: 1, max: 50000, price: 150, quantity: 1 },
   { min: 50001, max: 100000, price: 200, quantity: 1 },
@@ -158,44 +159,14 @@ export const PayPalButton = ({
           // Log subscription details for debugging
           console.log(`Creating subscription with tier ${displayTierNumber}, price $${tier.price}, quantity ${midpointQuantity}`);
           
-          // Create a custom plan specific to the selected tier's price
+          // Create subscription without trying to override the plan details
+          // This simpler approach avoids permission issues
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: midpointQuantity.toString(), // Use the midpoint as the quantity
+            custom_id: `tier_${displayTierNumber}_price_${tier.price}_qty_${midpointQuantity}`,
             application_context: {
               shipping_preference: 'NO_SHIPPING'
-            },
-            plan: {
-              name: `Algorithmic Trading Service - ${tier.price === 150 ? 'Starter' : tier.price === 200 ? 'Professional' : 'Enterprise'} Plan`,
-              product: {
-                name: 'Algorithmic Trading Service'
-              },
-              billing_cycles: [
-                {
-                  frequency: {
-                    interval_unit: 'MONTH',
-                    interval_count: 1
-                  },
-                  tenure_type: 'REGULAR',
-                  sequence: 1,
-                  total_cycles: 0,
-                  pricing_scheme: {
-                    fixed_price: {
-                      value: tier.price.toString(),
-                      currency_code: 'USD'
-                    }
-                  }
-                }
-              ],
-              payment_preferences: {
-                auto_bill_outstanding: true,
-                setup_fee: {
-                  value: '0',
-                  currency_code: 'USD'
-                }
-              }
-            },
-            custom_id: `tier_${displayTierNumber}_price_${tier.price}_qty_${midpointQuantity}`
+            }
           });
         },
         onApprove: function(data) {
