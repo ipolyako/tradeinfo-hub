@@ -16,6 +16,7 @@ interface UserProfile {
   username: string | null;
   trader_service_name: string | null;
   trader_secret: string | null;
+  server_URL: string | null;
 }
 
 interface Subscription {
@@ -118,7 +119,7 @@ const Account = () => {
       console.log('Fetching profile for user ID:', userId);
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, trader_service_name, trader_secret')
+        .select('id, username, trader_service_name, trader_secret, server_URL')
         .eq('id', userId)
         .single();
 
