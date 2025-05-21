@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
-import { pricingTiers, getAccountBalanceText, calculateTierMidpoint } from "./PayPalButton";
+import { pricingTiers, getAccountBalanceText } from "./PayPalButton";
 
 interface ActiveSubscriptionProps {
   accountValue?: number;
@@ -15,8 +15,8 @@ export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: Activ
   const currentTier = pricingTiers[tierIndex >= 0 ? tierIndex : 0];
   const currentPrice = currentTier?.price || 150; // Default to first tier price
   
-  // Calculate the midpoint quantity for display
-  const midpointQuantity = calculateTierMidpoint(tierIndex);
+  // Get the hardcoded quantity for display
+  const quantity = currentTier?.quantity || 10; // Default to first tier quantity
   
   // Get account balance text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
@@ -41,7 +41,7 @@ export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: Activ
           <p className="text-xs text-muted-foreground">
             Tier {displayTierNumber} • Account balance: {accountBalanceText}
           </p>
-          <p className="text-xs text-muted-foreground">Quantity: {midpointQuantity.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">Quantity: {quantity.toLocaleString()}</p>
           <p className="text-xs text-muted-foreground">Renewed: {new Date().toLocaleDateString()}</p>
         </div>
       </div>

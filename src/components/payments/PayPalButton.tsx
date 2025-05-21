@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -26,23 +25,16 @@ interface PayPalButtonProps {
 
 // Define pricing tiers based on the subscription structure
 export const pricingTiers = [
-  { min: 1, max: 50000, price: 150, quantity: 1 },
-  { min: 50001, max: 100000, price: 200, quantity: 1 },
-  { min: 100001, max: Infinity, price: 500, quantity: 1 }
+  { min: 1, max: 50000, price: 150, quantity: 10 },
+  { min: 50001, max: 100000, price: 200, quantity: 50010 },
+  { min: 100001, max: Infinity, price: 500, quantity: 100010 }
 ];
 
-// Calculate the midpoint of a tier's range to use as quantity
-export const calculateTierMidpoint = (tierIndex: number): number => {
+// Get the quantity value for a specific tier
+export const getQuantityForTier = (tierIndex: number): number => {
   const tier = pricingTiers[tierIndex];
-  if (!tier) return 25000; // Default midpoint if tier not found
-  
-  // For the highest tier with Infinity, use a reasonable upper bound
-  if (tier.max === Infinity) {
-    return Math.floor((tier.min + 500000) / 2);
-  }
-  
-  // Calculate the midpoint of the range
-  return Math.floor((tier.min + tier.max) / 2);
+  if (!tier) return 10; // Default to lowest tier if not found
+  return tier.quantity;
 };
 
 // Get the price based on account value - always default to first tier ($150)
@@ -150,20 +142,20 @@ export const PayPalButton = ({
           const chosenTierIndex = selectedTier !== undefined ? selectedTier : defaultTierIndex;
           const tier = pricingTiers[chosenTierIndex >= 0 ? chosenTierIndex : 0];
           
-          // Calculate the midpoint quantity for this tier
-          const midpointQuantity = calculateTierMidpoint(chosenTierIndex);
+          // Use the hardcoded quantity value for this tier
+          const quantity = tier.quantity;
           
           // Display the actual tier number (human-readable, 1-based) in the log
           const displayTierNumber = chosenTierIndex + 1;
           
           // Log subscription details for debugging
-          console.log(`Creating subscription with tier ${displayTierNumber}, price $${tier.price}, quantity ${midpointQuantity}`);
+          console.log(`Creating subscription with tier ${displayTierNumber}, price $${tier.price}, quantity ${quantity}`);
           
           // Create subscription without trying to override the plan details
           // This simpler approach avoids permission issues
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            custom_id: `tier_${displayTierNumber}_price_${tier.price}_qty_${midpointQuantity}`,
+            custom_id: `tier_${displayTierNumber}_price_${tier.price}_qty_${quantity}`,
             application_context: {
               shipping_preference: 'NO_SHIPPING'
             }
