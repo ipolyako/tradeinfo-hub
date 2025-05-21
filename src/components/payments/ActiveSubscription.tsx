@@ -20,7 +20,7 @@ export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: Activ
   // Get account balance text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
     ? getAccountBalanceText(selectedTier) 
-    : "under $100,000";
+    : "under $50,000";
   
   return (
     <div className="space-y-4">

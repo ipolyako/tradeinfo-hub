@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -8,7 +7,7 @@ interface PaymentStatusProps {
   price?: number;
 }
 
-export const PaymentStatus = ({ status, onRetry, price = 200 }: PaymentStatusProps) => {
+export const PaymentStatus = ({ status, onRetry, price = 150 }: PaymentStatusProps) => {
   if (status === "loading") {
     return (
       <div className="py-4 text-center">

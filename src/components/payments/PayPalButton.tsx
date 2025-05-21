@@ -23,31 +23,29 @@ interface PayPalButtonProps {
   accountValue?: number;
 }
 
-// Define pricing tiers
+// Define pricing tiers based on the new subscription structure
 export const pricingTiers = [
-  { min: 1, max: 100000, price: 200, quantity: 1 },
-  { min: 100001, max: 200000, price: 350, quantity: 2 },
-  { min: 200001, max: 300000, price: 500, quantity: 3 },
-  { min: 300001, max: 400000, price: 600, quantity: 4 },
-  { min: 400001, max: Infinity, price: 1000, quantity: 5 }
+  { min: 1, max: 50000, price: 150, quantity: 1 },
+  { min: 50001, max: 100000, price: 200, quantity: 2 },
+  { min: 100001, max: Infinity, price: 500, quantity: 3 }
 ];
 
 // Get the price based on account value
 export const getPriceForAccount = (accountValue: number): number => {
-  if (accountValue <= 0) return 200; // Default price
+  if (accountValue <= 0) return 150; // Default to first tier price
   
   for (const tier of pricingTiers) {
     if (accountValue >= tier.min && accountValue <= tier.max) {
       return tier.price;
     }
   }
-  return 1000; // Default to highest tier if not found
+  return 500; // Default to highest tier if not found
 };
 
 // Function to get display text for account balance range
 export const getAccountBalanceText = (tierIndex: number): string => {
   const tier = pricingTiers[tierIndex];
-  if (!tier) return "under $100,000";
+  if (!tier) return "under $50,000";
   
   if (tier.max === Infinity) {
     return `over $${tier.min.toLocaleString()}`;
@@ -93,7 +91,7 @@ export const PayPalButton = ({
   // Get account balance display text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
     ? getAccountBalanceText(selectedTier)
-    : "under $100,000";
+    : "under $50,000";
   
   const refreshPayPalContainer = () => {
     setRenderAttempts(prev => prev + 1);
