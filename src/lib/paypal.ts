@@ -3,7 +3,15 @@
 import { useState, useEffect } from "react";
 
 export const CLIENT_ID = 'ARrwQMysQqyFM7j3lPuiPnUII7WXGkNWzBLTdVm2HvVUa-shV1LA0EMANtgTSMKWa-UQ-Leig0VywPD7';
-export const PLAN_ID = 'P-3CD17662R8975905JNASUSYA';
+
+// Define plan IDs for each pricing tier
+export const PLAN_IDS = {
+  TIER_1: 'P-88D90240DM691354JNAWTYRY', // Under 100K
+  TIER_2: 'P-8WP80283ES2853237NAWTZFQ'  // 100K-200K
+};
+
+// Legacy plan ID (kept for backward compatibility)
+export const PLAN_ID = PLAN_IDS.TIER_1;
 
 // Define PayPal button configuration types
 export interface PayPalButtonConfig {

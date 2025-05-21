@@ -13,7 +13,7 @@ interface SubscriptionSectionProps {
   paymentStatus: "idle" | "success" | "failed" | "loading";
   onRetry: () => void;
   onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
-  onSubscriptionUpdate: (hasSubscription: boolean) => void;
+  onSubscriptionUpdate: (hasSubscription: boolean, tier?: number) => void;
   accountValue?: number;
 }
 
@@ -57,7 +57,7 @@ export const SubscriptionSection = ({
 
   const handleSubscriptionUpdate = (hasSubscription: boolean, tier?: number) => {
     setSelectedTier(tier);
-    onSubscriptionUpdate(hasSubscription);
+    onSubscriptionUpdate(hasSubscription, tier);
   };
 
   const currentPrice = getPriceForAccount(accountValue);

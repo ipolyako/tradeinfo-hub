@@ -1,7 +1,8 @@
+
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { CLIENT_ID, PLAN_ID, initializePayPalScript, isFirefox, PayPalButtonConfig } from "@/lib/paypal";
+import { CLIENT_ID, PLAN_IDS, initializePayPalScript, isFirefox, PayPalButtonConfig } from "@/lib/paypal";
 import { Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,8 @@ interface PayPalButtonProps {
 
 // Define pricing tiers based on the subscription structure
 export const pricingTiers = [
-  { min: 1, max: 50000, price: 150, quantity: 10 },
-  { min: 50001, max: 100000, price: 200, quantity: 50010 },
-  { min: 100001, max: Infinity, price: 500, quantity: 100010 }
+  { min: 1, max: 100000, price: 150, quantity: 10, planId: PLAN_IDS.TIER_1 },
+  { min: 100001, max: 200000, price: 500, quantity: 100010, planId: PLAN_IDS.TIER_2 }
 ];
 
 // Get the quantity value for a specific tier
@@ -46,13 +46,13 @@ export const getPriceForAccount = (accountValue: number): number => {
 // Function to get display text for account balance range
 export const getAccountBalanceText = (tierIndex: number): string => {
   const tier = pricingTiers[tierIndex];
-  if (!tier) return "under $50,000";
+  if (!tier) return "under $100,000";
   
-  if (tier.max === Infinity) {
-    return `over $${tier.min.toLocaleString()}`;
+  if (tierIndex === 0) {
+    return `under $${tier.max.toLocaleString()}`;
+  } else {
+    return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
   }
-  
-  return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
 };
 
 export const PayPalButton = ({ 
@@ -71,24 +71,20 @@ export const PayPalButton = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const isFirefoxBrowser = isFirefox();
-  const containerId = `paypal-button-container-${PLAN_ID}`;
+  const containerId = `paypal-button-container-${selectedTier !== undefined ? selectedTier : 0}`;
   
-  // Calculate the applicable price based on selected tier or default to first tier
+  // Get the selected tier object
   const selectedTierObj = selectedTier !== undefined && selectedTier >= 0 && selectedTier < pricingTiers.length
     ? pricingTiers[selectedTier]
     : pricingTiers[0]; // Default to first tier
   
-  const currentPrice = selectedTierObj.price; // Always use the price from the selected tier object
-  
-  // Calculate the midpoint quantity for the selected tier
-  const currentQuantity = selectedTier !== undefined 
-    ? calculateTierMidpoint(selectedTier)
-    : calculateTierMidpoint(defaultTierIndex);
+  const currentPrice = selectedTierObj.price;
+  const currentQuantity = selectedTierObj.quantity;
   
   // Get account balance display text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
     ? getAccountBalanceText(selectedTier)
-    : "under $50,000"; // Default to first tier text
+    : "under $100,000"; // Default to first tier text
   
   const refreshPayPalContainer = () => {
     setRenderAttempts(prev => prev + 1);
@@ -129,6 +125,11 @@ export const PayPalButton = ({
         containerRef.current.innerHTML = '';
       }
       
+      // Get the current tier's plan ID
+      const chosenTierIndex = selectedTier !== undefined ? selectedTier : defaultTierIndex;
+      const tier = pricingTiers[chosenTierIndex >= 0 ? chosenTierIndex : 0];
+      const planId = tier.planId;
+      
       // Define button config with proper TypeScript types
       const buttonConfig: PayPalButtonConfig = {
         style: {
@@ -149,12 +150,11 @@ export const PayPalButton = ({
           const displayTierNumber = chosenTierIndex + 1;
           
           // Log subscription details for debugging
-          console.log(`Creating subscription with tier ${displayTierNumber}, price $${tier.price}, quantity ${quantity}`);
+          console.log(`Creating subscription with tier ${displayTierNumber}, price $${tier.price}, quantity ${quantity}, plan ID ${tier.planId}`);
           
-          // Create subscription without trying to override the plan details
-          // This simpler approach avoids permission issues
+          // Create subscription with the tier-specific plan ID
           return actions.subscription.create({
-            plan_id: PLAN_ID,
+            plan_id: tier.planId,
             custom_id: `tier_${displayTierNumber}_price_${tier.price}_qty_${quantity}`,
             application_context: {
               shipping_preference: 'NO_SHIPPING'
