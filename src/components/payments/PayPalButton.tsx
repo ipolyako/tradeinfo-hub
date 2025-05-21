@@ -8,21 +8,29 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface PayPalButtonProps {
   onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
-  onSubscriptionUpdate: (hasSubscription: boolean) => void;
+  onSubscriptionUpdate: (hasSubscription: boolean, selectedTier?: number) => void;
   className?: string;
   accountValue?: number;
 }
 
 // Define pricing tiers
 export const pricingTiers = [
-  { min: 1, max: 100000, price: 200 },
-  { min: 100001, max: 200000, price: 350 },
-  { min: 200001, max: 300000, price: 500 },
-  { min: 300001, max: 400000, price: 600 },
-  { min: 400001, max: Infinity, price: 1000 }
+  { min: 1, max: 100000, price: 200, quantity: 1 },
+  { min: 100001, max: 200000, price: 350, quantity: 2 },
+  { min: 200001, max: 300000, price: 500, quantity: 3 },
+  { min: 300001, max: 400000, price: 600, quantity: 4 },
+  { min: 400001, max: Infinity, price: 1000, quantity: 5 }
 ];
 
 // Get the price based on account value
@@ -46,13 +54,29 @@ export const PayPalButton = ({
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
   const [renderAttempts, setRenderAttempts] = useState(0);
+  const [selectedTier, setSelectedTier] = useState<number | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const isFirefoxBrowser = isFirefox();
   const containerId = `paypal-button-container-${PLAN_ID}`;
   
-  // Calculate the applicable price based on account value
-  const currentPrice = getPriceForAccount(accountValue);
+  // Find the default tier based on account value
+  const defaultTierIndex = pricingTiers.findIndex(
+    tier => accountValue >= tier.min && accountValue <= tier.max
+  );
+  
+  // Calculate the applicable price based on selected tier or account value
+  const selectedTierObj = selectedTier !== undefined && selectedTier >= 0 && selectedTier < pricingTiers.length
+    ? pricingTiers[selectedTier]
+    : undefined;
+  
+  const currentPrice = selectedTierObj
+    ? selectedTierObj.price
+    : getPriceForAccount(accountValue);
+    
+  const currentQuantity = selectedTierObj
+    ? selectedTierObj.quantity
+    : pricingTiers[defaultTierIndex >= 0 ? defaultTierIndex : 0].quantity;
   
   const refreshPayPalContainer = () => {
     setRenderAttempts(prev => prev + 1);
@@ -103,7 +127,7 @@ export const PayPalButton = ({
         createSubscription: function(data, actions) {
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: 1
+            quantity: currentQuantity
           });
         },
         onApprove: function(data) {
@@ -113,7 +137,7 @@ export const PayPalButton = ({
             description: "Your subscription has been processed successfully.",
           });
           onStatusChange("success");
-          onSubscriptionUpdate(true);
+          onSubscriptionUpdate(true, selectedTier);
           return true;
         },
         onError: (err: any) => {
@@ -167,7 +191,7 @@ export const PayPalButton = ({
     };
   }, []);
 
-  // Render buttons when script is loaded
+  // Render buttons when script is loaded or when selected tier changes
   useEffect(() => {
     if (scriptLoaded && window.paypal) {
       // Add delay to ensure DOM is ready, longer on mobile
@@ -178,7 +202,16 @@ export const PayPalButton = ({
       
       return () => clearTimeout(timer);
     }
-  }, [scriptLoaded, renderAttempts, isMobile]);
+  }, [scriptLoaded, renderAttempts, isMobile, selectedTier, currentQuantity]);
+
+  const handleTierChange = (value: string) => {
+    const tierIndex = parseInt(value, 10);
+    setSelectedTier(tierIndex);
+    // Re-render PayPal buttons with new quantity
+    if (scriptLoaded) {
+      renderPayPalButtons();
+    }
+  };
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -194,25 +227,34 @@ export const PayPalButton = ({
             <span>Your account balance:</span>
             <span className="font-bold">${accountValue.toLocaleString()}</span>
           </div>
-          <div className="flex justify-between items-center mt-1">
+          
+          <div className="mt-4">
+            <label htmlFor="tier-select" className="text-sm font-medium mb-2 block">
+              Select your pricing tier:
+            </label>
+            <Select 
+              value={selectedTier?.toString() || defaultTierIndex.toString()} 
+              onValueChange={handleTierChange}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select pricing tier" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {pricingTiers.map((tier, index) => (
+                    <SelectItem key={index} value={index.toString()}>
+                      ${tier.price}/mo: {tier.min.toLocaleString()} - {tier.max === Infinity ? "Unlimited" : tier.max.toLocaleString()}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex justify-between items-center mt-4">
             <span>Monthly subscription:</span>
             <span className="font-bold text-primary">${currentPrice.toLocaleString()}/month</span>
           </div>
-        </div>
-        
-        <div className="text-xs text-muted-foreground mt-1 space-y-1">
-          <p className="font-medium">Pricing Tiers:</p>
-          {pricingTiers.map((tier, index) => (
-            <div key={index} className={cn(
-              "flex justify-between", 
-              accountValue >= tier.min && accountValue <= tier.max ? "text-primary font-medium" : ""
-            )}>
-              <span>
-                {tier.min.toLocaleString()} - {tier.max === Infinity ? "Unlimited" : tier.max.toLocaleString()}:
-              </span>
-              <span>${tier.price}/month</span>
-            </div>
-          ))}
         </div>
       </div>
       
@@ -242,21 +284,11 @@ export const PayPalButton = ({
               </div>
             )}
             
-            {isFirefoxBrowser && (
-              <div className="w-full mb-4">
-                <Alert className="mb-2 bg-amber-50 border-amber-200">
-                  <AlertDescription className="text-amber-800">
-                    <p>Firefox users: If the payment window closes automatically, please click the button again and allow pop-ups for this site.</p>
-                  </AlertDescription>
-                </Alert>
-              </div>
-            )}
-            
             <div 
               ref={containerRef}
               id={containerId}
               className="w-full paypal-button-container"
-              key={`paypal-container-${renderAttempts}`}
+              key={`paypal-container-${renderAttempts}-${selectedTier}`}
               style={{ minHeight: isMobile ? "150px" : "120px" }}
             ></div>
           </div>

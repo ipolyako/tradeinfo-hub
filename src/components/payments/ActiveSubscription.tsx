@@ -1,14 +1,21 @@
 
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
-import { getPriceForAccount } from "./PayPalButton";
+import { getPriceForAccount, pricingTiers } from "./PayPalButton";
 
 interface ActiveSubscriptionProps {
   accountValue?: number;
+  selectedTier?: number;
 }
 
-export const ActiveSubscription = ({ accountValue = 0 }: ActiveSubscriptionProps) => {
-  const currentPrice = getPriceForAccount(accountValue);
+export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: ActiveSubscriptionProps) => {
+  // Get the appropriate tier based on selection or account value
+  const tierIndex = selectedTier !== undefined ? selectedTier : pricingTiers.findIndex(
+    tier => accountValue >= tier.min && accountValue <= tier.max
+  );
+  
+  const currentTier = pricingTiers[tierIndex >= 0 ? tierIndex : 0];
+  const currentPrice = currentTier?.price || getPriceForAccount(accountValue);
   
   return (
     <div className="space-y-4">
@@ -22,7 +29,9 @@ export const ActiveSubscription = ({ accountValue = 0 }: ActiveSubscriptionProps
         </div>
         <div className="text-right">
           <p className="font-bold">Monthly Plan: ${currentPrice}/month</p>
-          <p className="text-xs text-muted-foreground">Account: ${accountValue.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">
+            {currentTier ? `Tier: ${currentTier.min.toLocaleString()} - ${currentTier.max === Infinity ? "Unlimited" : currentTier.max.toLocaleString()}` : `Account: ${accountValue.toLocaleString()}`}
+          </p>
           <p className="text-xs text-muted-foreground">Renewed: {new Date().toLocaleDateString()}</p>
         </div>
       </div>

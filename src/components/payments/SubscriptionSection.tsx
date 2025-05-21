@@ -26,6 +26,7 @@ export const SubscriptionSection = ({
   accountValue = 0
 }: SubscriptionSectionProps) => {
   const [forceRefresh, setForceRefresh] = useState(0);
+  const [selectedTier, setSelectedTier] = useState<number | undefined>(undefined);
   const isFirefoxBrowser = isFirefox();
   
   // Listen for browser focus events (for Firefox popup handling)
@@ -54,6 +55,11 @@ export const SubscriptionSection = ({
     onStatusChange("idle");
   };
 
+  const handleSubscriptionUpdate = (hasSubscription: boolean, tier?: number) => {
+    setSelectedTier(tier);
+    onSubscriptionUpdate(hasSubscription);
+  };
+
   const currentPrice = getPriceForAccount(accountValue);
 
   return (
@@ -64,14 +70,14 @@ export const SubscriptionSection = ({
       </CardHeader>
       <CardContent>
         {hasActiveSubscription ? (
-          <ActiveSubscription accountValue={accountValue} />
+          <ActiveSubscription accountValue={accountValue} selectedTier={selectedTier} />
         ) : (
           <>
             {paymentStatus === "idle" && (
               <PayPalButton 
                 key={`paypal-button-${forceRefresh}`}
                 onStatusChange={onStatusChange} 
-                onSubscriptionUpdate={onSubscriptionUpdate}
+                onSubscriptionUpdate={handleSubscriptionUpdate}
                 accountValue={accountValue}
               />
             )}
@@ -94,12 +100,6 @@ export const SubscriptionSection = ({
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Try Again with New Payment Button
                 </Button>
-                
-                {isFirefoxBrowser && (
-                  <p className="text-sm text-muted-foreground mt-2 text-center">
-                    Firefox users: Make sure to allow pop-ups for this site in your browser settings.
-                  </p>
-                )}
               </div>
             )}
           </>
