@@ -13,6 +13,7 @@ interface UserProfile {
   username: string | null;
   trader_service_name: string | null;
   trader_secret: string | null;
+  server_URL: string | null;
 }
 
 interface ServiceStatus {
