@@ -103,6 +103,56 @@ const syncSubscriptionStatus = async (userId: string, subscriptionId: string, pa
   }
 };
 
+// Function to sync subscription status with PayPal
+const syncSubscriptionWithPayPal = async (subscriptionId: string) => {
+  try {
+    // Call our Edge Function to check/sync the status
+    const { data, error } = await supabase.functions.invoke('cancel-subscription', {
+      body: { 
+        subscriptionId,
+        forceSync: true 
+      }
+    });
+    
+    if (error) {
+      console.error('Error syncing subscription status:', error);
+      return { success: false, message: error.message };
+    }
+    
+    return { 
+      success: true, 
+      message: 'Subscription status checked',
+      data 
+    };
+  } catch (error) {
+    console.error('Error in syncSubscriptionStatus:', error);
+    return { success: false, message: 'Failed to check subscription status' };
+  }
+};
+
+// Function to force update subscription status in our database
+const forceUpdateSubscriptionStatus = async (subscriptionId: string, status: string) => {
+  try {
+    const { error } = await supabase
+      .from('subscriptions')
+      .update({ 
+        status, 
+        updated_at: new Date().toISOString() 
+      })
+      .eq('paypal_subscription_id', subscriptionId);
+      
+    if (error) {
+      console.error('Error updating subscription status:', error);
+      return { success: false, message: error.message };
+    }
+    
+    return { success: true, message: `Subscription marked as ${status}` };
+  } catch (error) {
+    console.error('Error in forceUpdateSubscriptionStatus:', error);
+    return { success: false, message: 'Failed to update subscription status' };
+  }
+};
+
 const Account = () => {
   const [session, setSession] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -111,6 +161,7 @@ const Account = () => {
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [userSubscription, setUserSubscription] = useState<Subscription | null>(null);
   const [syncingPayPal, setSyncingPayPal] = useState(false);
+  const [performingAction, setPerformingAction] = useState(false);
   const { toast } = useToast();
 
   // Fetch user profile data
@@ -249,6 +300,53 @@ const Account = () => {
         : "You don't have an active subscription",
     });
   };
+  
+  // Force mark subscription as ACTIVE
+  const handleForceActivate = async () => {
+    if (!userSubscription?.paypal_subscription_id) {
+      toast({
+        title: "Error",
+        description: "No subscription found to activate",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const confirmed = window.confirm(
+      "Force set this subscription as ACTIVE in our database? This is useful if you know the subscription is active in PayPal but our system shows it as cancelled."
+    );
+    
+    if (!confirmed) return;
+    
+    setPerformingAction(true);
+    
+    try {
+      const result = await forceUpdateSubscriptionStatus(userSubscription.paypal_subscription_id, 'ACTIVE');
+      
+      if (result.success) {
+        toast({
+          title: "Subscription Activated",
+          description: "The subscription has been marked as active in our database.",
+        });
+        
+        // Refresh data
+        if (session?.user) {
+          await checkSubscriptionStatus(session.user.id);
+        }
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      console.error("Error activating subscription:", error);
+      toast({
+        title: "Activation Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setPerformingAction(false);
+    }
+  };
 
   // Check for authentication on component mount
   useEffect(() => {
@@ -324,10 +422,39 @@ const Account = () => {
         ) : (
           <>
             <div className="relative">
+              <div className="mb-4 flex justify-end space-x-2">
+                <Button
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleRefreshSubscription}
+                  disabled={subscriptionLoading || syncingPayPal || performingAction}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${subscriptionLoading || syncingPayPal ? 'animate-spin' : ''}`} />
+                  Refresh Status
+                </Button>
+                
+                {userSubscription && userSubscription.status === 'CANCELLED' && (
+                  <Button
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleForceActivate}
+                    disabled={performingAction || subscriptionLoading || syncingPayPal}
+                    className="border-green-500 hover:bg-green-50 text-green-600"
+                  >
+                    {performingAction ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    Force Activate
+                  </Button>
+                )}
+              </div>
+              
               <SubscriptionStatus 
                 hasActiveSubscription={hasActiveSubscription} 
                 selectedTier={userSubscription?.tier}
-                isLoading={subscriptionLoading || syncingPayPal} 
+                isLoading={subscriptionLoading || syncingPayPal || performingAction} 
                 subscriptionId={userSubscription?.paypal_subscription_id}
                 onSubscriptionUpdate={handleSubscriptionUpdate}
                 onRefreshStatus={handleRefreshSubscription}

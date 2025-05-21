@@ -8,15 +8,18 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS, GET'
 };
 
-// This function is fully deprecated - using real Supabase Edge Function instead
-export async function mockCancelSubscription(subscriptionId: string) {
-  console.warn('mockCancelSubscription is deprecated - using real Edge Function instead');
-  
+// This function calls the real Supabase Edge Function
+export async function mockCancelSubscription(subscriptionId: string, options?: { forceCancel?: boolean, forceSync?: boolean, forceCheck?: boolean }) {
   try {
-    // Redirect the call to the Supabase Edge Function
-    console.log("Calling Edge Function to cancel subscription:", subscriptionId);
+    // Prepare request parameters
+    const params = {
+      subscriptionId,
+      ...options
+    };
+    
+    console.log("Calling Edge Function to manage subscription:", subscriptionId, params);
     const response = await supabase.functions.invoke('cancel-subscription', {
-      body: { subscriptionId }
+      body: params
     });
     
     console.log('Cancel subscription response:', response.data || response.error);
