@@ -26,8 +26,8 @@ interface PayPalButtonProps {
 // Define pricing tiers based on the new subscription structure
 export const pricingTiers = [
   { min: 1, max: 50000, price: 150, quantity: 1 },
-  { min: 50001, max: 100000, price: 200, quantity: 2 },
-  { min: 100001, max: Infinity, price: 500, quantity: 3 }
+  { min: 50001, max: 100000, price: 200, quantity: 1 }, // Fixed: Changed quantity from 2 to 1
+  { min: 100001, max: Infinity, price: 500, quantity: 1 } // Fixed: Changed quantity from 3 to 1
 ];
 
 // Get the price based on account value
@@ -84,10 +84,8 @@ export const PayPalButton = ({
     ? selectedTierObj.price
     : getPriceForAccount(accountValue);
     
-  const currentQuantity = selectedTierObj
-    ? selectedTierObj.quantity
-    : pricingTiers[defaultTierIndex >= 0 ? defaultTierIndex : 0].quantity;
-
+  const currentQuantity = 1; // Fixed: Always use 1 for quantity, let price determine the tier
+  
   // Get account balance display text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
     ? getAccountBalanceText(selectedTier)
@@ -146,13 +144,13 @@ export const PayPalButton = ({
           const tier = pricingTiers[chosenTierIndex >= 0 ? chosenTierIndex : 0];
           
           // Log subscription details for debugging
-          console.log(`Creating subscription with tier ${chosenTierIndex}, price $${tier.price}, quantity ${tier.quantity}`);
+          console.log(`Creating subscription with tier ${chosenTierIndex}, price $${tier.price}, quantity ${currentQuantity}`);
           
-          // FIX: Convert quantity to string as per PayPal requirements
+          // Use custom_id to pass the pricing tier information
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: tier.quantity.toString(), // Convert to string format
-            custom_id: `tier_${chosenTierIndex}_price_${tier.price}`
+            quantity: "1", // Fixed: Always use "1" as string quantity
+            custom_id: `tier_${chosenTierIndex}_price_${tier.price}` // Pass tier info in custom_id
           });
         },
         onApprove: function(data) {
