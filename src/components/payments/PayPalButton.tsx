@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -30,6 +29,20 @@ export const pricingTiers = [
   { min: 50001, max: 100000, price: 200, quantity: 1 },
   { min: 100001, max: Infinity, price: 500, quantity: 1 }
 ];
+
+// Calculate the midpoint of a tier's range to use as quantity
+export const calculateTierMidpoint = (tierIndex: number): number => {
+  const tier = pricingTiers[tierIndex];
+  if (!tier) return 25000; // Default midpoint if tier not found
+  
+  // For the highest tier with Infinity, use a reasonable upper bound
+  if (tier.max === Infinity) {
+    return Math.floor((tier.min + 500000) / 2);
+  }
+  
+  // Calculate the midpoint of the range
+  return Math.floor((tier.min + tier.max) / 2);
+};
 
 // Get the price based on account value - always default to first tier ($150)
 export const getPriceForAccount = (accountValue: number): number => {
@@ -73,7 +86,11 @@ export const PayPalButton = ({
     : pricingTiers[0]; // Default to first tier
   
   const currentPrice = selectedTierObj.price; // Always use the price from the selected tier object
-  const currentQuantity = 1;
+  
+  // Calculate the midpoint quantity for the selected tier
+  const currentQuantity = selectedTier !== undefined 
+    ? calculateTierMidpoint(selectedTier)
+    : calculateTierMidpoint(defaultTierIndex);
   
   // Get account balance display text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
@@ -132,16 +149,19 @@ export const PayPalButton = ({
           const chosenTierIndex = selectedTier !== undefined ? selectedTier : defaultTierIndex;
           const tier = pricingTiers[chosenTierIndex >= 0 ? chosenTierIndex : 0];
           
+          // Calculate the midpoint quantity for this tier
+          const midpointQuantity = calculateTierMidpoint(chosenTierIndex);
+          
           // Display the actual tier number (human-readable, 1-based) in the log
           const displayTierNumber = chosenTierIndex + 1;
           
           // Log subscription details for debugging
-          console.log(`Creating subscription with tier ${displayTierNumber}, price $${tier.price}, quantity ${currentQuantity}`);
+          console.log(`Creating subscription with tier ${displayTierNumber}, price $${tier.price}, quantity ${midpointQuantity}`);
           
           // Create a custom plan specific to the selected tier's price
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: '1',
+            quantity: midpointQuantity.toString(), // Use the midpoint as the quantity
             application_context: {
               shipping_preference: 'NO_SHIPPING'
             },
@@ -175,7 +195,7 @@ export const PayPalButton = ({
                 }
               }
             },
-            custom_id: `tier_${displayTierNumber}_price_${tier.price}`
+            custom_id: `tier_${displayTierNumber}_price_${tier.price}_qty_${midpointQuantity}`
           });
         },
         onApprove: function(data) {
