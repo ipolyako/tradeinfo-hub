@@ -26,9 +26,15 @@ async function getPayPalAccessToken() {
   try {
     console.log('Getting PayPal access token');
     
+    // Verify credentials exist
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_SECRET_KEY) {
+      throw new Error('PayPal credentials not configured in environment variables');
+    }
+    
     // Create authorization string with proper encoding
     const auth = btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET_KEY}`);
     
+    // Request access token from PayPal
     const tokenResponse = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
       method: 'POST',
       headers: {

@@ -26,6 +26,7 @@ export async function handleSubscription(subscriptionId: string, options?: { act
       throw new Error(`Failed to process subscription: ${error.message}`);
     }
     
+    console.log("PayPal subscription response:", data);
     return data;
   } catch (error) {
     console.error('Error in handleSubscription:', error);
