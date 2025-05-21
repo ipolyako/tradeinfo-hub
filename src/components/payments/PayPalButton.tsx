@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -151,11 +150,10 @@ export const PayPalButton = ({
           // Log subscription details for debugging
           console.log(`Creating subscription with tier ${chosenTierIndex}, price $${tier.price}, quantity ${tier.quantity}`);
           
-          // The key fix: Pass quantity as a NUMERIC value (not string)
-          // This ensures PayPal uses the correct price tier
+          // FIX: Convert quantity to string as per PayPal requirements
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: tier.quantity,
+            quantity: tier.quantity.toString(), // Convert to string format
             custom_id: `tier_${chosenTierIndex}_price_${tier.price}`
           });
         },
@@ -296,7 +294,7 @@ export const PayPalButton = ({
       </div>
       
       {/* Add large margin-top to ensure PayPal buttons are not covering dropdown */}
-      <div className="w-full min-h-[250px] mt-10">
+      <div className="w-full min-h-[250px] mt-12">
         {scriptError ? (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>
@@ -329,7 +327,7 @@ export const PayPalButton = ({
                 "hidden": !paypalButtonsVisible
               })}
               key={`paypal-container-${renderAttempts}-${selectedTier}`}
-              style={{ minHeight: isMobile ? "150px" : "120px", marginTop: "20px" }}
+              style={{ minHeight: isMobile ? "150px" : "120px", marginTop: "25px" }}
             ></div>
           </div>
         )}
