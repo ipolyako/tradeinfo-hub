@@ -55,6 +55,19 @@ serve(async (req) => {
     
     // In a real implementation, this would make API calls to PayPal
     // For example:
+    // 1. Get PayPal access token first
+    // const tokenResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/x-www-form-urlencoded',
+    //     'Authorization': `Basic ${btoa(`${Deno.env.get('PAYPAL_CLIENT_ID')}:${Deno.env.get('PAYPAL_SECRET')}`)}`
+    //   },
+    //   body: 'grant_type=client_credentials'
+    // });
+    // const tokenData = await tokenResponse.json();
+    // const paypalAccessToken = tokenData.access_token;
+    
+    // 2. Then cancel the subscription
     // const paypalResponse = await fetch(`https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}/cancel`, {
     //   method: 'POST',
     //   headers: {

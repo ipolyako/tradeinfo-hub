@@ -1,4 +1,5 @@
 
+
 // This file is now deprecated as we've moved to a real Supabase Edge Function
 
 import { supabase } from "@/integrations/supabase/client";
@@ -18,3 +19,4 @@ export async function mockCancelSubscription(subscriptionId: string) {
     message: 'Mock function is deprecated - using real Edge Function' 
   };
 }
+
