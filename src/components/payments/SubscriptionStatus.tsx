@@ -48,6 +48,7 @@ export const SubscriptionStatus = ({
     }
     
     setCheckingStatus(true);
+    setWarning(null);
     
     try {
       const response = await mockCancelSubscription(subscriptionId, { action: 'check' });
@@ -55,9 +56,14 @@ export const SubscriptionStatus = ({
       if (response.success) {
         setIsActive(response.isActive);
         setPaypalStatus(response.paypalStatus);
+        
+        // If this is a simulated response, show a warning to the user
+        if (response.paypalStatus === 'SIMULATED_ACTIVE') {
+          setWarning("PayPal API is not fully configured. Using simulated active subscription for development.");
+        }
       } else {
         setIsActive(false);
-        setWarning("Unable to verify subscription status with PayPal. Please try again later.");
+        setWarning(response.message || "Unable to verify subscription status with PayPal. Please try again later.");
       }
     } catch (error) {
       console.error("Error checking subscription:", error);
@@ -211,7 +217,7 @@ export const SubscriptionStatus = ({
         </div>
         
         {warning && (
-          <Alert variant="warning" className="mb-4">
+          <Alert variant={paypalStatus === 'SIMULATED_ACTIVE' ? "default" : "warning"} className="mb-4">
             <AlertDescription>{warning}</AlertDescription>
           </Alert>
         )}
