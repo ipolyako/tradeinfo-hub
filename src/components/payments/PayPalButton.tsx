@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -66,6 +67,7 @@ export const PayPalButton = ({
   const [scriptError, setScriptError] = useState(false);
   const [renderAttempts, setRenderAttempts] = useState(0);
   const [selectedTier, setSelectedTier] = useState<number | undefined>(undefined);
+  const [paypalButtonsVisible, setPaypalButtonsVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const isFirefoxBrowser = isFirefox();
@@ -98,6 +100,7 @@ export const PayPalButton = ({
     setRenderAttempts(prev => prev + 1);
     setScriptError(false);
     setScriptLoaded(false);
+    setPaypalButtonsVisible(false);
     loadPayPalScript();
   };
   
@@ -141,9 +144,11 @@ export const PayPalButton = ({
           label: "subscribe"
         },
         createSubscription: function(data, actions) {
+          // Make sure to use the correct price from the selected tier
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: currentQuantity
+            quantity: currentQuantity,
+            custom_id: `tier_${selectedTier !== undefined ? selectedTier : defaultTierIndex}_price_${currentPrice}`
           });
         },
         onApprove: function(data) {
@@ -186,6 +191,7 @@ export const PayPalButton = ({
       // Render with direct selector
       window.paypal.Buttons(buttonConfig).render(`#${containerId}`);
       console.log('PayPal buttons rendered using direct selector');
+      setPaypalButtonsVisible(true);
     } catch (err) {
       console.error("Failed to initialize PayPal buttons:", err);
       onStatusChange("failed");
@@ -225,6 +231,8 @@ export const PayPalButton = ({
     setSelectedTier(tierIndex);
     // Re-render PayPal buttons with new quantity
     if (scriptLoaded) {
+      // Hide PayPal buttons during re-render
+      setPaypalButtonsVisible(false);
       renderPayPalButtons();
     }
   };
@@ -255,7 +263,7 @@ export const PayPalButton = ({
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select pricing tier" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="item-aligned" className="bg-white z-50">
                 <SelectGroup>
                   {pricingTiers.map((tier, index) => (
                     <SelectItem key={index} value={index.toString()}>
@@ -303,9 +311,11 @@ export const PayPalButton = ({
             <div 
               ref={containerRef}
               id={containerId}
-              className="w-full paypal-button-container"
+              className={cn("w-full paypal-button-container", {
+                "hidden": !paypalButtonsVisible
+              })}
               key={`paypal-container-${renderAttempts}-${selectedTier}`}
-              style={{ minHeight: isMobile ? "150px" : "120px" }}
+              style={{ minHeight: isMobile ? "150px" : "120px", marginTop: "20px" }}
             ></div>
           </div>
         )}
