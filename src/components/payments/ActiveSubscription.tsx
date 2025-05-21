@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ActiveSubscriptionProps {
   accountValue?: number;
@@ -21,6 +22,7 @@ export const ActiveSubscription = ({
   onSubscriptionCancelled
 }: ActiveSubscriptionProps) => {
   const [cancelling, setCancelling] = useState(false);
+  const [warning, setWarning] = useState<string | null>(null);
   
   // Get the appropriate tier based on selection or default to first tier
   const tierIndex = selectedTier !== undefined ? selectedTier : 0;
@@ -56,6 +58,7 @@ export const ActiveSubscription = ({
     }
 
     setCancelling(true);
+    setWarning(null);
     
     try {
       console.log("Attempting to cancel subscription:", subscriptionId);
@@ -72,9 +75,14 @@ export const ActiveSubscription = ({
       }
       
       if (data && data.success) {
+        // Check if there's a warning to display
+        if (data.warning) {
+          setWarning(data.warning);
+        }
+        
         toast({
           title: "Subscription Cancelled",
-          description: "Your subscription has been cancelled successfully."
+          description: data.message || "Your subscription has been cancelled successfully."
         });
         
         // Notify parent component
@@ -118,6 +126,13 @@ export const ActiveSubscription = ({
           <p className="text-xs text-muted-foreground">Renewed: {new Date().toLocaleDateString()}</p>
         </div>
       </div>
+      
+      {warning && (
+        <Alert variant="warning" className="mb-2">
+          <AlertDescription>{warning}</AlertDescription>
+        </Alert>
+      )}
+      
       <Button 
         variant={cancelling ? "outline" : "destructive"} 
         onClick={handleCancelSubscription}

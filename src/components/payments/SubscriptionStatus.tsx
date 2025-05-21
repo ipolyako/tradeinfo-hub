@@ -6,6 +6,7 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SubscriptionStatusProps {
   hasActiveSubscription: boolean;
@@ -25,6 +26,7 @@ export const SubscriptionStatus = ({
   onSubscriptionUpdate
 }: SubscriptionStatusProps) => {
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [warning, setWarning] = useState<string | null>(null);
   
   // Get tier display text
   const getTierText = (tier: number) => {
@@ -54,6 +56,7 @@ export const SubscriptionStatus = ({
     }
 
     setCancelLoading(true);
+    setWarning(null);
     
     try {
       const { data, error } = await supabase.functions.invoke('cancel-subscription', {
@@ -65,9 +68,14 @@ export const SubscriptionStatus = ({
       }
       
       if (data.success) {
+        // Check if there's a warning to display
+        if (data.warning) {
+          setWarning(data.warning);
+        }
+        
         toast({
           title: "Subscription Cancelled",
-          description: "Your subscription has been successfully cancelled.",
+          description: data.message || "Your subscription has been successfully cancelled.",
         });
         
         // Notify parent component
@@ -130,6 +138,12 @@ export const SubscriptionStatus = ({
             </>
           )}
         </div>
+        
+        {warning && (
+          <Alert variant="warning" className="mb-4">
+            <AlertDescription>{warning}</AlertDescription>
+          </Alert>
+        )}
         
         {hasActiveSubscription ? (
           <div className="space-y-4">

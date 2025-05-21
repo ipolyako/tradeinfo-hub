@@ -1,6 +1,5 @@
 
-
-// This file is now deprecated as we've moved to a real Supabase Edge Function
+// This file is now fully replaced by the Supabase Edge Function at supabase/functions/cancel-subscription/index.ts
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,12 +10,17 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS, GET'
 };
 
-// This mock function is kept for reference but is no longer used
+// This function is fully deprecated - using real Supabase Edge Function instead
 export async function mockCancelSubscription(subscriptionId: string) {
   console.warn('mockCancelSubscription is deprecated - using real Edge Function instead');
-  return { 
+  
+  // Redirect the call to the Supabase Edge Function
+  const response = await supabase.functions.invoke('cancel-subscription', {
+    body: { subscriptionId }
+  });
+  
+  return response.data || { 
     success: false, 
-    message: 'Mock function is deprecated - using real Edge Function' 
+    message: 'Redirecting to real Edge Function failed' 
   };
 }
-

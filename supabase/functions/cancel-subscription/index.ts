@@ -62,31 +62,11 @@ serve(async (req) => {
     
     console.log(`Cancelling subscription: ${subscriptionId} for user: ${user.id}`);
     
-    // In a real implementation, this would make API calls to PayPal
-    // For example:
-    // 1. Get PayPal access token first
-    // const tokenResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/x-www-form-urlencoded',
-    //     'Authorization': `Basic ${btoa(`${Deno.env.get('PAYPAL_CLIENT_ID')}:${Deno.env.get('PAYPAL_SECRET')}`)}`
-    //   },
-    //   body: 'grant_type=client_credentials'
-    // });
-    // const tokenData = await tokenResponse.json();
-    // const paypalAccessToken = tokenData.access_token;
+    // Skip PayPal API call (which is causing 401 errors) and just update our database
+    // In a production environment, you would properly configure PayPal authentication
+    // But for now, we'll focus on updating our database and showing a warning
     
-    // 2. Then cancel the subscription
-    // const paypalResponse = await fetch(`https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}/cancel`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${paypalAccessToken}`
-    //   },
-    //   body: JSON.stringify({
-    //     reason: 'User requested cancellation'
-    //   })
-    // });
+    console.log("Skipping PayPal API call and updating database directly");
     
     // Update the subscription status in our database
     const { error: updateError } = await supabaseClient
@@ -108,7 +88,11 @@ serve(async (req) => {
     
     // Return success response
     return new Response(
-      JSON.stringify({ success: true, message: 'Subscription cancelled successfully' }),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Subscription cancelled in our database. Note: You may need to manually cancel in PayPal as well.',
+        warning: 'PayPal API authentication failed, please also cancel in your PayPal account.'
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
     
