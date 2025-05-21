@@ -3,20 +3,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { CLIENT_ID } from "@/lib/paypal";
 
 interface SubscriptionStatusProps {
   hasActiveSubscription: boolean;
   selectedTier?: number;
   isLoading?: boolean;
   status?: string;
+  subscriptionId?: string;
+  onSubscriptionUpdate?: (hasSubscription: boolean) => void;
 }
 
 export const SubscriptionStatus = ({ 
   hasActiveSubscription, 
   selectedTier = 0,
   isLoading = false,
-  status = "ACTIVE" 
+  status = "ACTIVE",
+  subscriptionId,
+  onSubscriptionUpdate
 }: SubscriptionStatusProps) => {
+  const [cancelLoading, setCancelLoading] = useState(false);
+  
   // Get tier display text
   const getTierText = (tier: number) => {
     switch(tier) {
@@ -24,6 +34,101 @@ export const SubscriptionStatus = ({
       case 1: return "Standard Plan ($50,001 - $100,000)";
       case 2: return "Premium Plan ($100,001 - $200,000)";
       default: return "Basic Plan";
+    }
+  };
+
+  // Function to cancel PayPal subscription
+  const cancelSubscription = async () => {
+    if (!subscriptionId) {
+      toast({
+        title: "Error",
+        description: "Subscription ID not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Confirm before cancelling
+    if (!window.confirm("Are you sure you want to cancel your subscription? This will end your access to premium features.")) {
+      return;
+    }
+
+    setCancelLoading(true);
+    
+    try {
+      // Get PayPal OAuth token first
+      const tokenResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Basic ${btoa(CLIENT_ID + ':')}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'grant_type=client_credentials'
+      });
+      
+      if (!tokenResponse.ok) {
+        throw new Error('Failed to get PayPal OAuth token');
+      }
+      
+      const tokenData = await tokenResponse.json();
+      const accessToken = tokenData.access_token;
+      
+      // Cancel the subscription with PayPal
+      const cancelResponse = await fetch(`https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          reason: "Customer requested cancellation"
+        })
+      });
+      
+      if (!cancelResponse.ok) {
+        const errorText = await cancelResponse.text();
+        throw new Error(`Failed to cancel subscription: ${errorText}`);
+      }
+      
+      // Update subscription status in our database
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+      
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          status: 'CANCELLED',
+          updated_at: new Date().toISOString()
+        })
+        .eq('paypal_subscription_id', subscriptionId);
+        
+      if (updateError) {
+        throw updateError;
+      }
+      
+      toast({
+        title: "Subscription Cancelled",
+        description: "Your subscription has been successfully cancelled.",
+      });
+      
+      // Notify parent component to update subscription status
+      if (onSubscriptionUpdate) {
+        onSubscriptionUpdate(false);
+      }
+      
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+      toast({
+        title: "Cancellation Failed",
+        description: "There was a problem cancelling your subscription. Please try again or contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -74,9 +179,27 @@ export const SubscriptionStatus = ({
             <p className="text-sm text-muted-foreground">
               Your algorithmic trading subscription is active. View your payment history and manage your subscription from the Payments page.
             </p>
-            <Link to="/payments">
-              <Button variant="outline" className="w-full sm:w-auto">Manage Subscription</Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link to="/payments">
+                <Button variant="outline" className="w-full sm:w-auto">Manage Subscription</Button>
+              </Link>
+              
+              <Button 
+                variant="destructive" 
+                className="w-full sm:w-auto"
+                onClick={cancelSubscription}
+                disabled={cancelLoading || !subscriptionId}
+              >
+                {cancelLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Cancelling...
+                  </>
+                ) : (
+                  "Cancel Subscription"
+                )}
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">

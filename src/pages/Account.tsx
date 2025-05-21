@@ -211,6 +211,14 @@ const Account = () => {
     }
   };
 
+  // Handle subscription updates from child components
+  const handleSubscriptionUpdate = (hasSubscription: boolean) => {
+    setHasActiveSubscription(hasSubscription);
+    if (!hasSubscription) {
+      setUserSubscription(null);
+    }
+  };
+
   // Manual refresh of subscription status
   const handleRefreshSubscription = async () => {
     if (!session?.user) return;
@@ -308,6 +316,8 @@ const Account = () => {
                 hasActiveSubscription={hasActiveSubscription} 
                 selectedTier={userSubscription?.tier}
                 isLoading={subscriptionLoading || syncingPayPal} 
+                subscriptionId={userSubscription?.paypal_subscription_id}
+                onSubscriptionUpdate={handleSubscriptionUpdate}
               />
               
               {session && (
