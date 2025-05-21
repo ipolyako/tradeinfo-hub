@@ -6,8 +6,9 @@ export const CLIENT_ID = 'ARrwQMysQqyFM7j3lPuiPnUII7WXGkNWzBLTdVm2HvVUa-shV1LA0E
 
 // Define plan IDs for each pricing tier
 export const PLAN_IDS = {
-  TIER_1: 'P-88D90240DM691354JNAWTYRY', // Under 100K
-  TIER_2: 'P-8WP80283ES2853237NAWTZFQ'  // 100K-200K
+  TIER_1: 'P-2CN78100KF703433HNAWT4XQ', // 1-50K
+  TIER_2: 'P-88D90240DM691354JNAWTYRY', // 50K-100K
+  TIER_3: 'P-8WP80283ES2853237NAWTZFQ'  // 100K-200K
 };
 
 // Legacy plan ID (kept for backward compatibility)
