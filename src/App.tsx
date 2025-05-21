@@ -16,6 +16,7 @@ import SpreadsheetView from "./pages/SpreadsheetView";
 import TransactionsHistory from "./pages/TransactionsHistory";
 
 // Import mock function to ensure it's included in the build
+// This is crucial for making sure our subscription cancellation works
 import "./functions/cancel-subscription";
 
 const queryClient = new QueryClient();

@@ -58,15 +58,20 @@ export const ActiveSubscription = ({
     setCancelling(true);
     
     try {
+      console.log("Attempting to cancel subscription:", subscriptionId);
+      
+      // Using our mocked function
       const { data, error } = await supabase.functions.invoke('cancel-subscription', {
         body: { subscriptionId }
       });
       
+      console.log("Cancel subscription response:", { data, error });
+      
       if (error) {
-        throw new Error(error.message);
+        throw new Error(error.message || "Error connecting to cancellation service");
       }
       
-      if (data.success) {
+      if (data && data.success) {
         toast({
           title: "Subscription Cancelled",
           description: "Your subscription has been cancelled successfully."
@@ -77,7 +82,7 @@ export const ActiveSubscription = ({
           onSubscriptionCancelled();
         }
       } else {
-        throw new Error(data.message || "Failed to cancel subscription");
+        throw new Error((data && data.message) || "Failed to cancel subscription");
       }
     } catch (error) {
       console.error("Error cancelling subscription:", error);
