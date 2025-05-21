@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -162,7 +163,7 @@ export const PayPalButton = ({
           // Create subscription with the tier-specific plan ID
           return actions.subscription.create({
             plan_id: tier.planId,
-            custom_id: `tier_${displayTierNumber}_price_${tier.price}_qty_${quantity}`,
+            custom_id: `tier_${chosenTierIndex + 1}_price_${tier.price}_qty_${quantity}`,
             application_context: {
               shipping_preference: 'NO_SHIPPING'
             }
@@ -248,10 +249,19 @@ export const PayPalButton = ({
         });
       }
       
-      // Render with direct selector
-      window.paypal.Buttons(buttonConfig).render(`#${containerId}`);
-      console.log('PayPal buttons rendered using direct selector');
-      setPaypalButtonsVisible(true);
+      // Render buttons ensuring visibility on mobile
+      const rendered = window.paypal.Buttons(buttonConfig);
+      
+      // Check if the buttons can be rendered
+      if (rendered.isEligible()) {
+        rendered.render(`#${containerId}`);
+        console.log('PayPal buttons rendered using direct selector');
+        setPaypalButtonsVisible(true);
+      } else {
+        console.error('PayPal buttons are not eligible for rendering');
+        setScriptError(true);
+        onStatusChange("failed");
+      }
     } catch (err) {
       console.error("Failed to initialize PayPal buttons:", err);
       onStatusChange("failed");
@@ -277,7 +287,7 @@ export const PayPalButton = ({
   useEffect(() => {
     if (scriptLoaded && window.paypal) {
       // Add delay to ensure DOM is ready, longer on mobile
-      const delay = isMobile ? 500 : 200;
+      const delay = isMobile ? 800 : 200;
       const timer = setTimeout(() => {
         renderPayPalButtons();
       }, delay);
@@ -325,7 +335,7 @@ export const PayPalButton = ({
               </SelectTrigger>
               <SelectContent 
                 position="popper" 
-                className="bg-white z-[100]"
+                className="bg-background z-[100]"
                 align="start"
                 sideOffset={5}
               >
@@ -355,8 +365,8 @@ export const PayPalButton = ({
         </div>
       </div>
       
-      {/* Add large margin-top to ensure PayPal buttons are not covering dropdown */}
-      <div className="w-full min-h-[250px] mt-12">
+      {/* Improved mobile styling for PayPal buttons */}
+      <div className="w-full mt-8 mb-8">
         {scriptError ? (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>
@@ -372,7 +382,7 @@ export const PayPalButton = ({
             </AlertDescription>
           </Alert>
         ) : (
-          <div className="w-full min-h-[250px] flex flex-col items-center justify-center">
+          <div className="w-full flex flex-col items-center justify-center">
             {!scriptLoaded && (
               <div className="flex flex-col items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -382,14 +392,24 @@ export const PayPalButton = ({
               </div>
             )}
             
+            {/* The PayPal button container with improved styling */}
             <div 
               ref={containerRef}
               id={containerId}
-              className={cn("w-full paypal-button-container", {
-                "hidden": !paypalButtonsVisible
-              })}
+              className={cn(
+                "w-full paypal-button-container", 
+                {
+                  "hidden": !paypalButtonsVisible
+                }
+              )}
               key={`paypal-container-${renderAttempts}-${selectedTier}`}
-              style={{ minHeight: isMobile ? "150px" : "120px", marginTop: "25px" }}
+              style={{ 
+                minHeight: isMobile ? "200px" : "150px",
+                marginBottom: "20px",
+                marginTop: "20px",
+                zIndex: 50,
+                position: "relative"
+              }}
             ></div>
           </div>
         )}

@@ -17,6 +17,7 @@ declare interface Window {
     }) => {
       render: (container: HTMLElement | string) => void;
       close?: () => void;
+      isEligible?: () => boolean;
     };
   };
 }

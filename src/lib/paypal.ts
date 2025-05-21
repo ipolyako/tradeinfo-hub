@@ -70,9 +70,13 @@ export function initializePayPalScript() {
     // Add popup parameters specifically for Firefox to prevent automatic closing
     const firefoxParams = isFirefox() ? '&enable-funding=venmo&disable-funding=card' : '';
     
-    script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription${firefoxParams}`;
+    // Add parameters to improve mobile compatibility
+    const mobileParams = '&components=buttons,funding-eligibility';
+    
+    script.src = `https://www.paypal.com/sdk/js?client-id=${CLIENT_ID}&vault=true&intent=subscription${firefoxParams}${mobileParams}`;
     script.async = true;
     script.setAttribute('data-sdk-integration-source', 'button-factory');
+    script.setAttribute('data-namespace', 'paypal');
     
     script.onload = () => {
       console.log('PayPal subscription script loaded successfully');
