@@ -32,7 +32,8 @@ export async function handleSubscription(subscriptionId: string, options?: { act
     return {
       success: false,
       message: `Error processing subscription: ${error.message || 'Unknown error'}`,
-      isActive: false
+      isActive: false,
+      warning: 'There was a problem communicating with PayPal. Please try again later.'
     };
   }
 }

@@ -18,28 +18,37 @@ const supabase = createClient(supabaseUrl, supabaseServiceRole);
 const PAYPAL_CLIENT_ID = Deno.env.get('PAYPAL_CLIENT_ID') || '';
 const PAYPAL_SECRET_KEY = Deno.env.get('PAYPAL_SECRET_KEY') || '';
 
-// Base URL for PayPal API
+// Base URL for PayPal API - make sure we're using the correct endpoint
 const PAYPAL_BASE_URL = 'https://api-m.paypal.com';
 
 // Get PayPal OAuth token for API authentication
 async function getPayPalAccessToken() {
   try {
+    console.log('Getting PayPal access token');
+    
+    // Create authorization string with proper encoding
+    const auth = btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET_KEY}`);
+    
     const tokenResponse = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_SECRET_KEY}`)}`,
+        'Authorization': `Basic ${auth}`,
       },
       body: 'grant_type=client_credentials',
     });
 
+    // Log response status for debugging
+    console.log('PayPal token response status:', tokenResponse.status);
+
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error('PayPal token error:', errorText);
+      console.error('PayPal token error details:', errorText);
       throw new Error(`Failed to get PayPal access token: ${tokenResponse.status}`);
     }
 
     const data = await tokenResponse.json();
+    console.log('Successfully retrieved PayPal access token');
     return data.access_token;
   } catch (error) {
     console.error('Error getting PayPal access token:', error);
@@ -50,6 +59,28 @@ async function getPayPalAccessToken() {
 // Handle subscription check or cancel
 async function handleSubscription(subscriptionId: string, action?: 'check' | 'cancel') {
   try {
+    // Validate inputs
+    if (!subscriptionId) {
+      return {
+        success: false,
+        message: 'Subscription ID is required',
+        isActive: false,
+      };
+    }
+    
+    console.log(`Processing ${action || 'check'} for subscription ID: ${subscriptionId}`);
+    
+    // Check if we have valid PayPal credentials
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_SECRET_KEY) {
+      console.error('Missing PayPal credentials');
+      return {
+        success: false,
+        message: 'PayPal API credentials are not configured',
+        isActive: false,
+        warning: 'Please contact the administrator. PayPal integration is not properly configured.'
+      };
+    }
+    
     // Get access token
     const accessToken = await getPayPalAccessToken();
     
@@ -143,6 +174,7 @@ async function handleSubscription(subscriptionId: string, action?: 'check' | 'ca
       success: false,
       message: `Error processing subscription: ${error.message || 'Unknown error'}`,
       isActive: false,
+      warning: 'There was a problem communicating with PayPal. Please try again later.'
     };
   }
 }
@@ -154,7 +186,11 @@ serve(async (req) => {
   }
 
   try {
+    // Log request information for debugging
+    console.log(`Received ${req.method} request to paypal-subscription function`);
+    
     const { subscriptionId, action } = await req.json();
+    console.log(`Processing request for subscription ID: ${subscriptionId}, action: ${action || 'check'}`);
 
     if (!subscriptionId) {
       return new Response(
@@ -170,6 +206,7 @@ serve(async (req) => {
     }
 
     const result = await handleSubscription(subscriptionId, action);
+    console.log("Response from handleSubscription:", JSON.stringify(result));
 
     return new Response(JSON.stringify(result), {
       status: 200,
