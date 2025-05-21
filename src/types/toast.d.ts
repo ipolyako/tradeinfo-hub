@@ -5,7 +5,7 @@ export type ToastProps = {
   title?: string;
   description?: string;
   action?: ToastActionElement;
-  variant?: "default" | "destructive";
+  variant?: "default" | "destructive" | "warning";
 };
 
 export type ToastType = (props: ToastProps) => void;

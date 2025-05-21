@@ -1,6 +1,4 @@
 
-// This file is now fully replaced by the Supabase Edge Function at supabase/functions/cancel-subscription/index.ts
-
 import { supabase } from "@/integrations/supabase/client";
 
 // Define proper CORS headers
