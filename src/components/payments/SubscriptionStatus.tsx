@@ -206,12 +206,24 @@ export const SubscriptionStatus = ({
             <p className="text-sm text-muted-foreground">
               Subscribe to our algorithmic trading service to access all features.
             </p>
-            <Link to="/payments">
-              <Button className="w-full sm:w-auto">Subscribe Now</Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link to="/payments">
+                <Button className="w-full sm:w-auto">Subscribe Now</Button>
+              </Link>
+              
+              <Button 
+                variant="destructive" 
+                className="w-full sm:w-auto"
+                onClick={cancelSubscription}
+                disabled={true}
+              >
+                Cancel Subscription
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>
     </Card>
   );
 };
+
