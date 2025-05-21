@@ -29,10 +29,19 @@ serve(async (req) => {
       );
     }
     
+    console.log(`Processing cancellation for subscription: ${subscriptionId}`);
+    
     // Create a Supabase client with the auth context of the logged-in user
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase environment variables are not set');
+    }
+    
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      supabaseUrl,
+      supabaseKey,
       {
         global: {
           headers: { Authorization: req.headers.get('Authorization')! }
@@ -92,7 +101,7 @@ serve(async (req) => {
     if (updateError) {
       console.error("Database update error:", updateError);
       return new Response(
-        JSON.stringify({ success: false, message: 'Failed to update subscription in database' }),
+        JSON.stringify({ success: false, message: 'Failed to update subscription in database', error: updateError }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }

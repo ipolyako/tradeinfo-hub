@@ -65,7 +65,7 @@ export const ActiveSubscription = ({
         body: { subscriptionId }
       });
       
-      console.log("Cancel subscription response:", { data, error });
+      console.log("Cancel subscription response:", data || error);
       
       if (error) {
         throw new Error(error.message || "Error connecting to cancellation service");
