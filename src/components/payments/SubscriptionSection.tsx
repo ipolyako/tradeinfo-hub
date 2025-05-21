@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 import { isFirefox } from "@/lib/paypal";
+import { mockCancelSubscription } from "@/functions/cancel-subscription";
 
 interface SubscriptionSectionProps {
   hasActiveSubscription: boolean;

@@ -18,11 +18,11 @@ serve(async (req) => {
   }
   
   try {
-    console.log("Cancel subscription function called");
+    console.log("Subscription function called");
     
     // Parse request body
     const requestData = await req.json();
-    const { subscriptionId, forceCancel, forceSync, forceCheck } = requestData;
+    const { subscriptionId, action } = requestData;
     
     if (!subscriptionId) {
       console.error("No subscription ID provided");
@@ -32,8 +32,7 @@ serve(async (req) => {
       );
     }
     
-    console.log(`Processing request for subscription: ${subscriptionId}`);
-    console.log(`Request type: ${forceCancel ? 'force cancel' : forceSync ? 'force sync' : forceCheck ? 'status check' : 'cancellation'}`);
+    console.log(`Processing request for subscription: ${subscriptionId}, action: ${action || 'check'}`);
     
     // Get Supabase URL and API key from environment variables
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -79,16 +78,12 @@ serve(async (req) => {
     }
     
     // First check if the subscription exists in our database
-    console.log("Verifying subscription in database...");
+    console.log("Checking subscription in database...");
     
     let queryParams = new URLSearchParams();
     queryParams.append('paypal_subscription_id', `eq.${subscriptionId}`);
     
-    if (userId && !forceCancel && !forceSync && !forceCheck) {
-      queryParams.append('user_id', `eq.${userId}`);
-    }
-    
-    const checkUrl = `${supabaseUrl}/rest/v1/subscriptions?${queryParams.toString()}&select=id,status,user_id,plan_id,tier,price`;
+    const checkUrl = `${supabaseUrl}/rest/v1/subscriptions?${queryParams.toString()}&select=id,user_id,plan_id,tier,price,paypal_subscription_id`;
     
     const checkResponse = await fetch(checkUrl, {
       headers: {
@@ -115,163 +110,147 @@ serve(async (req) => {
     
     const subscription = subscriptions[0];
     
-    // If this is just a status check or sync request
-    if (forceCheck || forceSync) {
-      console.log("Performing status check/sync with our database");
+    // Get PayPal CLIENT_ID and SECRET from environment variables
+    const clientId = Deno.env.get('PAYPAL_CLIENT_ID');
+    const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET');
+    
+    // Check if we have PayPal API credentials
+    if (!clientId || !clientSecret) {
+      console.warn("PayPal API credentials not found, cannot check subscription status");
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'PayPal API credentials not available',
+          subscription: subscription
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+    
+    // Get PayPal OAuth token
+    console.log("Getting PayPal OAuth token");
+    const tokenResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Basic ${btoa(clientId + ':' + clientSecret)}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'grant_type=client_credentials'
+    });
+    
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error("PayPal token error:", errorText, "Status:", tokenResponse.status);
+      throw new Error(`Failed to get PayPal token: ${errorText}`);
+    }
+    
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+    
+    // Check subscription status in PayPal
+    console.log("Checking PayPal subscription status");
+    const paypalResponse = await fetch(`https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!paypalResponse.ok) {
+      const errorText = await paypalResponse.text();
+      console.error("PayPal subscription check error:", errorText, "Status:", paypalResponse.status);
       
-      // For simplicity, we'll just return the current status from our database
-      // In a production environment, you would make a call to PayPal's API here
-      // to verify the actual subscription status
-      
-      // Get PayPal CLIENT_ID from environment variables
-      const clientId = Deno.env.get('PAYPAL_CLIENT_ID');
-      
-      if (!clientId) {
-        console.warn("PayPal CLIENT_ID not set, skipping PayPal API check");
-        
+      // If subscription not found in PayPal, it's likely cancelled or invalid
+      if (paypalResponse.status === 404) {
         return new Response(
           JSON.stringify({
             success: true,
-            message: 'Status retrieved from our database',
-            status: subscription.status,
-            dbRecord: subscription
+            paypalStatus: 'NOT_FOUND',
+            message: 'Subscription not found in PayPal',
+            isActive: false,
+            subscription: subscription
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
         );
       }
       
-      // For a proper implementation, you would fetch the actual status from PayPal
-      // But for now, let's just use our database status
-      let paypalStatus = subscription.status;
-      
-      // If forceSync is true and the status is different, update our database
-      if (forceSync && paypalStatus !== subscription.status) {
-        // Build the URL with query parameters for update
-        const updateUrl = `${supabaseUrl}/rest/v1/subscriptions?id=eq.${subscription.id}`;
-        
-        try {
-          // Update the subscription status
-          const updateResponse = await fetch(updateUrl, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`,
-              'apikey': apiKey,
-              'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify({
-              status: paypalStatus,
-              updated_at: new Date().toISOString()
-            })
-          });
-          
-          if (!updateResponse.ok) {
-            const errorText = await updateResponse.text();
-            console.error("Database update error:", errorText, "Status:", updateResponse.status);
-            throw new Error(`Failed to update subscription in database: ${errorText}`);
-          }
-          
-          console.log(`Subscription status successfully synced from ${subscription.status} to ${paypalStatus}`);
-        } catch (dbError) {
-          console.error("Error updating database:", dbError);
-          throw dbError;
-        }
-      }
-      
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: 'Status retrieved',
-          status: subscription.status,
-          paypalStatus: paypalStatus,
-          dbRecord: subscription
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-      );
+      throw new Error(`Failed to check PayPal subscription: ${errorText}`);
     }
     
-    // If the subscription is already cancelled in our database and this is not a force operation
-    if (subscription.status === 'CANCELLED' && !forceCancel) {
-      console.log("Subscription is already cancelled in database");
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: 'Subscription is already cancelled in database',
-          status: 'CANCELLED'
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-      );
-    }
+    const paypalData = await paypalResponse.json();
+    const paypalStatus = paypalData.status;
     
-    // Update the subscription status in our database
-    console.log("Updating subscription in database...");
+    console.log(`PayPal subscription status: ${paypalStatus}`);
     
-    // Build the URL with query parameters for update
-    const updateUrl = `${supabaseUrl}/rest/v1/subscriptions?${queryParams.toString()}`;
-    
-    try {
-      // Update the subscription status
-      const updateResponse = await fetch(updateUrl, {
-        method: 'PATCH',
+    // If the action is 'cancel', cancel the subscription in PayPal
+    if (action === 'cancel') {
+      console.log("Cancelling subscription in PayPal");
+      
+      const cancelResponse = await fetch(`https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}/cancel`, {
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'apikey': apiKey,
-          'Prefer': 'return=minimal'
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          status: 'CANCELLED',
-          updated_at: new Date().toISOString()
+          reason: 'Cancelled by user'
         })
       });
       
-      if (!updateResponse.ok) {
-        const errorText = await updateResponse.text();
-        console.error("Database update error:", errorText, "Status:", updateResponse.status);
-        throw new Error(`Failed to update subscription in database: ${errorText}`);
+      if (!cancelResponse.ok) {
+        const errorText = await cancelResponse.text();
+        console.error("PayPal cancellation error:", errorText, "Status:", cancelResponse.status);
+        throw new Error(`Failed to cancel PayPal subscription: ${errorText}`);
       }
       
-      console.log("Subscription successfully marked as cancelled in database");
+      console.log("Subscription successfully cancelled in PayPal");
       
-      // Get PayPal CLIENT_ID and SECRET from environment variables
-      const clientId = Deno.env.get('PAYPAL_CLIENT_ID');
-      const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET');
+      // Re-check status to confirm cancellation
+      const recheckResponse = await fetch(`https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
       
-      let paypalCancellationMessage = "This only updates our database. If you haven't already, please ensure you've also cancelled in your PayPal account.";
+      const recheckData = await recheckResponse.json();
+      const updatedStatus = recheckData.status;
       
-      // In a production environment, you would also cancel the subscription in PayPal here
-      // using the PayPal API, but that requires proper setup with CLIENT_ID and SECRET
-      
-      if (clientId && clientSecret) {
-        console.log("PayPal API credentials found, but integration not implemented in this version");
-        // You would implement the PayPal API call here
-      } else {
-        console.log("PayPal API credentials not found, skipping PayPal API call");
-      }
-      
-      // Return success response
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Subscription cancelled successfully in our database.',
-          warning: forceCancel ? 
-            'This is a forced cancellation. The subscription has been marked as cancelled in our database only.' :
-            paypalCancellationMessage,
-          status: 'CANCELLED'
+          message: 'Subscription cancelled successfully',
+          paypalStatus: updatedStatus,
+          isActive: updatedStatus === 'ACTIVE',
+          subscription: subscription
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
-    } catch (dbError) {
-      console.error("Error updating database:", dbError);
-      throw dbError;
     }
     
+    // For status check, just return the current status
+    const isActive = paypalStatus === 'ACTIVE' || paypalStatus === 'APPROVED';
+    
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: 'Subscription status retrieved from PayPal',
+        paypalStatus: paypalStatus,
+        isActive: isActive,
+        subscription: subscription
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+    );
+    
   } catch (error) {
-    console.error("Error in cancel subscription handler:", error);
+    console.error("Error in subscription handler:", error);
     return new Response(
       JSON.stringify({ 
         success: false, 
-        message: error instanceof Error ? error.message : 'Unknown error occurred while processing cancellation' 
+        message: error instanceof Error ? error.message : 'Unknown error occurred while processing request' 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );

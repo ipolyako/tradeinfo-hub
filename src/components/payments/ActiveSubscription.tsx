@@ -2,11 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
 import { pricingTiers, getAccountBalanceText } from "./PayPalButton";
-import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { mockCancelSubscription } from "@/functions/cancel-subscription";
 
 interface ActiveSubscriptionProps {
   accountValue?: number;
@@ -23,6 +23,8 @@ export const ActiveSubscription = ({
 }: ActiveSubscriptionProps) => {
   const [cancelling, setCancelling] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
+  const [paypalStatus, setPaypalStatus] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Get the appropriate tier based on selection or default to first tier
   const tierIndex = selectedTier !== undefined ? selectedTier : 0;
@@ -40,6 +42,33 @@ export const ActiveSubscription = ({
   
   // Convert zero-based index to human-readable tier number (1-based)
   const displayTierNumber = tierIndex + 1;
+  
+  // Check subscription status on mount
+  useEffect(() => {
+    const checkStatus = async () => {
+      if (!subscriptionId) {
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        const response = await mockCancelSubscription(subscriptionId, { action: 'check' });
+        
+        if (response.success) {
+          setPaypalStatus(response.paypalStatus);
+        } else {
+          setWarning("Unable to verify subscription status with PayPal");
+        }
+      } catch (error) {
+        console.error("Error checking subscription status:", error);
+        setWarning("Error checking subscription status");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkStatus();
+  }, [subscriptionId]);
   
   // Handle subscription cancellation
   const handleCancelSubscription = async () => {
@@ -63,34 +92,30 @@ export const ActiveSubscription = ({
     try {
       console.log("Attempting to cancel subscription:", subscriptionId);
       
-      // Call the real Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('cancel-subscription', {
-        body: { subscriptionId }
-      });
+      const response = await mockCancelSubscription(subscriptionId, { action: 'cancel' });
       
-      console.log("Cancel subscription response:", data || error);
+      console.log("Cancel subscription response:", response);
       
-      if (error) {
-        throw new Error(error.message || "Error connecting to cancellation service");
-      }
-      
-      if (data && data.success) {
+      if (response.success) {
         // Check if there's a warning to display
-        if (data.warning) {
-          setWarning(data.warning);
+        if (response.warning) {
+          setWarning(response.warning);
         }
         
         toast({
           title: "Subscription Cancelled",
-          description: data.message || "Your subscription has been cancelled successfully."
+          description: response.message || "Your subscription has been cancelled successfully."
         });
+        
+        // Update PayPal status
+        setPaypalStatus(response.paypalStatus || 'CANCELLED');
         
         // Notify parent component
         if (onSubscriptionCancelled) {
           onSubscriptionCancelled();
         }
       } else {
-        throw new Error((data && data.message) || "Failed to cancel subscription");
+        throw new Error(response.message || "Failed to cancel subscription");
       }
     } catch (error) {
       console.error("Error cancelling subscription:", error);
@@ -103,6 +128,15 @@ export const ActiveSubscription = ({
       setCancelling(false);
     }
   };
+  
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-4">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-4">
@@ -123,6 +157,9 @@ export const ActiveSubscription = ({
           <p className="text-xs text-muted-foreground">
             Tier {displayTierNumber} • Account balance: {accountBalanceText}
           </p>
+          {paypalStatus && (
+            <p className="text-xs text-muted-foreground">PayPal Status: {paypalStatus}</p>
+          )}
           <p className="text-xs text-muted-foreground">Renewed: {new Date().toLocaleDateString()}</p>
         </div>
       </div>

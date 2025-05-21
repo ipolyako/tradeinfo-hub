@@ -3,33 +3,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { mockCancelSubscription } from "@/functions/cancel-subscription";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SubscriptionStatusProps {
-  hasActiveSubscription: boolean;
-  selectedTier?: number;
-  isLoading?: boolean;
-  status?: string;
   subscriptionId?: string;
+  selectedTier?: number;
   onSubscriptionUpdate?: (hasSubscription: boolean) => void;
-  onRefreshStatus?: () => Promise<void>;
 }
 
 export const SubscriptionStatus = ({ 
-  hasActiveSubscription, 
   selectedTier = 0,
-  isLoading = false,
-  status = "ACTIVE",
   subscriptionId,
-  onSubscriptionUpdate,
-  onRefreshStatus
+  onSubscriptionUpdate
 }: SubscriptionStatusProps) => {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [isActive, setIsActive] = useState(false);
+  const [paypalStatus, setPaypalStatus] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Get tier display text
   const getTierText = (tier: number) => {
@@ -41,6 +36,40 @@ export const SubscriptionStatus = ({
       default: return "Basic Plan";
     }
   };
+
+  // Function to check subscription status
+  const checkSubscriptionStatus = async () => {
+    if (!subscriptionId) {
+      setIsLoading(false);
+      setIsActive(false);
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const response = await mockCancelSubscription(subscriptionId, { action: 'check' });
+      
+      if (response.success) {
+        setIsActive(response.isActive);
+        setPaypalStatus(response.paypalStatus);
+      } else {
+        setIsActive(false);
+        setWarning("Unable to verify subscription status with PayPal. Please try again later.");
+      }
+    } catch (error) {
+      console.error("Error checking subscription:", error);
+      setIsActive(false);
+      setWarning("Error checking subscription status. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Check subscription status on component mount
+  useEffect(() => {
+    checkSubscriptionStatus();
+  }, [subscriptionId]);
 
   // Function to cancel subscription
   const cancelSubscription = async () => {
@@ -62,31 +91,29 @@ export const SubscriptionStatus = ({
     setWarning(null);
     
     try {
-      const { data, error } = await supabase.functions.invoke('cancel-subscription', {
-        body: { subscriptionId }
-      });
+      const response = await mockCancelSubscription(subscriptionId, { action: 'cancel' });
       
-      if (error) {
-        throw new Error(error.message);
-      }
-      
-      if (data.success) {
+      if (response.success) {
         // Check if there's a warning to display
-        if (data.warning) {
-          setWarning(data.warning);
+        if (response.warning) {
+          setWarning(response.warning);
         }
         
         toast({
           title: "Subscription Cancelled",
-          description: data.message || "Your subscription has been successfully cancelled.",
+          description: response.message || "Your subscription has been successfully cancelled.",
         });
+        
+        // Update local state
+        setIsActive(false);
+        setPaypalStatus('CANCELLED');
         
         // Notify parent component
         if (onSubscriptionUpdate) {
           onSubscriptionUpdate(false);
         }
       } else {
-        throw new Error(data.message || "Failed to cancel subscription");
+        throw new Error(response.message || "Failed to cancel subscription");
       }
     } catch (error) {
       console.error("Error cancelling subscription:", error);
@@ -102,23 +129,21 @@ export const SubscriptionStatus = ({
   
   // Function to refresh subscription status
   const handleRefreshStatus = async () => {
-    if (onRefreshStatus) {
-      setRefreshing(true);
-      try {
-        await onRefreshStatus();
-        toast({
-          title: "Status Updated",
-          description: "Your subscription status has been refreshed.",
-        });
-      } catch (error) {
-        toast({
-          title: "Refresh Failed",
-          description: "Could not refresh subscription status.",
-          variant: "destructive",
-        });
-      } finally {
-        setRefreshing(false);
-      }
+    setRefreshing(true);
+    try {
+      await checkSubscriptionStatus();
+      toast({
+        title: "Status Updated",
+        description: "Your subscription status has been refreshed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Refresh Failed",
+        description: "Could not refresh subscription status.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -133,7 +158,7 @@ export const SubscriptionStatus = ({
           <div className="flex items-center justify-center py-4">
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Checking subscription status...</p>
+              <p className="text-sm text-muted-foreground">Checking subscription status with PayPal...</p>
             </div>
           </div>
         </CardContent>
@@ -146,33 +171,39 @@ export const SubscriptionStatus = ({
       <CardHeader className="pb-3">
         <CardTitle className="text-xl flex justify-between">
           <span>Subscription Status</span>
-          {onRefreshStatus && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleRefreshStatus} 
-              disabled={refreshing}
-            >
-              <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="sr-only sm:not-sr-only">Refresh</span>
-            </Button>
-          )}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleRefreshStatus} 
+            disabled={refreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="sr-only sm:not-sr-only">Refresh</span>
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-3 mb-4">
-          {hasActiveSubscription ? (
+          {isActive ? (
             <>
               <CheckCircle className="h-5 w-5 text-green-500" />
               <div className="flex flex-col">
                 <span className="font-medium text-green-600">Active Subscription</span>
                 <span className="text-sm text-muted-foreground">{getTierText(selectedTier || 0)}</span>
+                {paypalStatus && (
+                  <span className="text-xs text-muted-foreground">PayPal Status: {paypalStatus}</span>
+                )}
               </div>
             </>
           ) : (
             <>
               <XCircle className="h-5 w-5 text-red-400" />
-              <span className="font-medium text-muted-foreground">No Active Subscription</span>
+              <div className="flex flex-col">
+                <span className="font-medium text-muted-foreground">No Active Subscription</span>
+                {paypalStatus && (
+                  <span className="text-xs text-muted-foreground">PayPal Status: {paypalStatus}</span>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -183,7 +214,7 @@ export const SubscriptionStatus = ({
           </Alert>
         )}
         
-        {hasActiveSubscription ? (
+        {isActive ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
               Your algorithmic trading subscription is active. View your payment history and manage your subscription from the Payments page.
