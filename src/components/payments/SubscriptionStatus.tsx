@@ -12,19 +12,21 @@ interface SubscriptionStatusProps {
   subscriptionId?: string;
   selectedTier?: number;
   onSubscriptionUpdate?: (hasSubscription: boolean) => void;
+  isLoading?: boolean;
 }
 
 export const SubscriptionStatus = ({ 
   selectedTier = 0,
   subscriptionId,
-  onSubscriptionUpdate
+  onSubscriptionUpdate,
+  isLoading = false
 }: SubscriptionStatusProps) => {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [paypalStatus, setPaypalStatus] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [checkingStatus, setCheckingStatus] = useState(true);
   
   // Get tier display text
   const getTierText = (tier: number) => {
@@ -40,12 +42,12 @@ export const SubscriptionStatus = ({
   // Function to check subscription status
   const checkSubscriptionStatus = async () => {
     if (!subscriptionId) {
-      setIsLoading(false);
+      setCheckingStatus(false);
       setIsActive(false);
       return;
     }
     
-    setIsLoading(true);
+    setCheckingStatus(true);
     
     try {
       const response = await mockCancelSubscription(subscriptionId, { action: 'check' });
@@ -62,7 +64,7 @@ export const SubscriptionStatus = ({
       setIsActive(false);
       setWarning("Error checking subscription status. Please try again later.");
     } finally {
-      setIsLoading(false);
+      setCheckingStatus(false);
     }
   };
   
@@ -147,8 +149,8 @@ export const SubscriptionStatus = ({
     }
   };
 
-  // Loading state
-  if (isLoading) {
+  // Loading state (waiting for subscription check or parent loading)
+  if (isLoading || checkingStatus) {
     return (
       <Card className="mb-6">
         <CardHeader className="pb-3">

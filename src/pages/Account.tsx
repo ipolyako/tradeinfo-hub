@@ -248,12 +248,10 @@ const Account = () => {
               </div>
               
               <SubscriptionStatus 
-                hasActiveSubscription={isActive} 
                 selectedTier={userSubscription?.tier}
                 isLoading={subscriptionLoading || refreshing} 
                 subscriptionId={userSubscription?.paypal_subscription_id}
                 onSubscriptionUpdate={handleSubscriptionUpdate}
-                onRefreshStatus={handleRefreshSubscription}
               />
             </div>
             
