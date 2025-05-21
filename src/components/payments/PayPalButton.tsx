@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { CLIENT_ID, PLAN_ID, initializePayPalScript, isFirefox } from "@/lib/paypal";
+import { CLIENT_ID, PLAN_ID, initializePayPalScript, isFirefox, PayPalButtonConfig } from "@/lib/paypal";
 import { Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -80,12 +80,13 @@ export const PayPalButton = ({
         containerRef.current.innerHTML = '';
       }
       
-      const buttonConfig = {
+      // Define button config with proper TypeScript types
+      const buttonConfig: PayPalButtonConfig = {
         style: {
-          shape: 'rect',
-          color: 'silver',
-          layout: 'vertical',
-          label: 'subscribe'
+          shape: "rect",
+          color: "silver",
+          layout: "vertical",
+          label: "subscribe"
         },
         createSubscription: function(data, actions) {
           return actions.subscription.create({
@@ -93,7 +94,6 @@ export const PayPalButton = ({
             quantity: 1
           });
         },
-        // Firefox-specific configuration
         onApprove: function(data) {
           console.log("Subscription successful:", data.subscriptionID);
           toast({
@@ -102,7 +102,7 @@ export const PayPalButton = ({
           });
           onStatusChange("success");
           onSubscriptionUpdate(true);
-          return true; // Explicit return to ensure Firefox handles this properly
+          return true;
         },
         onError: (err: any) => {
           console.error("PayPal error:", err);

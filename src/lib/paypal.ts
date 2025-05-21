@@ -5,6 +5,20 @@ import { useState, useEffect } from "react";
 export const CLIENT_ID = 'ARrwQMysQqyFM7j3lPuiPnUII7WXGkNWzBLTdVm2HvVUa-shV1LA0EMANtgTSMKWa-UQ-Leig0VywPD7';
 export const PLAN_ID = 'P-3CD17662R8975905JNASUSYA';
 
+// Define PayPal button configuration types
+export interface PayPalButtonConfig {
+  style: {
+    shape: "rect" | "pill";
+    color: "gold" | "blue" | "silver" | "black";
+    layout: "vertical" | "horizontal";
+    label: "paypal" | "checkout" | "buynow" | "pay" | "installment" | "subscribe";
+  };
+  createSubscription: (data: any, actions: any) => any;
+  onApprove: (data: any) => any;
+  onError?: (err: any) => void;
+  onCancel?: () => void;
+}
+
 // Check if browser is Firefox
 export const isFirefox = () => {
   return typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
