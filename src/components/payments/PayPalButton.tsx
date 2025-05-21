@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 
 // Define pricing tiers based on the subscription structure
 export const pricingTiers = [
+  { min: 0, max: 0, price: 0, quantity: 5, planId: "P-62G67528SN204230HNAXCOEA", name: "Free Trial" },
   { min: 1, max: 50000, price: 150, quantity: 10, planId: PLAN_IDS.TIER_1 },
   { min: 50001, max: 100000, price: 200, quantity: 50010, planId: PLAN_IDS.TIER_2 },
   { min: 100001, max: 200000, price: 300, quantity: 100010, planId: PLAN_IDS.TIER_3 }
@@ -34,7 +35,7 @@ export const getQuantityForTier = (tierIndex: number): number => {
 
 // Get the price based on account value - always default to first tier ($150)
 export const getPriceForAccount = (accountValue: number): number => {
-  // Always default to first tier price of $150
+  // Default to first paid tier price of $150
   return 150;
 };
 
@@ -44,6 +45,8 @@ export const getAccountBalanceText = (tierIndex: number): string => {
   if (!tier) return "under $100,000";
   
   if (tierIndex === 0) {
+    return "Free Trial";
+  } else if (tierIndex === 1) {
     return `under $${tier.max.toLocaleString()}`;
   } else {
     return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
@@ -64,7 +67,7 @@ export const PayPalButton = ({
   className,
   accountValue = 0
 }: PayPalButtonProps) => {
-  // Always default to the first tier (index 0) regardless of account value
+  // Always default to the free trial (index 0) as the first option
   const defaultTierIndex = 0;
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
@@ -87,7 +90,7 @@ export const PayPalButton = ({
   // Get account balance display text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
     ? getAccountBalanceText(selectedTier)
-    : "under $100,000"; // Default to first tier text
+    : "Free Trial"; // Default to free trial text
   
   const refreshPayPalContainer = () => {
     setRenderAttempts(prev => prev + 1);
@@ -151,9 +154,10 @@ export const PayPalButton = ({
           
           // Display the actual tier number (human-readable, 1-based) in the log
           const displayTierNumber = chosenTierIndex + 1;
+          const tierName = tier.name || `Tier ${displayTierNumber}`;
           
           // Log subscription details for debugging
-          console.log(`Creating subscription with tier ${displayTierNumber}, price $${tier.price}, quantity ${quantity}, plan ID ${tier.planId}`);
+          console.log(`Creating subscription with ${tierName}, price $${tier.price}, quantity ${quantity}, plan ID ${tier.planId}`);
           
           // Create subscription with the tier-specific plan ID
           return actions.subscription.create({
@@ -199,7 +203,9 @@ export const PayPalButton = ({
             
             toast({
               title: "Subscription Successful",
-              description: "Your subscription has been processed and saved to your account.",
+              description: tier.price === 0 
+                ? "Your free trial has been activated" 
+                : "Your subscription has been processed and saved to your account.",
             });
             
           } catch (error) {
@@ -326,9 +332,11 @@ export const PayPalButton = ({
                 <SelectGroup>
                   {pricingTiers.map((tier, index) => (
                     <SelectItem key={index} value={index.toString()}>
-                      {tier.min === 1 ? 
-                        `Under $${tier.max.toLocaleString()}: $${tier.price}/mo` : 
-                        `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}: $${tier.price}/mo`}
+                      {index === 0 ? 
+                        `Free Trial: $${tier.price}/mo` : 
+                        tier.min === 1 ?
+                          `Under $${tier.max.toLocaleString()}: $${tier.price}/mo` : 
+                          `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}: $${tier.price}/mo`}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -338,7 +346,11 @@ export const PayPalButton = ({
           
           <div className="flex justify-between items-center mt-4">
             <span>Monthly subscription:</span>
-            <span className="font-bold text-primary">${currentPrice.toLocaleString()}/month</span>
+            <span className="font-bold text-primary">
+              {currentPrice === 0 ? 
+                "Free Trial" :
+                `$${currentPrice.toLocaleString()}/month`}
+            </span>
           </div>
         </div>
       </div>
