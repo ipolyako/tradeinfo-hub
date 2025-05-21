@@ -22,8 +22,6 @@ export const PaymentHistory = ({ hasActiveSubscription }: PaymentHistoryProps) =
   // Fetch payment history from Supabase
   useEffect(() => {
     const fetchPaymentHistory = async () => {
-      if (!hasActiveSubscription) return;
-      
       try {
         setLoading(true);
         
@@ -54,7 +52,7 @@ export const PaymentHistory = ({ hasActiveSubscription }: PaymentHistoryProps) =
     };
     
     fetchPaymentHistory();
-  }, [hasActiveSubscription]);
+  }, []);
   
   if (loading) {
     return (
@@ -79,7 +77,7 @@ export const PaymentHistory = ({ hasActiveSubscription }: PaymentHistoryProps) =
         <CardDescription>View your previous payments</CardDescription>
       </CardHeader>
       <CardContent>
-        {hasActiveSubscription && payments.length > 0 ? (
+        {payments.length > 0 ? (
           <div className="space-y-4">
             <div className="border rounded-lg divide-y">
               {payments.map((payment, index) => (
@@ -100,10 +98,8 @@ export const PaymentHistory = ({ hasActiveSubscription }: PaymentHistoryProps) =
               ))}
             </div>
           </div>
-        ) : hasActiveSubscription ? (
-          <p className="text-center py-6 text-muted-foreground">No payment records found</p>
         ) : (
-          <p className="text-center py-6 text-muted-foreground">No payment history available</p>
+          <p className="text-center py-6 text-muted-foreground">No payment records found</p>
         )}
       </CardContent>
     </Card>
