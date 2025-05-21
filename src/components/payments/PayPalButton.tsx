@@ -26,8 +26,8 @@ interface PayPalButtonProps {
 
 // Define pricing tiers based on the subscription structure
 export const pricingTiers = [
-  { min: 1, max: 100000, price: 150, quantity: 10, planId: PLAN_IDS.TIER_1 },
-  { min: 100001, max: 200000, price: 500, quantity: 100010, planId: PLAN_IDS.TIER_2 }
+  { min: 1, max: 100000, price: 200, quantity: 10, planId: PLAN_IDS.TIER_1 },
+  { min: 100001, max: 200000, price: 300, quantity: 100010, planId: PLAN_IDS.TIER_2 }
 ];
 
 // Get the quantity value for a specific tier

@@ -13,7 +13,7 @@ export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: Activ
   const tierIndex = selectedTier !== undefined ? selectedTier : 0;
   
   const currentTier = pricingTiers[tierIndex >= 0 ? tierIndex : 0];
-  const currentPrice = currentTier?.price || 150; // Default to first tier price
+  const currentPrice = currentTier?.price || 200; // Default to first tier price
   
   // Get the hardcoded quantity for display
   const quantity = currentTier?.quantity || 10; // Default to first tier quantity
