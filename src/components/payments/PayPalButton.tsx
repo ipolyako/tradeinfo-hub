@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -45,6 +44,18 @@ export const getPriceForAccount = (accountValue: number): number => {
   return 1000; // Default to highest tier if not found
 };
 
+// Function to get display text for account balance range
+export const getAccountBalanceText = (tierIndex: number): string => {
+  const tier = pricingTiers[tierIndex];
+  if (!tier) return "under $100,000";
+  
+  if (tier.max === Infinity) {
+    return `over $${tier.min.toLocaleString()}`;
+  }
+  
+  return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
+};
+
 export const PayPalButton = ({ 
   onStatusChange, 
   onSubscriptionUpdate,
@@ -77,6 +88,11 @@ export const PayPalButton = ({
   const currentQuantity = selectedTierObj
     ? selectedTierObj.quantity
     : pricingTiers[defaultTierIndex >= 0 ? defaultTierIndex : 0].quantity;
+
+  // Get account balance display text based on selected tier
+  const accountBalanceText = selectedTier !== undefined 
+    ? getAccountBalanceText(selectedTier)
+    : "under $100,000";
   
   const refreshPayPalContainer = () => {
     setRenderAttempts(prev => prev + 1);
@@ -225,7 +241,7 @@ export const PayPalButton = ({
           <h3 className="font-medium mb-2">Pricing Tier</h3>
           <div className="flex justify-between items-center">
             <span>Your account balance:</span>
-            <span className="font-bold">${accountValue.toLocaleString()}</span>
+            <span className="font-bold">{accountBalanceText}</span>
           </div>
           
           <div className="mt-4">

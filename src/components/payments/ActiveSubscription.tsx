@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
-import { getPriceForAccount, pricingTiers } from "./PayPalButton";
+import { getPriceForAccount, pricingTiers, getAccountBalanceText } from "./PayPalButton";
 
 interface ActiveSubscriptionProps {
   accountValue?: number;
@@ -17,6 +17,11 @@ export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: Activ
   const currentTier = pricingTiers[tierIndex >= 0 ? tierIndex : 0];
   const currentPrice = currentTier?.price || getPriceForAccount(accountValue);
   
+  // Get account balance text based on selected tier
+  const accountBalanceText = selectedTier !== undefined 
+    ? getAccountBalanceText(selectedTier) 
+    : "under $100,000";
+  
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50">
@@ -30,7 +35,7 @@ export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: Activ
         <div className="text-right">
           <p className="font-bold">Monthly Plan: ${currentPrice}/month</p>
           <p className="text-xs text-muted-foreground">
-            {currentTier ? `Tier: ${currentTier.min.toLocaleString()} - ${currentTier.max === Infinity ? "Unlimited" : currentTier.max.toLocaleString()}` : `Account: ${accountValue.toLocaleString()}`}
+            Account balance: {accountBalanceText}
           </p>
           <p className="text-xs text-muted-foreground">Renewed: {new Date().toLocaleDateString()}</p>
         </div>
