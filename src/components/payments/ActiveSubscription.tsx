@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
 import { pricingTiers, getAccountBalanceText } from "./PayPalButton";
@@ -58,7 +57,9 @@ export const ActiveSubscription = ({
           setPaypalStatus(response.paypalStatus);
           
           // If this is a simulated response, show a warning to the user
-          if (response.paypalStatus === 'SIMULATED_ACTIVE') {
+          if (response.warning) {
+            setWarning(response.warning);
+          } else if (response.paypalStatus === 'SIMULATED_ACTIVE') {
             setWarning("PayPal API is not fully configured. Using simulated active subscription for development.");
           }
         } else {

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -57,8 +56,10 @@ export const SubscriptionStatus = ({
         setIsActive(response.isActive);
         setPaypalStatus(response.paypalStatus);
         
-        // If this is a simulated response, show a warning to the user
-        if (response.paypalStatus === 'SIMULATED_ACTIVE') {
+        // If there's a warning in the response or this is a simulated response, show warning
+        if (response.warning) {
+          setWarning(response.warning);
+        } else if (response.paypalStatus === 'SIMULATED_ACTIVE') {
           setWarning("PayPal API is not fully configured. Using simulated active subscription for development.");
         }
       } else {

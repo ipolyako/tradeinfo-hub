@@ -21,7 +21,8 @@ export async function mockCancelSubscription(subscriptionId: string, options?: {
         'Subscription cancelled successfully (simulation)' : 
         'Using simulated PayPal response for development',
       isActive: options?.action === 'cancel' ? false : true,
-      paypalStatus: options?.action === 'cancel' ? 'CANCELLED_SIMULATED' : 'SIMULATED_ACTIVE'
+      paypalStatus: options?.action === 'cancel' ? 'CANCELLED_SIMULATED' : 'SIMULATED_ACTIVE',
+      warning: options?.action === 'cancel' ? null : "PayPal API is not fully configured. Using simulated active subscription for development."
     };
   } catch (error) {
     console.error('Error in mockCancelSubscription:', error);
@@ -32,7 +33,8 @@ export async function mockCancelSubscription(subscriptionId: string, options?: {
       success: true,
       message: 'Using simulated PayPal response for development',
       isActive: options?.action === 'cancel' ? false : true,
-      paypalStatus: options?.action === 'cancel' ? 'CANCELLED_SIMULATED' : 'SIMULATED_ACTIVE'
+      paypalStatus: options?.action === 'cancel' ? 'CANCELLED_SIMULATED' : 'SIMULATED_ACTIVE',
+      warning: options?.action === 'cancel' ? null : "PayPal API is not fully configured. Using simulated active subscription for development."
     };
   }
 }
