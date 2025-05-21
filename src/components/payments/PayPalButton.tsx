@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface PayPalButtonProps {
   onStatusChange: (status: "idle" | "success" | "failed" | "loading") => void;
@@ -26,21 +25,10 @@ export const PayPalButton = ({
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
   const [renderAttempts, setRenderAttempts] = useState(0);
-  const [showFirefoxHelp, setShowFirefoxHelp] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const isFirefoxBrowser = isFirefox();
   const containerId = `paypal-button-container-${PLAN_ID}`;
-  
-  // Show Firefox help dialog if user is on Firefox
-  useEffect(() => {
-    if (isFirefoxBrowser) {
-      const timer = setTimeout(() => {
-        setShowFirefoxHelp(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [isFirefoxBrowser]);
   
   const refreshPayPalContainer = () => {
     setRenderAttempts(prev => prev + 1);
@@ -221,24 +209,6 @@ export const PayPalButton = ({
           </div>
         )}
       </div>
-      
-      {/* Firefox help dialog */}
-      <Dialog open={showFirefoxHelp} onOpenChange={setShowFirefoxHelp}>
-        <DialogContent className="sm:max-w-md">
-          <div className="space-y-4 p-2">
-            <h3 className="text-lg font-medium">Firefox PayPal Instructions</h3>
-            <p>Firefox may block the PayPal popup window. To complete your subscription:</p>
-            <ol className="list-decimal ml-5 space-y-2">
-              <li>Look for the popup blocker icon in your Firefox address bar</li>
-              <li>Click "Allow popups for this site"</li>
-              <li>Try the PayPal button again</li>
-            </ol>
-            <div className="flex justify-end">
-              <Button onClick={() => setShowFirefoxHelp(false)}>I understand</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
       
       <div className="text-center text-sm text-muted-foreground">
         By proceeding with the subscription, you agree to our
