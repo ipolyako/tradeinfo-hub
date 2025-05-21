@@ -26,20 +26,14 @@ interface PayPalButtonProps {
 // Define pricing tiers based on the new subscription structure
 export const pricingTiers = [
   { min: 1, max: 50000, price: 150, quantity: 1 },
-  { min: 50001, max: 100000, price: 200, quantity: 1 }, // Fixed: Changed quantity from 2 to 1
-  { min: 100001, max: Infinity, price: 500, quantity: 1 } // Fixed: Changed quantity from 3 to 1
+  { min: 50001, max: 100000, price: 200, quantity: 1 },
+  { min: 100001, max: Infinity, price: 500, quantity: 1 }
 ];
 
-// Get the price based on account value
+// Get the price based on account value - always default to first tier ($150)
 export const getPriceForAccount = (accountValue: number): number => {
-  if (accountValue <= 0) return 150; // Default to first tier price
-  
-  for (const tier of pricingTiers) {
-    if (accountValue >= tier.min && accountValue <= tier.max) {
-      return tier.price;
-    }
-  }
-  return 500; // Default to highest tier if not found
+  // Always default to first tier price of $150
+  return 150;
 };
 
 // Function to get display text for account balance range
@@ -60,36 +54,30 @@ export const PayPalButton = ({
   className,
   accountValue = 0
 }: PayPalButtonProps) => {
+  // Always default to the first tier (index 0) regardless of account value
+  const defaultTierIndex = 0;
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
   const [renderAttempts, setRenderAttempts] = useState(0);
-  const [selectedTier, setSelectedTier] = useState<number | undefined>(undefined);
+  const [selectedTier, setSelectedTier] = useState<number | undefined>(defaultTierIndex);
   const [paypalButtonsVisible, setPaypalButtonsVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const isFirefoxBrowser = isFirefox();
   const containerId = `paypal-button-container-${PLAN_ID}`;
   
-  // Find the default tier based on account value
-  const defaultTierIndex = pricingTiers.findIndex(
-    tier => accountValue >= tier.min && accountValue <= tier.max
-  );
-  
-  // Calculate the applicable price based on selected tier or account value
+  // Calculate the applicable price based on selected tier or default to first tier
   const selectedTierObj = selectedTier !== undefined && selectedTier >= 0 && selectedTier < pricingTiers.length
     ? pricingTiers[selectedTier]
-    : undefined;
+    : pricingTiers[0]; // Default to first tier
   
-  const currentPrice = selectedTierObj
-    ? selectedTierObj.price
-    : getPriceForAccount(accountValue);
-    
-  const currentQuantity = 1; // Fixed: Always use 1 for quantity, let price determine the tier
+  const currentPrice = selectedTierObj.price; // Always use the price from the selected tier object
+  const currentQuantity = 1;
   
   // Get account balance display text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
     ? getAccountBalanceText(selectedTier)
-    : "under $50,000";
+    : "under $50,000"; // Default to first tier text
   
   const refreshPayPalContainer = () => {
     setRenderAttempts(prev => prev + 1);
@@ -149,7 +137,7 @@ export const PayPalButton = ({
           // Use custom_id to pass the pricing tier information
           return actions.subscription.create({
             plan_id: PLAN_ID,
-            quantity: "1", // Fixed: Always use "1" as string quantity
+            quantity: "1", // Always use "1" as string quantity
             custom_id: `tier_${chosenTierIndex}_price_${tier.price}` // Pass tier info in custom_id
           });
         },

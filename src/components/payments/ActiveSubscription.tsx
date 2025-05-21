@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
-import { getPriceForAccount, pricingTiers, getAccountBalanceText } from "./PayPalButton";
+import { pricingTiers, getAccountBalanceText } from "./PayPalButton";
 
 interface ActiveSubscriptionProps {
   accountValue?: number;
@@ -9,13 +9,11 @@ interface ActiveSubscriptionProps {
 }
 
 export const ActiveSubscription = ({ accountValue = 0, selectedTier = 0 }: ActiveSubscriptionProps) => {
-  // Get the appropriate tier based on selection or account value
-  const tierIndex = selectedTier !== undefined ? selectedTier : pricingTiers.findIndex(
-    tier => accountValue >= tier.min && accountValue <= tier.max
-  );
+  // Get the appropriate tier based on selection or default to first tier
+  const tierIndex = selectedTier !== undefined ? selectedTier : 0;
   
   const currentTier = pricingTiers[tierIndex >= 0 ? tierIndex : 0];
-  const currentPrice = currentTier?.price || getPriceForAccount(accountValue);
+  const currentPrice = currentTier?.price || 150; // Default to first tier price
   
   // Get account balance text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
