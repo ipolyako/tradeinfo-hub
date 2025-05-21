@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthPanel } from "@/components/auth/AuthPanel";
 import { AlgorithmPanel } from "@/components/algorithm/AlgorithmPanel";
+import { SubscriptionStatus } from "@/components/payments/SubscriptionStatus";
 
 interface UserProfile {
   id: string;
@@ -20,6 +22,7 @@ const Account = () => {
   const [session, setSession] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const { toast } = useToast();
 
   // Fetch user profile data
@@ -49,6 +52,14 @@ const Account = () => {
     }
   };
 
+  // Check subscription status
+  const checkSubscriptionStatus = () => {
+    // Check if user has active subscription in localStorage
+    // In a real app, this would come from your backend
+    const savedSubscription = localStorage.getItem("hasSubscription");
+    setHasActiveSubscription(savedSubscription === "true");
+  };
+
   // Check for authentication on component mount
   useEffect(() => {
     const getSession = async () => {
@@ -61,6 +72,7 @@ const Account = () => {
         
         if (currentSession?.user) {
           await fetchUserProfile(currentSession.user.id);
+          checkSubscriptionStatus();
         }
         
         // Always set loading to false after initial check
@@ -76,8 +88,10 @@ const Account = () => {
             if (event === 'SIGNED_IN' && newSession?.user) {
               console.log('User signed in, fetching profile');
               await fetchUserProfile(newSession.user.id);
+              checkSubscriptionStatus();
             } else if (event === 'SIGNED_OUT') {
               setUserProfile(null);
+              setHasActiveSubscription(false);
             }
           }
         );
@@ -117,7 +131,10 @@ const Account = () => {
         {!session ? (
           <AuthPanel />
         ) : (
-          <AlgorithmPanel session={session} userProfile={userProfile} />
+          <>
+            <SubscriptionStatus hasActiveSubscription={hasActiveSubscription} />
+            <AlgorithmPanel session={session} userProfile={userProfile} />
+          </>
         )}
       </div>
     </div>

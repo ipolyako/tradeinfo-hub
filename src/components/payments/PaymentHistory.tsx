@@ -6,6 +6,14 @@ interface PaymentHistoryProps {
 }
 
 export const PaymentHistory = ({ hasActiveSubscription }: PaymentHistoryProps) => {
+  // Get current date for most recent payment
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
   return (
     <Card>
       <CardHeader>
@@ -18,7 +26,7 @@ export const PaymentHistory = ({ hasActiveSubscription }: PaymentHistoryProps) =
             <div className="border rounded-lg divide-y">
               <div className="flex items-center justify-between p-4 touch-manipulation">
                 <div>
-                  <p className="font-medium">May 6, 2025</p>
+                  <p className="font-medium">{formattedDate}</p>
                   <p className="text-sm text-muted-foreground">Algorithmic Trading Service</p>
                 </div>
                 <span className="font-bold">$150.00</span>
