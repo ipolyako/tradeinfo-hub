@@ -1,4 +1,3 @@
-
 import { ToastProps } from "@/types/toast";
 
 interface UserProfile {
@@ -36,10 +35,24 @@ export class TraderServiceAPI {
     }
     
     try {
-      // Use server_URL from user profile if available, otherwise fallback to default URL
-      const baseUrl = this.userProfile.server_URL 
-        ? `https://${this.userProfile.server_URL}:8443`  // Use server_URL from profile
-        : "https://auth.decoglobal.us:8443";            // Fallback to default
+      // Parse and use server_URL correctly from user profile if available, otherwise fallback to default URL
+      let baseUrl = "https://auth.decoglobal.us:8443";  // Default URL
+      
+      if (this.userProfile.server_URL) {
+        // Ensure we don't double-add the protocol
+        const serverUrl = this.userProfile.server_URL;
+        if (serverUrl.startsWith("http://") || serverUrl.startsWith("https://")) {
+          // If URL already has protocol, use it directly but ensure it has the port
+          const urlObj = new URL(serverUrl);
+          if (!urlObj.port) {
+            urlObj.port = "8443";
+          }
+          baseUrl = urlObj.toString().replace(/\/$/, ""); // Remove trailing slash if present
+        } else {
+          // Otherwise add the protocol and port
+          baseUrl = `https://${serverUrl}:8443`;
+        }
+      }
       
       const path = `/services/${this.userProfile.trader_service_name}/${endpoint}`;
       const url = `${baseUrl}${path}`;
