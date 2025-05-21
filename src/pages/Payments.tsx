@@ -14,6 +14,7 @@ interface Subscription {
   id: string;
   status: string;
   tier: number;
+  paypal_subscription_id?: string;
 }
 
 const Payments = () => {
@@ -104,6 +105,13 @@ const Payments = () => {
         title: "Subscription Active",
         description: "Your subscription is now active. Thank you for your payment!",
       });
+    } else {
+      // If subscription was cancelled, refresh the status
+      setSubscription(null);
+      toast({
+        title: "Subscription Updated",
+        description: "Your subscription status has been updated.",
+      });
     }
   };
 
@@ -130,6 +138,7 @@ const Payments = () => {
           accountValue={accountValue}
           isLoading={subscriptionLoading}
           selectedTier={subscription?.tier}
+          subscriptionId={subscription?.paypal_subscription_id}
         />
         
         <PaymentHistory hasActiveSubscription={hasActiveSubscription} />

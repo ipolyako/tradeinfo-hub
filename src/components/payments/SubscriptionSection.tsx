@@ -17,6 +17,7 @@ interface SubscriptionSectionProps {
   accountValue?: number;
   selectedTier?: number;
   isLoading?: boolean;
+  subscriptionId?: string;
 }
 
 export const SubscriptionSection = ({ 
@@ -27,7 +28,8 @@ export const SubscriptionSection = ({
   onSubscriptionUpdate,
   accountValue = 0,
   selectedTier,
-  isLoading = false
+  isLoading = false,
+  subscriptionId
 }: SubscriptionSectionProps) => {
   const [forceRefresh, setForceRefresh] = useState(0);
   const [localSelectedTier, setLocalSelectedTier] = useState<number | undefined>(selectedTier);
@@ -68,6 +70,10 @@ export const SubscriptionSection = ({
     setLocalSelectedTier(tier);
     onSubscriptionUpdate(hasSubscription, tier);
   };
+  
+  const handleSubscriptionCancelled = () => {
+    onSubscriptionUpdate(false);
+  };
 
   const currentPrice = getPriceForAccount(accountValue);
 
@@ -99,7 +105,12 @@ export const SubscriptionSection = ({
       </CardHeader>
       <CardContent>
         {hasActiveSubscription ? (
-          <ActiveSubscription accountValue={accountValue} selectedTier={localSelectedTier} />
+          <ActiveSubscription 
+            accountValue={accountValue} 
+            selectedTier={localSelectedTier} 
+            subscriptionId={subscriptionId}
+            onSubscriptionCancelled={handleSubscriptionCancelled}
+          />
         ) : (
           <>
             {paymentStatus === "idle" && (

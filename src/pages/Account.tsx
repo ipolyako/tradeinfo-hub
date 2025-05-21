@@ -217,6 +217,11 @@ const Account = () => {
     setHasActiveSubscription(hasSubscription);
     if (!hasSubscription) {
       setUserSubscription(null);
+    } else {
+      // Refresh subscription data if set to active
+      if (session?.user) {
+        checkSubscriptionStatus(session.user.id);
+      }
     }
   };
 

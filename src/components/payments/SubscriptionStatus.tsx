@@ -2,11 +2,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CLIENT_ID } from "@/lib/paypal";
 
 interface SubscriptionStatusProps {
   hasActiveSubscription: boolean;
@@ -30,14 +29,15 @@ export const SubscriptionStatus = ({
   // Get tier display text
   const getTierText = (tier: number) => {
     switch(tier) {
-      case 0: return "Basic Plan (up to $50,000)";
-      case 1: return "Standard Plan ($50,001 - $100,000)";
-      case 2: return "Premium Plan ($100,001 - $200,000)";
+      case 0: return "Free Trial";
+      case 1: return "Basic Plan (up to $50,000)";
+      case 2: return "Standard Plan ($50,001 - $100,000)";
+      case 3: return "Premium Plan ($100,001 - $200,000)";
       default: return "Basic Plan";
     }
   };
 
-  // Function to cancel PayPal subscription
+  // Function to cancel subscription
   const cancelSubscription = async () => {
     if (!subscriptionId) {
       toast({
@@ -56,70 +56,27 @@ export const SubscriptionStatus = ({
     setCancelLoading(true);
     
     try {
-      // Get PayPal OAuth token first
-      const tokenResponse = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Basic ${btoa(CLIENT_ID + ':')}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: 'grant_type=client_credentials'
+      const { data, error } = await supabase.functions.invoke('cancel-subscription', {
+        body: { subscriptionId }
       });
       
-      if (!tokenResponse.ok) {
-        throw new Error('Failed to get PayPal OAuth token');
+      if (error) {
+        throw new Error(error.message);
       }
       
-      const tokenData = await tokenResponse.json();
-      const accessToken = tokenData.access_token;
-      
-      // Cancel the subscription with PayPal
-      const cancelResponse = await fetch(`https://api-m.sandbox.paypal.com/v1/billing/subscriptions/${subscriptionId}/cancel`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          reason: "Customer requested cancellation"
-        })
-      });
-      
-      if (!cancelResponse.ok) {
-        const errorText = await cancelResponse.text();
-        throw new Error(`Failed to cancel subscription: ${errorText}`);
-      }
-      
-      // Update subscription status in our database
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
-      
-      const { error: updateError } = await supabase
-        .from('subscriptions')
-        .update({
-          status: 'CANCELLED',
-          updated_at: new Date().toISOString()
-        })
-        .eq('paypal_subscription_id', subscriptionId);
+      if (data.success) {
+        toast({
+          title: "Subscription Cancelled",
+          description: "Your subscription has been successfully cancelled.",
+        });
         
-      if (updateError) {
-        throw updateError;
+        // Notify parent component
+        if (onSubscriptionUpdate) {
+          onSubscriptionUpdate(false);
+        }
+      } else {
+        throw new Error(data.message || "Failed to cancel subscription");
       }
-      
-      toast({
-        title: "Subscription Cancelled",
-        description: "Your subscription has been successfully cancelled.",
-      });
-      
-      // Notify parent component to update subscription status
-      if (onSubscriptionUpdate) {
-        onSubscriptionUpdate(false);
-      }
-      
     } catch (error) {
       console.error("Error cancelling subscription:", error);
       toast({
@@ -210,15 +167,6 @@ export const SubscriptionStatus = ({
               <Link to="/payments">
                 <Button className="w-full sm:w-auto">Subscribe Now</Button>
               </Link>
-              
-              <Button 
-                variant="destructive" 
-                className="w-full sm:w-auto"
-                onClick={cancelSubscription}
-                disabled={true}
-              >
-                Cancel Subscription
-              </Button>
             </div>
           </div>
         )}
@@ -226,4 +174,3 @@ export const SubscriptionStatus = ({
     </Card>
   );
 };
-

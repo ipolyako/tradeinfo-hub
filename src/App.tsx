@@ -13,6 +13,10 @@ import Account from "./pages/Account";
 import Payments from "./pages/Payments";
 import PerformanceTable from "./pages/PerformanceTable";
 import SpreadsheetView from "./pages/SpreadsheetView";
+import TransactionsHistory from "./pages/TransactionsHistory";
+
+// Import mock function to ensure it's included in the build
+import "./functions/cancel-subscription";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +35,7 @@ const App = () => (
           <Route path="/account" element={<Account />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/performance" element={<PerformanceTable />} />
-          <Route path="/transactions" element={<SpreadsheetView />} />
+          <Route path="/transactions" element={<TransactionsHistory />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
