@@ -2,6 +2,7 @@
 import React from "react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Transaction } from "@/hooks/useTransactions";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -12,16 +13,18 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   transactions,
   formatAlertDateTime,
 }) => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Action</TableHead> 
+            <TableHead>{isMobile ? "Act" : "Action"}</TableHead>
             <TableHead>Symbol</TableHead>
-            <TableHead className="text-right">Quantity</TableHead>
+            <TableHead className="text-right">{isMobile ? "Qty" : "Quantity"}</TableHead>
             <TableHead className="text-right">Price</TableHead>
-            <TableHead>Alert Date & Time</TableHead>
+            <TableHead>{isMobile ? "Date" : "Alert Date & Time"}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -34,15 +37,16 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
           ) : (
             transactions.map((transaction, index) => (
               <TableRow key={index}>
-                <TableCell>{transaction.action}</TableCell>
-                <TableCell>{transaction.symbol}</TableCell>
-                <TableCell className="text-right">{transaction.quantity.toLocaleString()}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="whitespace-nowrap">{transaction.action}</TableCell>
+                <TableCell className="whitespace-nowrap">{transaction.symbol}</TableCell>
+                <TableCell className="text-right whitespace-nowrap">{transaction.quantity.toLocaleString()}</TableCell>
+                <TableCell className="text-right whitespace-nowrap">
                   {transaction.tradeprice ? transaction.tradeprice.toFixed(2) : 'N/A'}
                 </TableCell>
-                <TableCell>
-                  {/* Display the exact timestamp as it appears in the database */}
-                  {transaction.alertTime}
+                <TableCell className="whitespace-nowrap">
+                  {isMobile 
+                    ? transaction.alertTime.split('T')[0] 
+                    : transaction.alertTime}
                 </TableCell>
               </TableRow>
             ))
