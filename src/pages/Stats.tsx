@@ -110,8 +110,12 @@ const Stats = () => {
                             <TableCell className={`text-right font-medium ${getReturnColor(row.pl_percent)}`}>
                               {row.pl_percent !== null ? `${row.pl_percent.toFixed(2)}%` : 'N/A'}
                             </TableCell>
-                            <TableCell className={`text-right font-medium ${getReturnColor(row.result)}`}>
-                              {row.result !== null ? `$${row.result.toLocaleString()}` : 'N/A'}
+                            <TableCell className={`text-right ${getReturnColor(row.result)}`}>
+                              {row.result !== null ? (
+                                <span className="font-bold text-primary dark:text-primary">
+                                  ${row.result.toLocaleString()}
+                                </span>
+                              ) : 'N/A'}
                             </TableCell>
                             <TableCell>
                               <span className="px-2 py-1 rounded-full bg-muted text-xs">
