@@ -44,14 +44,15 @@ export const useTransactions = () => {
       console.log("Data fetched successfully:", data?.slice(0, 2)); // Log first 2 items
       
       // Map the data from Supabase to our Transaction type
+      // Preserve the exact timestamp format from the database
       const mappedData: Transaction[] = (data || []).map((item: any) => ({
-        // Store date part (YYYY-MM-DD) in date field
-        date: new Date(item.alerttime).toISOString().split('T')[0],
+        // Store full alerttime as it appears in the database
+        date: item.alerttime ? item.alerttime.split('T')[0] : '',
         symbol: item.symbol || "",
         action: item.action || "",
         quantity: item.tradesize || 0,
-        // Store time part (HH:MM:SS) in alertTime field
-        alertTime: new Date(item.alerttime).toISOString().split('T')[1].substring(0, 8),
+        // Store the raw alerttime value for display
+        alertTime: item.alerttime || "",
         tradeprice: item.tradeprice || 0,
       }));
       

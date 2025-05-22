@@ -40,7 +40,10 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 <TableCell className="text-right">
                   {transaction.tradeprice ? transaction.tradeprice.toFixed(2) : 'N/A'}
                 </TableCell>
-                <TableCell>{formatAlertDateTime(transaction.date, transaction.alertTime)}</TableCell>
+                <TableCell>
+                  {/* Display the exact timestamp as it appears in the database */}
+                  {transaction.alertTime}
+                </TableCell>
               </TableRow>
             ))
           )}

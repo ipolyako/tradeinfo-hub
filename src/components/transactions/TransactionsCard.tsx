@@ -26,16 +26,9 @@ export const TransactionsCard: React.FC<TransactionsCardProps> = ({
   totalPages,
   setCurrentPage,
 }) => {
-  // Format the date and time to show in a readable format
+  // Format the date and time to show exactly as in the database
   const formatAlertDateTime = (dateStr: string, timeStr: string): string => {
-    // Create a new date object from the database timestamp
-    try {
-      // Format: YYYY-MM-DD HH:MM:SS
-      return `${dateStr} ${timeStr}`;
-    } catch (error) {
-      console.error("Error formatting date time:", error);
-      return `${dateStr} ${timeStr}`;
-    }
+    return timeStr; // Return the raw timestamp
   };
 
   return (
