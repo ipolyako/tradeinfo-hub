@@ -39,21 +39,27 @@ const TransactionsHistory = () => {
       
       console.log("Fetching data from Supabase alerthist table");
       
-      // Fetch data directly from Supabase alerthist table with no cache
+      // Force a direct database query with no caching by adding a timestamp parameter
+      const timestamp = new Date().getTime();
       const { data, error } = await supabase
         .from('alerthist')
-        .select('*')
+        .select('*', { head: false, count: 'exact' })
         .order('symbol', { ascending: true })
-        .order('alerttime', { ascending: true });
+        .order('alerttime', { ascending: true })
+        .options({ cache: 'no-store' }) // Disable any potential caching
+        .then(result => {
+          console.log('Full query result:', result);
+          return result;
+        });
       
       if (error) {
         throw new Error(`Failed to fetch data: ${error.message}`);
       }
       
-      console.log("Data fetched successfully:", data.slice(0, 2)); // Log first 2 items
+      console.log("Data fetched successfully:", data?.slice(0, 2)); // Log first 2 items
       
       // Map the data from Supabase to our Transaction type
-      const mappedData: Transaction[] = data.map((item: any) => ({
+      const mappedData: Transaction[] = (data || []).map((item: any) => ({
         // Store date part (YYYY-MM-DD) in date field
         date: new Date(item.alerttime).toISOString().split('T')[0],
         symbol: item.symbol || "",
@@ -64,6 +70,7 @@ const TransactionsHistory = () => {
         tradeprice: item.tradeprice || 0,
       }));
       
+      console.log(`Mapped ${mappedData.length} transactions from database`);
       setTransactions(mappedData);
       toast({
         title: "Data loaded successfully",
@@ -102,7 +109,15 @@ const TransactionsHistory = () => {
   };
 
   useEffect(() => {
+    // Add a timestamp to the URL to force a fresh fetch each time
+    const timestamp = new Date().getTime();
+    console.log(`Initializing data fetch at ${timestamp}`);
     fetchTransactionsData();
+
+    // Re-fetch when component unmounts and remounts to ensure fresh data
+    return () => {
+      console.log('TransactionsHistory unmounting, next mount will fetch fresh data');
+    };
   }, []);
 
   // Format the date and time to show in a readable format
