@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -120,7 +119,8 @@ export const AuthPanel = () => {
       <CardHeader>
         <CardTitle>Account Access</CardTitle>
         <CardDescription>
-          Sign in or create a new account to access your trading algorithms
+          Sign in or create a new account to access your trading algorithms. 
+          Sign up now to see pricing options and access bot controls!
         </CardDescription>
       </CardHeader>
       <CardContent>

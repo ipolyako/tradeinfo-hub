@@ -11,7 +11,6 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
-import { toast } from "@/hooks/use-toast";
 import {
   NavigationMenu,
   NavigationMenuContent,

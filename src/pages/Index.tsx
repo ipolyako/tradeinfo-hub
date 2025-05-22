@@ -7,22 +7,11 @@ import { UserControl } from "@/components/UserControl";
 import { StrategyDetails } from "@/components/StrategyDetails";
 import { LiveBotStream } from "@/components/LiveBotStream";
 import { Link } from "react-router-dom";
-import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
-  // Function to handle account button clicks for non-authenticated users
-  const handleAccountButtonClick = () => {
-    toast({
-      title: "Create Your Free Account",
-      description: "Sign up now to see pricing options and access bot controls!",
-      variant: "default",
-      duration: 5000,
-    });
-  };
-
   return (
     <div className="min-h-screen">
-      <Navigation onAccountClick={handleAccountButtonClick} />
+      <Navigation />
       
       {/* Hero Section - Reduced height and spacing */}
       <section className="hero-gradient min-h-[60vh] flex items-center relative">
