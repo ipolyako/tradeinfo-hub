@@ -5,7 +5,7 @@ import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Calendar, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Calendar, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { 
@@ -15,6 +15,7 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
 
 type Transaction = {
   date: string;
@@ -30,78 +31,86 @@ const TransactionsHistory = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    const fetchTransactionsData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        console.log("Fetching data from Supabase alerthist table");
-        
-        // Fetch data from Supabase alerthist table, sorted by symbol, then alerttime ascending
-        const { data, error } = await supabase
-          .from('alerthist')
-          .select('*')
-          .order('symbol', { ascending: true })
-          .order('alerttime', { ascending: true });
-        
-        if (error) {
-          throw new Error(`Failed to fetch data: ${error.message}`);
-        }
-        
-        console.log("Data fetched successfully:", data.slice(0, 2)); // Log first 2 items
-        
-        // Map the data from Supabase to our Transaction type
-        const mappedData: Transaction[] = data.map((item: any) => ({
-          // Store date part (YYYY-MM-DD) in date field
-          date: new Date(item.alerttime).toISOString().split('T')[0],
-          symbol: item.symbol || "",
-          action: item.action || "",
-          quantity: item.tradesize || 0,
-          // Store time part (HH:MM:SS) in alertTime field
-          alertTime: new Date(item.alerttime).toISOString().split('T')[1].substring(0, 8),
-          tradeprice: item.tradeprice || 0,
-        }));
-        
-        setTransactions(mappedData);
-        toast({
-          title: "Data loaded successfully",
-          description: "Transactions data loaded from the database"
-        });
-      } catch (err: any) {
-        console.error("Error fetching transactions:", err);
-        setError("Failed to load transactions data. Please try again later.");
-        toast({
-          variant: "destructive",
-          title: "Error loading data",
-          description: "Could not fetch transaction data from the database"
-        });
-        
-        // Fallback to mock data if database fetch fails
-        const mockTransactions: Transaction[] = [
-          { action: "BUY", symbol: "AAPL", quantity: 100, date: "2025-05-01", alertTime: "09:30:00" },
-          { action: "SELL", symbol: "MSFT", quantity: 50, date: "2025-05-02", alertTime: "10:15:00" },
-          { action: "BUY", symbol: "GOOGL", quantity: 25, date: "2025-05-03", alertTime: "11:45:00" },
-          { action: "SELL", symbol: "AMZN", quantity: 30, date: "2025-05-04", alertTime: "13:20:00" },
-          { action: "BUY", symbol: "TSLA", quantity: 15, date: "2025-05-05", alertTime: "14:30:00" },
-          { action: "BUY", symbol: "NVDA", quantity: 40, date: "2025-05-05", alertTime: "15:10:00" },
-          { action: "SELL", symbol: "META", quantity: 60, date: "2025-05-05", alertTime: "15:45:00" },
-          { action: "BUY", symbol: "AMD", quantity: 75, date: "2025-05-06", alertTime: "09:45:00" },
-          { action: "SELL", symbol: "INTC", quantity: 55, date: "2025-05-06", alertTime: "11:30:00" },
-          { action: "BUY", symbol: "NFLX", quantity: 20, date: "2025-05-07", alertTime: "10:00:00" },
-          { action: "SELL", symbol: "DIS", quantity: 40, date: "2025-05-07", alertTime: "14:15:00" },
-          { action: "BUY", symbol: "PYPL", quantity: 35, date: "2025-05-08", alertTime: "09:30:00" },
-        ];
-        
-        setTransactions(mockTransactions);
-        setError("⚠️ Using demo data - Could not connect to database");
-      } finally {
-        setIsLoading(false);
+  const fetchTransactionsData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      console.log("Fetching data from Supabase alerthist table");
+      
+      // Fetch data from Supabase alerthist table, with cache control
+      const { data, error } = await supabase
+        .from('alerthist')
+        .select('*')
+        .order('symbol', { ascending: true })
+        .order('alerttime', { ascending: true })
+        .limit(1000); // Add a limit to prevent excessive data loading
+      
+      if (error) {
+        throw new Error(`Failed to fetch data: ${error.message}`);
       }
-    };
+      
+      console.log("Data fetched successfully:", data.slice(0, 2)); // Log first 2 items
+      
+      // Map the data from Supabase to our Transaction type
+      const mappedData: Transaction[] = data.map((item: any) => ({
+        // Store date part (YYYY-MM-DD) in date field
+        date: new Date(item.alerttime).toISOString().split('T')[0],
+        symbol: item.symbol || "",
+        action: item.action || "",
+        quantity: item.tradesize || 0,
+        // Store time part (HH:MM:SS) in alertTime field
+        alertTime: new Date(item.alerttime).toISOString().split('T')[1].substring(0, 8),
+        tradeprice: item.tradeprice || 0,
+      }));
+      
+      setTransactions(mappedData);
+      toast({
+        title: "Data loaded successfully",
+        description: "Transactions data loaded from the database"
+      });
+    } catch (err: any) {
+      console.error("Error fetching transactions:", err);
+      setError("Failed to load transactions data. Please try again later.");
+      toast({
+        variant: "destructive",
+        title: "Error loading data",
+        description: "Could not fetch transaction data from the database"
+      });
+      
+      // Fallback to mock data if database fetch fails
+      const mockTransactions: Transaction[] = [
+        { action: "BUY", symbol: "AAPL", quantity: 100, date: "2025-05-01", alertTime: "09:30:00" },
+        { action: "SELL", symbol: "MSFT", quantity: 50, date: "2025-05-02", alertTime: "10:15:00" },
+        { action: "BUY", symbol: "GOOGL", quantity: 25, date: "2025-05-03", alertTime: "11:45:00" },
+        { action: "SELL", symbol: "AMZN", quantity: 30, date: "2025-05-04", alertTime: "13:20:00" },
+        { action: "BUY", symbol: "TSLA", quantity: 15, date: "2025-05-05", alertTime: "14:30:00" },
+        { action: "BUY", symbol: "NVDA", quantity: 40, date: "2025-05-05", alertTime: "15:10:00" },
+        { action: "SELL", symbol: "META", quantity: 60, date: "2025-05-05", alertTime: "15:45:00" },
+        { action: "BUY", symbol: "AMD", quantity: 75, date: "2025-05-06", alertTime: "09:45:00" },
+        { action: "SELL", symbol: "INTC", quantity: 55, date: "2025-05-06", alertTime: "11:30:00" },
+        { action: "BUY", symbol: "NFLX", quantity: 20, date: "2025-05-07", alertTime: "10:00:00" },
+        { action: "SELL", symbol: "DIS", quantity: 40, date: "2025-05-07", alertTime: "14:15:00" },
+        { action: "BUY", symbol: "PYPL", quantity: 35, date: "2025-05-08", alertTime: "09:30:00" },
+      ];
+      
+      setTransactions(mockTransactions);
+      setError("⚠️ Using demo data - Could not connect to database");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchTransactionsData();
+  };
+
+  useEffect(() => {
     fetchTransactionsData();
   }, []);
 
@@ -134,9 +143,25 @@ const TransactionsHistory = () => {
           Back to Home
         </Link>
         
-        <div className="flex items-center mb-8">
-          <Calendar className="h-6 w-6 mr-3 text-primary" />
-          <h1 className="text-3xl font-bold">Transactions History</h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center">
+            <Calendar className="h-6 w-6 mr-3 text-primary" />
+            <h1 className="text-3xl font-bold">Transactions History</h1>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleRefresh} 
+            disabled={isRefreshing || isLoading}
+            className="flex items-center gap-2"
+          >
+            {isRefreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            Refresh Data
+          </Button>
         </div>
         
         <Card>
