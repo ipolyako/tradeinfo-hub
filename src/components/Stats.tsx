@@ -11,11 +11,11 @@ export const Stats = () => {
   ];
 
   return (
-    <section id="stats" className="py-20">
+    <section id="stats" className="py-12 sm:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           {stats.map((stat, index) => (
-            <div key={index} className="stat-item flex flex-col items-center p-4">
+            <div key={index} className="stat-item shadow-md transition-all hover:shadow-lg">
               <span className="text-3xl md:text-4xl font-bold text-primary">{stat.number}</span>
               <span className="mt-2 text-sm md:text-base text-muted-foreground">{stat.label}</span>
             </div>
