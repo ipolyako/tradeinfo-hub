@@ -33,6 +33,27 @@ export type Database = {
         }
         Relationships: []
       }
+      performance: {
+        Row: {
+          data_source: string | null
+          pl_percent: number | null
+          result: number | null
+          year: string
+        }
+        Insert: {
+          data_source?: string | null
+          pl_percent?: number | null
+          result?: number | null
+          year: string
+        }
+        Update: {
+          data_source?: string | null
+          pl_percent?: number | null
+          result?: number | null
+          year?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
