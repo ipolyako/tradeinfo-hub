@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, User, List, History, CreditCard, WalletCards } from "lucide-react";
@@ -12,6 +11,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -30,7 +30,11 @@ interface NavLink {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
-export const Navigation = () => {
+interface NavigationProps {
+  onAccountClick?: () => void;
+}
+
+export const Navigation = ({ onAccountClick }: NavigationProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [session, setSession] = useState<any>(null);
   const isMobile = useIsMobile();
@@ -51,6 +55,13 @@ export const Navigation = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Handler for My Account button click when not logged in
+  const handleAccountClick = () => {
+    if (!session && onAccountClick) {
+      onAccountClick();
+    }
+  };
 
   // Separate main navigation links from account-related links
   const mainNavLinks: NavLink[] = [
@@ -150,9 +161,9 @@ export const Navigation = () => {
               </NavigationMenu>
             )}
             
-            {/* If not authenticated, show "My Account" button */}
+            {/* If not authenticated, show "My Account" button with toast trigger */}
             {!session && (
-              <Link to="/account">
+              <Link to="/account" onClick={handleAccountClick}>
                 <Button 
                   variant={location.pathname === "/account" ? "default" : "outline"} 
                   className="flex items-center gap-2"
@@ -232,7 +243,7 @@ export const Navigation = () => {
                       </>
                     )}
                     
-                    {/* If not authenticated, show My Account link */}
+                    {/* If not authenticated, show My Account link with toast */}
                     {!session && (
                       <Link 
                         to="/account" 
@@ -240,7 +251,10 @@ export const Navigation = () => {
                           location.pathname === "/account" ? 
                           'bg-primary/10 text-primary' : 'bg-muted/50'
                         }`}
-                        onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
+                        onClick={() => {
+                          handleAccountClick();
+                          handleMobileLinkClick(() => setIsDrawerOpen(false));
+                        }}
                       >
                         <User className="h-5 w-5" />
                         My Account
