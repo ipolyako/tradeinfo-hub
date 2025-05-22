@@ -63,7 +63,7 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
         
         if (serviceStatus.active === "failed") {
           setStatus("stopped");
-          setResults(`Bot is currently not running (status: ${serviceStatus.active}).\nYou can start it using the Start button.`);
+          setResults(`Bot is currently not running.\nYou can start it using the Start button.`);
           toast({
             title: "Bot Status",
             description: "Bot is currently not running",
@@ -71,7 +71,7 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
           });
         } else {
           setStatus("running");
-          setResults(`Bot is currently running (status: ${serviceStatus.active}).\nService: ${serviceStatus.service}\nEnabled: ${serviceStatus.enabled}\nTrading Amount: ${serviceStatus.amount}`);
+          setResults(`Bot is currently running.\nService: ${serviceStatus.service}\nEnabled: ${serviceStatus.enabled}\nTrading Amount: ${serviceStatus.amount}`);
           toast({
             title: "Bot Status",
             description: "Bot is currently running",
