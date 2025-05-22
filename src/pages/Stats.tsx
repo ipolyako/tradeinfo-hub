@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { CurrentYearPerformance } from "@/components/stats/CurrentYearPerformance";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Youtube } from "lucide-react";
 
 interface PerformanceData {
   year: string;
@@ -73,6 +74,12 @@ const Stats = () => {
           <TabsList className="mb-6 w-full md:w-auto">
             <TabsTrigger value="historical" className="flex-1 md:flex-none">Historical Performance</TabsTrigger>
             <TabsTrigger value="current" className="flex-1 md:flex-none">Current Year Performance</TabsTrigger>
+            <TabsTrigger value="live-stream" className="flex-1 md:flex-none">
+              <span className="flex items-center gap-1">
+                <Youtube className="h-4 w-4" />
+                Live Bot Stream
+              </span>
+            </TabsTrigger>
           </TabsList>
           
           {/* Historical Performance Tab Content */}
@@ -137,6 +144,52 @@ const Stats = () => {
             <Card>
               <CardContent className="p-6">
                 <CurrentYearPerformance />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Live Bot Stream Tab Content */}
+          <TabsContent value="live-stream" className="pt-2">
+            <Card>
+              <CardContent className="p-6">
+                <div>
+                  <div className="mb-6">
+                    <h2 className="text-xl font-semibold mb-2">Live Trading Bot Stream</h2>
+                    <p className="text-muted-foreground">
+                      Watch our trading bot in action with real-time market activity
+                    </p>
+                  </div>
+                  
+                  {isMobile ? (
+                    <div className="flex flex-col items-center justify-center p-6 bg-muted/30 rounded-md">
+                      <p className="text-center mb-4">
+                        For the best viewing experience, please open the YouTube stream directly:
+                      </p>
+                      <a 
+                        href="https://www.youtube.com/channel/UCUY8wd7gFbc9Sb-rD1KRGtQ/live"
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
+                      >
+                        <Youtube className="h-5 w-5" />
+                        Watch Live Stream
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="w-full aspect-video rounded-md overflow-hidden shadow-lg">
+                      <iframe 
+                        src="https://www.youtube.com/embed/live_stream?channel=UCUY8wd7gFbc9Sb-rD1KRGtQ"
+                        className="w-full h-full border-none"
+                        title="Live Trading Bot Stream"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  )}
+                  
+                  <div className="mt-6 text-sm text-muted-foreground">
+                    <p>Note: If the stream is offline, please check back later or refer to our historical and current performance data.</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
