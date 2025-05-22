@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, User, List, History, CreditCard, WalletCards } from "lucide-react";
@@ -20,6 +21,14 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+
+// Define the type for navigation links
+interface NavLink {
+  title: string;
+  path: string;
+  external?: boolean;
+  icon?: React.ComponentType<{ className?: string }>;
+}
 
 export const Navigation = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -44,7 +53,7 @@ export const Navigation = () => {
   }, []);
 
   // Separate main navigation links from account-related links
-  const mainNavLinks = [
+  const mainNavLinks: NavLink[] = [
     { title: "Home", path: "/" },
     { title: "Trading Performance", path: "/stats" },
     { title: "Transactions History", path: "/transactions" },
@@ -53,7 +62,7 @@ export const Navigation = () => {
   ];
   
   // Account menu items
-  const accountMenuItems = [
+  const accountMenuItems: NavLink[] = [
     { title: "Profile", path: "/account", icon: User },
     { title: "Payments", path: "/payments", icon: WalletCards },
   ];
