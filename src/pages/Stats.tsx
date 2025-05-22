@@ -7,6 +7,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { CurrentYearPerformance } from "@/components/stats/CurrentYearPerformance";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 interface PerformanceData {
   year: string;
@@ -54,6 +56,13 @@ const Stats = () => {
     }
   }, [activeTab]);
 
+  const getReturnColor = (value: number | null) => {
+    if (value === null) return "text-muted-foreground";
+    if (value > 0) return "text-emerald-600 dark:text-emerald-400";
+    if (value < 0) return "text-red-600 dark:text-red-400";
+    return "text-muted-foreground";
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -80,30 +89,39 @@ const Stats = () => {
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="py-3 px-4 text-left">Year</th>
-                          <th className="py-3 px-4 text-right">Return %</th>
-                          <th className="py-3 px-4 text-right">P&L</th>
-                          <th className="py-3 px-4 text-left">Source</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="font-bold">Year</TableHead>
+                          <TableHead className="font-bold text-right">Return %</TableHead>
+                          <TableHead className="font-bold text-right">Profit and Loss</TableHead>
+                          <TableHead className="font-bold">Data Source</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {performanceData.map((row, index) => (
-                          <tr key={index} className="border-b hover:bg-muted/50">
-                            <td className="py-3 px-4 font-medium">{row.year}</td>
-                            <td className="py-3 px-4 text-right">
+                          <TableRow 
+                            key={index} 
+                            className={`hover:bg-muted/40 ${index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
+                          >
+                            <TableCell className="font-medium">
+                              <Badge variant="outline" className="border-primary/30">{row.year}</Badge>
+                            </TableCell>
+                            <TableCell className={`text-right font-medium ${getReturnColor(row.pl_percent)}`}>
                               {row.pl_percent !== null ? `${row.pl_percent.toFixed(2)}%` : 'N/A'}
-                            </td>
-                            <td className="py-3 px-4 text-right">
+                            </TableCell>
+                            <TableCell className={`text-right font-medium ${getReturnColor(row.result)}`}>
                               {row.result !== null ? `$${row.result.toLocaleString()}` : 'N/A'}
-                            </td>
-                            <td className="py-3 px-4">{row.data_source || 'Unknown'}</td>
-                          </tr>
+                            </TableCell>
+                            <TableCell>
+                              <span className="px-2 py-1 rounded-full bg-muted text-xs">
+                                {row.data_source || 'Unknown'}
+                              </span>
+                            </TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 )}
               </CardContent>
