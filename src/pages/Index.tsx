@@ -13,15 +13,15 @@ const Index = () => {
     <div className="min-h-screen">
       <Navigation />
       
-      {/* Hero Section */}
-      <section className="hero-gradient min-h-[80vh] flex items-center relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+      {/* Hero Section - Reduced height and spacing */}
+      <section className="hero-gradient min-h-[60vh] flex items-center relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center text-white">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 fade-in">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 fade-in">
               Algorithmic Trading — Now For Everyone
             </h1>
-            <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl mx-auto fade-in">
-              Strategic day trading powered by proprietary algorithms, designed for long-term performance without overnight exposure
+            <p className="text-lg md:text-xl mb-6 opacity-90 max-w-2xl mx-auto fade-in">
+              Strategic day trading powered by proprietary algorithms, designed for long-term performance
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center fade-in">
               <Button 
