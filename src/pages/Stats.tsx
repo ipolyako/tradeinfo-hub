@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { CurrentYearPerformance } from "@/components/stats/CurrentYearPerformance";
 
 interface PerformanceData {
   year: string;
@@ -112,28 +113,8 @@ const Stats = () => {
           {/* Current Year Performance Tab Content */}
           <TabsContent value="current" className="pt-2">
             <Card>
-              <CardContent className="p-0">
-                {isMobile ? (
-                  // Mobile: Display the static image
-                  <div className="w-full">
-                    <img 
-                      src="/lovable-uploads/8adef1c5-046a-4493-b544-de1837284437.png" 
-                      alt="Trading Performance Data" 
-                      className="w-full h-auto"
-                    />
-                  </div>
-                ) : (
-                  // Desktop: Use the Google Sheets embed
-                  <div className="w-full aspect-[16/9]">
-                    <iframe
-                      src="https://docs.google.com/spreadsheets/d/1QfIyxlP73oPx5FDwimzG6thbKIhRb6jgMNRkbNLfVd8/edit?usp=sharing"
-                      className="w-full h-full border-0"
-                      title="Trading Statistics"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                )}
+              <CardContent className="p-6">
+                <CurrentYearPerformance />
               </CardContent>
             </Card>
           </TabsContent>
