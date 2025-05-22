@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User, List, History, CreditCard, WalletCards } from "lucide-react";
+import { Menu, User, List, History, CreditCard, WalletCards, Youtube } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Drawer,
@@ -49,6 +49,12 @@ export const Navigation = () => {
     { title: "Home", path: "/" },
     { title: "Trading Performance", path: "/stats" },
     { title: "Transactions History", path: "/transactions" },
+    { 
+      title: "Live Bot Stream", 
+      path: "https://www.youtube.com/channel/UCUY8wd7gFbc9Sb-rD1KRGtQ/live", 
+      external: true,
+      icon: Youtube
+    },
     { title: "Terms of Service", path: "/terms-of-service" },
     { title: "Privacy", path: "/privacy" },
   ];
@@ -86,17 +92,30 @@ export const Navigation = () => {
           
           <div className="hidden md:flex items-center space-x-6">
             {mainNavLinks.map((link) => (
-              <Link 
-                key={link.title} 
-                to={link.path} 
-                className={`text-muted-foreground hover:text-primary transition-colors ${
-                  (location.pathname === link.path || 
-                   (location.hash === link.path && link.path.startsWith('#'))) ? 
-                   'text-primary font-medium' : ''
-                }`}
-              >
-                {link.title}
-              </Link>
+              link.external ? (
+                <a 
+                  key={link.title} 
+                  href={link.path} 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  {link.icon && <link.icon className="h-4 w-4" />}
+                  {link.title}
+                </a>
+              ) : (
+                <Link 
+                  key={link.title} 
+                  to={link.path} 
+                  className={`text-muted-foreground hover:text-primary transition-colors ${
+                    (location.pathname === link.path || 
+                     (location.hash === link.path && link.path.startsWith('#'))) ? 
+                     'text-primary font-medium' : ''
+                  }`}
+                >
+                  {link.title}
+                </Link>
+              )
             ))}
             
             {/* Account dropdown for authenticated users */}
@@ -160,18 +179,32 @@ export const Navigation = () => {
                 <DrawerContent className="px-4 pb-8 pt-4">
                   <div className="flex flex-col items-center space-y-4">
                     {mainNavLinks.map((link) => (
-                      <Link 
-                        key={link.title} 
-                        to={link.path} 
-                        className={`w-full text-center py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
-                          (location.pathname === link.path || 
-                           (location.hash === link.path && link.path.startsWith('#'))) ? 
-                           'text-primary' : ''
-                        }`}
-                        onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
-                      >
-                        {link.title}
-                      </Link>
+                      link.external ? (
+                        <a 
+                          key={link.title} 
+                          href={link.path} 
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50"
+                          onClick={() => setIsDrawerOpen(false)}
+                        >
+                          {link.icon && <link.icon className="h-5 w-5" />}
+                          {link.title}
+                        </a>
+                      ) : (
+                        <Link 
+                          key={link.title} 
+                          to={link.path} 
+                          className={`w-full text-center py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
+                            (location.pathname === link.path || 
+                             (location.hash === link.path && link.path.startsWith('#'))) ? 
+                             'text-primary' : ''
+                          }`}
+                          onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
+                        >
+                          {link.title}
+                        </Link>
+                      )
                     ))}
                     
                     {/* Mobile account section */}
