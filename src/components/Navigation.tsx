@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User, List, History, CreditCard, WalletCards, Youtube } from "lucide-react";
+import { Menu, User, List, History, CreditCard, WalletCards } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Drawer,
@@ -49,12 +48,6 @@ export const Navigation = () => {
     { title: "Home", path: "/" },
     { title: "Trading Performance", path: "/stats" },
     { title: "Transactions History", path: "/transactions" },
-    { 
-      title: "Live Bot Stream", 
-      path: "https://www.youtube.com/channel/UCUY8wd7gFbc9Sb-rD1KRGtQ/live", 
-      external: true,
-      icon: Youtube
-    },
     { title: "Terms of Service", path: "/terms-of-service" },
     { title: "Privacy", path: "/privacy" },
   ];

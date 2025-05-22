@@ -5,6 +5,7 @@ import { Stats } from "@/components/Stats";
 import { HowItWorks } from "@/components/HowItWorks";
 import { UserControl } from "@/components/UserControl";
 import { StrategyDetails } from "@/components/StrategyDetails";
+import { LiveBotStream } from "@/components/LiveBotStream";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -41,6 +42,8 @@ const Index = () => {
       </section>
 
       <HowItWorks />
+      
+      <LiveBotStream />
       
       <div id="strategy-section">
         <StrategyDetails />
