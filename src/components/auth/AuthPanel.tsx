@@ -119,7 +119,6 @@ export const AuthPanel = () => {
       <CardHeader>
         <CardTitle>Account Access</CardTitle>
         <CardDescription>
-          Sign in or create a new account to access your trading algorithms. 
           Sign up to create free account, explore pricing plans, take advantage of no cost trial to experience full control of your trading bot.
         </CardDescription>
       </CardHeader>
