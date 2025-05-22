@@ -24,7 +24,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
             <TableHead>Symbol</TableHead>
             <TableHead className="text-right">{isMobile ? "Qty" : "Quantity"}</TableHead>
             <TableHead className="text-right">Price</TableHead>
-            <TableHead>{isMobile ? "Date" : "Alert Date & Time"}</TableHead>
+            <TableHead>{isMobile ? "Timestamp" : "Alert Date & Time"}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -44,9 +44,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                   {transaction.tradeprice ? transaction.tradeprice.toFixed(2) : 'N/A'}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
-                  {isMobile 
-                    ? transaction.alertTime.split('T')[0] 
-                    : transaction.alertTime}
+                  {transaction.alertTime}
                 </TableCell>
               </TableRow>
             ))

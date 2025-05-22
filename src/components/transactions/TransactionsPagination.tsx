@@ -9,6 +9,7 @@ import {
   PaginationLink,
   PaginationEllipsis
 } from "@/components/ui/pagination";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TransactionsPaginationProps {
   currentPage: number;
@@ -21,6 +22,8 @@ export const TransactionsPagination: React.FC<TransactionsPaginationProps> = ({
   totalPages,
   setCurrentPage,
 }) => {
+  const isMobile = useIsMobile();
+  
   if (totalPages <= 1) return null;
   
   // Calculate page range to display
@@ -28,7 +31,10 @@ export const TransactionsPagination: React.FC<TransactionsPaginationProps> = ({
   const showEllipsisStart = currentPage > 3;
   const showEllipsisEnd = currentPage < totalPages - 2;
   
-  if (totalPages <= 7) {
+  if (isMobile) {
+    // Simplified pagination for mobile: current page, previous and next buttons
+    visiblePages.push(currentPage);
+  } else if (totalPages <= 7) {
     // If we have 7 pages or fewer, show all pages
     for (let i = 1; i <= totalPages; i++) {
       visiblePages.push(i);
@@ -62,10 +68,13 @@ export const TransactionsPagination: React.FC<TransactionsPaginationProps> = ({
   return (
     <div className="mt-4">
       <Pagination>
-        <PaginationContent>
+        <PaginationContent className="flex-wrap justify-center">
           {currentPage > 1 && (
             <PaginationItem>
-              <PaginationPrevious onClick={() => setCurrentPage(currentPage - 1)} />
+              <PaginationPrevious 
+                onClick={() => setCurrentPage(currentPage - 1)} 
+                className={isMobile ? "px-2" : ""}
+              />
             </PaginationItem>
           )}
           
@@ -88,7 +97,10 @@ export const TransactionsPagination: React.FC<TransactionsPaginationProps> = ({
           
           {currentPage < totalPages && (
             <PaginationItem>
-              <PaginationNext onClick={() => setCurrentPage(currentPage + 1)} />
+              <PaginationNext 
+                onClick={() => setCurrentPage(currentPage + 1)} 
+                className={isMobile ? "px-2" : ""}
+              />
             </PaginationItem>
           )}
         </PaginationContent>

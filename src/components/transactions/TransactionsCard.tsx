@@ -39,7 +39,7 @@ export const TransactionsCard: React.FC<TransactionsCardProps> = ({
       <CardHeader className="px-4 sm:px-6">
         <CardTitle>{isMobile ? "Transactions" : "Transactions History - 2025"}</CardTitle>
       </CardHeader>
-      <CardContent className="px-2 sm:px-6">
+      <CardContent className="px-2 sm:px-6 pb-6">
         {isLoading ? (
           <div className="flex justify-center items-center py-8 sm:py-16">
             <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
@@ -62,11 +62,13 @@ export const TransactionsCard: React.FC<TransactionsCardProps> = ({
               />
             </div>
             
-            <TransactionsPagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-            />
+            {totalPages > 1 && (
+              <TransactionsPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+              />
+            )}
           </>
         )}
       </CardContent>
