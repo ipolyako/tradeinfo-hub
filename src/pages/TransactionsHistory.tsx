@@ -5,7 +5,7 @@ import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Calendar, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import { ArrowLeft, Calendar, Loader2, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { 
@@ -15,7 +15,6 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
-import { Button } from "@/components/ui/button";
 
 type Transaction = {
   date: string;
@@ -31,7 +30,6 @@ const TransactionsHistory = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const itemsPerPage = 10;
 
   const fetchTransactionsData = async () => {
@@ -41,13 +39,12 @@ const TransactionsHistory = () => {
       
       console.log("Fetching data from Supabase alerthist table");
       
-      // Fetch data from Supabase alerthist table, with cache control
+      // Fetch data directly from Supabase alerthist table with no cache
       const { data, error } = await supabase
         .from('alerthist')
         .select('*')
         .order('symbol', { ascending: true })
-        .order('alerttime', { ascending: true })
-        .limit(1000); // Add a limit to prevent excessive data loading
+        .order('alerttime', { ascending: true });
       
       if (error) {
         throw new Error(`Failed to fetch data: ${error.message}`);
@@ -101,13 +98,7 @@ const TransactionsHistory = () => {
       setError("⚠️ Using demo data - Could not connect to database");
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
-  };
-
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    fetchTransactionsData();
   };
 
   useEffect(() => {
@@ -148,20 +139,6 @@ const TransactionsHistory = () => {
             <Calendar className="h-6 w-6 mr-3 text-primary" />
             <h1 className="text-3xl font-bold">Transactions History</h1>
           </div>
-          
-          <Button 
-            variant="outline" 
-            onClick={handleRefresh} 
-            disabled={isRefreshing || isLoading}
-            className="flex items-center gap-2"
-          >
-            {isRefreshing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
-            Refresh Data
-          </Button>
         </div>
         
         <Card>
