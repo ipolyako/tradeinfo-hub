@@ -43,14 +43,15 @@ const Index = () => {
 
       <HowItWorks />
       
-      <LiveBotStream />
-      
       <div id="strategy-section">
         <StrategyDetails />
       </div>
       
       <UserControl />
       <Stats />
+      
+      {/* Moved LiveBotStream to the bottom of the page */}
+      <LiveBotStream />
     </div>
   );
 };
