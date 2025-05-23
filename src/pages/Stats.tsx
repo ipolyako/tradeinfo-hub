@@ -86,6 +86,11 @@ const Stats = () => {
           <TabsContent value="historical" className="pt-2">
             <Card>
               <CardContent className="p-6">
+                <div className="mb-4">
+                  <p className="text-muted-foreground">
+                    The following performance data represents trading results for an account with a $30,000 balance.
+                  </p>
+                </div>
                 {isLoading ? (
                   <div className="py-10 flex justify-center">
                     <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
