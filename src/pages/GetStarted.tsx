@@ -52,7 +52,7 @@ const GetStarted = () => {
             
             <li>
               <strong>Await Further Instructions:</strong>
-              <p className="mt-2">Our team will review your application and contact you with detailed instructions for the next steps, including account linking and strategy selection.</p>
+              <p className="mt-2">Our team will review your application and contact you with detailed instructions for the next steps.</p>
             </li>
           </ol>
           
