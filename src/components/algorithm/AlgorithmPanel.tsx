@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Play, Square, RefreshCw, Loader2 } from "lucide-react";
+import { Play, Square, RefreshCw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TraderServiceAPI } from "@/utils/traderServiceAPI";
 import { ToastProps } from "@/types/toast";
@@ -91,27 +91,6 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      
-      // Reset state
-      setResults("");
-      setStatus("idle");
-      
-      toast({
-        title: "Logged Out",
-        description: "You've been successfully logged out",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Logout Error",
-        description: error.message || "An unexpected error occurred",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleStart = async () => {
     setStatus("running");
     setResults("Algorithm started. Processing market data...");
@@ -174,15 +153,6 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
             <span className="text-sm text-muted-foreground">
               Signed in as {session.user?.email}
             </span>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleLogout}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
