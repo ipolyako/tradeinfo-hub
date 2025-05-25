@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User, List, History, CreditCard, WalletCards } from "lucide-react";
+import { Menu, User, List, History, CreditCard, WalletCards, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Drawer,
@@ -20,6 +21,7 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import { useToast } from "@/hooks/use-toast";
 
 // Define the type for navigation links
 interface NavLink {
@@ -38,6 +40,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
   const [session, setSession] = useState<any>(null);
   const isMobile = useIsMobile();
   const location = useLocation();
+  const { toast } = useToast();
 
   // Check authentication status for navigation
   useEffect(() => {
@@ -54,6 +57,32 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Handler for logout
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to log out. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Logged out",
+          description: "You have been successfully logged out.",
+        });
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred during logout.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Handler for My Account button click when not logged in
   const handleAccountClick = () => {
@@ -153,6 +182,17 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                             </NavigationMenuLink>
                           </li>
                         ))}
+                        <li>
+                          <NavigationMenuLink asChild>
+                            <button
+                              onClick={handleLogout}
+                              className="flex items-center gap-2 p-2 rounded-md hover:bg-accent w-full text-left"
+                            >
+                              <LogOut className="h-4 w-4" />
+                              Log Out
+                            </button>
+                          </NavigationMenuLink>
+                        </li>
                       </ul>
                     </NavigationMenuContent>
                   </NavigationMenuItem>
@@ -239,6 +279,16 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                             {item.title}
                           </Link>
                         ))}
+                        <button 
+                          onClick={() => {
+                            handleLogout();
+                            handleMobileLinkClick(() => setIsDrawerOpen(false));
+                          }}
+                          className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 bg-muted/50"
+                        >
+                          <LogOut className="h-5 w-5" />
+                          Log Out
+                        </button>
                       </>
                     )}
                     
