@@ -1,15 +1,15 @@
-
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { CurrentYearPerformance } from "@/components/stats/CurrentYearPerformance";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Youtube } from "lucide-react";
+import { MobileOptimizedStats } from "@/components/MobileOptimizedStats";
 
 interface PerformanceData {
   year: string;
@@ -64,6 +64,76 @@ const Stats = () => {
     return "text-muted-foreground";
   };
 
+  // Memoize the table content to prevent unnecessary re-renders
+  const tableContent = useMemo(() => {
+    if (isMobile) {
+      return (
+        <MobileOptimizedStats 
+          performanceData={performanceData} 
+          isLoading={isLoading} 
+        />
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <div className="py-10 flex justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
+    if (performanceData.length === 0) {
+      return (
+        <div className="text-center py-10">
+          <p className="text-muted-foreground">No historical performance data available</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead className="font-bold">Year</TableHead>
+              <TableHead className="font-bold text-right">Return %</TableHead>
+              <TableHead className="font-bold text-right">Profit and Loss</TableHead>
+              <TableHead className="font-bold">Data Source</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {performanceData.map((row, index) => (
+              <TableRow 
+                key={index} 
+                className={`hover:bg-muted/40 ${index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
+              >
+                <TableCell className="font-medium">
+                  <Badge variant="outline" className="border-primary/30">{row.year}</Badge>
+                </TableCell>
+                <TableCell className={`text-right font-medium ${getReturnColor(row.pl_percent)}`}>
+                  {row.pl_percent !== null ? `${row.pl_percent.toFixed(2)}%` : 'N/A'}
+                </TableCell>
+                <TableCell className={`text-right ${getReturnColor(row.result)}`}>
+                  {row.result !== null ? (
+                    <span className="font-bold text-primary dark:text-primary">
+                      ${row.result.toLocaleString()}
+                    </span>
+                  ) : 'N/A'}
+                </TableCell>
+                <TableCell>
+                  <span className="px-2 py-1 rounded-full bg-muted text-xs">
+                    {row.data_source || 'Unknown'}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }, [performanceData, isLoading, isMobile]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -91,55 +161,7 @@ const Stats = () => {
                     The following performance data represents trading results for an account with a $30,000 balance.
                   </p>
                 </div>
-                {isLoading ? (
-                  <div className="py-10 flex justify-center">
-                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-                  </div>
-                ) : performanceData.length === 0 ? (
-                  <div className="text-center py-10">
-                    <p className="text-muted-foreground">No historical performance data available</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-muted/50">
-                          <TableHead className="font-bold">Year</TableHead>
-                          <TableHead className="font-bold text-right">Return %</TableHead>
-                          <TableHead className="font-bold text-right">Profit and Loss</TableHead>
-                          <TableHead className="font-bold">Data Source</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {performanceData.map((row, index) => (
-                          <TableRow 
-                            key={index} 
-                            className={`hover:bg-muted/40 ${index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}
-                          >
-                            <TableCell className="font-medium">
-                              <Badge variant="outline" className="border-primary/30">{row.year}</Badge>
-                            </TableCell>
-                            <TableCell className={`text-right font-medium ${getReturnColor(row.pl_percent)}`}>
-                              {row.pl_percent !== null ? `${row.pl_percent.toFixed(2)}%` : 'N/A'}
-                            </TableCell>
-                            <TableCell className={`text-right ${getReturnColor(row.result)}`}>
-                              {row.result !== null ? (
-                                <span className="font-bold text-primary dark:text-primary">
-                                  ${row.result.toLocaleString()}
-                                </span>
-                              ) : 'N/A'}
-                            </TableCell>
-                            <TableCell>
-                              <span className="px-2 py-1 rounded-full bg-muted text-xs">
-                                {row.data_source || 'Unknown'}
-                              </span>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
+                {tableContent}
               </CardContent>
             </Card>
           </TabsContent>
