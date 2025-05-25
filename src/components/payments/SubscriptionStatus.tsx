@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -139,7 +138,7 @@ export const SubscriptionStatus = ({
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link to="/payments">
-                <Button variant="outline" className="w-full sm:w-auto">Manage Subscription</Button>
+                <Button variant="secondary" className="w-full sm:w-auto bg-blue-100 hover:bg-blue-200 text-blue-700">Manage Subscription</Button>
               </Link>
             </div>
           </div>
