@@ -2,9 +2,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { CheckCircle, XCircle, Loader2, RefreshCw } from "lucide-react";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { toast } from "@/hooks/use-toast";
 import { mockCancelSubscription } from "@/functions/cancel-subscription";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -21,9 +20,7 @@ export const SubscriptionStatus = ({
   onSubscriptionUpdate,
   isLoading = false
 }: SubscriptionStatusProps) => {
-  const [cancelLoading, setCancelLoading] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [paypalStatus, setPaypalStatus] = useState<string | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(true);
@@ -78,62 +75,6 @@ export const SubscriptionStatus = ({
   useEffect(() => {
     checkSubscriptionStatus();
   }, [subscriptionId]);
-
-  // Function to cancel subscription
-  const cancelSubscription = async () => {
-    if (!subscriptionId) {
-      toast({
-        title: "Error",
-        description: "Subscription ID not found",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Confirm before cancelling
-    if (!window.confirm("Are you sure you want to cancel your subscription? This will end your access to premium features.")) {
-      return;
-    }
-
-    setCancelLoading(true);
-    setWarning(null);
-    
-    try {
-      const response = await mockCancelSubscription(subscriptionId, { action: 'cancel' });
-      
-      if (response.success) {
-        // Check if there's a warning to display
-        if (response.warning) {
-          setWarning(response.warning);
-        }
-        
-        toast({
-          title: "Subscription Cancelled",
-          description: response.message || "Your subscription has been successfully cancelled.",
-        });
-        
-        // Update local state
-        setIsActive(false);
-        setPaypalStatus('CANCELLED');
-        
-        // Notify parent component
-        if (onSubscriptionUpdate) {
-          onSubscriptionUpdate(false);
-        }
-      } else {
-        throw new Error(response.message || "Failed to cancel subscription");
-      }
-    } catch (error) {
-      console.error("Error cancelling subscription:", error);
-      toast({
-        title: "Cancellation Failed",
-        description: "There was a problem cancelling your subscription. Please try again or contact support.",
-        variant: "destructive",
-      });
-    } finally {
-      setCancelLoading(false);
-    }
-  };
 
   // Loading state (waiting for subscription check or parent loading)
   if (isLoading || checkingStatus) {
@@ -200,22 +141,6 @@ export const SubscriptionStatus = ({
               <Link to="/payments">
                 <Button variant="outline" className="w-full sm:w-auto">Manage Subscription</Button>
               </Link>
-              
-              <Button 
-                variant="destructive" 
-                className="w-full sm:w-auto"
-                onClick={cancelSubscription}
-                disabled={cancelLoading || !subscriptionId}
-              >
-                {cancelLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Cancelling...
-                  </>
-                ) : (
-                  "Cancel Subscription"
-                )}
-              </Button>
             </div>
           </div>
         ) : (
