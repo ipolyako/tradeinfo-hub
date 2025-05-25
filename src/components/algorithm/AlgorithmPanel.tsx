@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -148,11 +147,6 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
             <CardDescription>
               Manage and monitor your algorithmic trading operations
             </CardDescription>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              Signed in as {session.user?.email}
-            </span>
           </div>
         </CardHeader>
         <CardContent>

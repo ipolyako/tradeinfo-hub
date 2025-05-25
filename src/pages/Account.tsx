@@ -200,7 +200,12 @@ const Account = () => {
       <Navigation />
       
       <div className="container max-w-7xl mx-auto pt-24 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold mb-6">My Account</h1>
+        <h1 className="text-3xl font-bold mb-2">My Account</h1>
+        {session && (
+          <p className="text-sm text-muted-foreground mb-6">
+            Signed in as {session.user?.email}
+          </p>
+        )}
         
         {!session ? (
           <AuthPanel />
