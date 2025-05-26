@@ -1,9 +1,11 @@
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Youtube } from "lucide-react";
+import { useState } from "react";
 
 export const LiveBotStream = () => {
   const isMobile = useIsMobile();
+  const [streamError, setStreamError] = useState(false);
   
   return (
     <section className="py-20 bg-muted/30">
@@ -30,6 +32,17 @@ export const LiveBotStream = () => {
               Watch Live Stream
             </a>
           </div>
+        ) : streamError ? (
+          <div className="w-full aspect-video max-w-4xl mx-auto rounded-md overflow-hidden shadow-lg bg-muted/20 flex flex-col items-center justify-center p-8">
+            <img 
+              src="/lovable-uploads/58d7ebfe-9fcf-4c7c-8332-89656975d43b.png" 
+              alt="Trading Charts - Stream Currently Offline" 
+              className="w-full h-auto max-h-full object-contain rounded-md shadow-sm"
+            />
+            <p className="mt-4 text-muted-foreground text-center">
+              Live stream is currently offline. Here's a preview of our trading interface.
+            </p>
+          </div>
         ) : (
           <div className="w-full aspect-video max-w-4xl mx-auto rounded-md overflow-hidden shadow-lg">
             <iframe 
@@ -37,24 +50,7 @@ export const LiveBotStream = () => {
               className="w-full h-full border-none"
               title="Live Trading Bot Stream"
               allowFullScreen
-              onError={() => {
-                // If iframe fails to load, show the fallback image
-                const iframe = document.querySelector('iframe[title="Live Trading Bot Stream"]');
-                if (iframe && iframe.parentElement) {
-                  iframe.parentElement.innerHTML = `
-                    <div class="w-full h-full bg-muted/20 flex flex-col items-center justify-center p-8">
-                      <img 
-                        src="/lovable-uploads/492f7ae9-09ee-41e6-aae2-28723ea30cd7.png" 
-                        alt="Trading Charts - Stream Currently Offline" 
-                        class="w-full h-auto max-h-full object-contain rounded-md shadow-sm"
-                      />
-                      <p class="mt-4 text-muted-foreground text-center">
-                        Live stream is currently offline. Here's a preview of our trading interface.
-                      </p>
-                    </div>
-                  `;
-                }
-              }}
+              onError={() => setStreamError(true)}
             ></iframe>
           </div>
         )}
