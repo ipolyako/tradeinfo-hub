@@ -5,8 +5,7 @@ import { useState } from "react";
 
 export const LiveBotStream = () => {
   const isMobile = useIsMobile();
-  // Default to showing the fallback image since stream availability is unreliable
-  const [showFallback, setShowFallback] = useState(true);
+  const [streamError, setStreamError] = useState(false);
   
   return (
     <section className="py-20 bg-muted/30">
@@ -33,7 +32,7 @@ export const LiveBotStream = () => {
               Watch Live Stream
             </a>
           </div>
-        ) : (
+        ) : streamError ? (
           <div className="w-full aspect-video max-w-4xl mx-auto rounded-md overflow-hidden shadow-lg bg-muted/20 flex flex-col items-center justify-center p-8">
             <img 
               src="/lovable-uploads/58d7ebfe-9fcf-4c7c-8332-89656975d43b.png" 
@@ -43,6 +42,16 @@ export const LiveBotStream = () => {
             <p className="mt-4 text-muted-foreground text-center">
               Live stream is currently offline. Here's a preview of our trading interface.
             </p>
+          </div>
+        ) : (
+          <div className="w-full aspect-video max-w-4xl mx-auto rounded-md overflow-hidden shadow-lg">
+            <iframe 
+              src="https://www.youtube.com/embed/live_stream?channel=UCUY8wd7gFbc9Sb-rD1KRGtQ"
+              className="w-full h-full border-none"
+              title="Live Trading Bot Stream"
+              allowFullScreen
+              onError={() => setStreamError(true)}
+            ></iframe>
           </div>
         )}
         
