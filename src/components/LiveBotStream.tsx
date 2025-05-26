@@ -37,12 +37,30 @@ export const LiveBotStream = () => {
               className="w-full h-full border-none"
               title="Live Trading Bot Stream"
               allowFullScreen
+              onError={() => {
+                // If iframe fails to load, show the fallback image
+                const iframe = document.querySelector('iframe[title="Live Trading Bot Stream"]');
+                if (iframe && iframe.parentElement) {
+                  iframe.parentElement.innerHTML = `
+                    <div class="w-full h-full bg-muted/20 flex flex-col items-center justify-center p-8">
+                      <img 
+                        src="/lovable-uploads/492f7ae9-09ee-41e6-aae2-28723ea30cd7.png" 
+                        alt="Trading Charts - Stream Currently Offline" 
+                        class="w-full h-auto max-h-full object-contain rounded-md shadow-sm"
+                      />
+                      <p class="mt-4 text-muted-foreground text-center">
+                        Live stream is currently offline. Here's a preview of our trading interface.
+                      </p>
+                    </div>
+                  `;
+                }
+              }}
             ></iframe>
           </div>
         )}
         
         <div className="mt-6 text-sm text-muted-foreground text-center max-w-2xl mx-auto">
-          <p>Note: If the stream is offline, please check back later or refer to our historical and current performance data.</p>
+          <p>Note: If the stream is offline, you'll see our trading interface preview above. Please check back later for live streaming.</p>
         </div>
       </div>
     </section>
