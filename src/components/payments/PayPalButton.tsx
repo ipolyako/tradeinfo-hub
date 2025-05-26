@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -22,7 +21,7 @@ import { Label } from "@/components/ui/label";
 // Define pricing tiers based on the subscription structure
 export const pricingTiers = [
   { min: 0, max: 0, price: 0, quantity: 5, planId: "P-62G67528SN204230HNAXCOEA", name: "Free Trial" },
-  { min: 1, max: 50000, price: 150, quantity: 10, planId: PLAN_IDS.TIER_1 },
+  { min: 25000, max: 50000, price: 150, quantity: 10, planId: PLAN_IDS.TIER_1 },
   { min: 50001, max: 100000, price: 200, quantity: 50010, planId: PLAN_IDS.TIER_2 },
   { min: 100001, max: 200000, price: 300, quantity: 100010, planId: PLAN_IDS.TIER_3 }
 ];
@@ -48,7 +47,7 @@ export const getAccountBalanceText = (tierIndex: number): string => {
   if (tierIndex === 0) {
     return "Free Trial";
   } else if (tierIndex === 1) {
-    return `under $${tier.max.toLocaleString()}`;
+    return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
   } else {
     return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
   }
@@ -344,9 +343,7 @@ export const PayPalButton = ({
                     <SelectItem key={index} value={index.toString()}>
                       {index === 0 ? 
                         `Free Trial: $${tier.price}/mo` : 
-                        tier.min === 1 ?
-                          `Under $${tier.max.toLocaleString()}: $${tier.price}/mo` : 
-                          `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}: $${tier.price}/mo`}
+                        `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}: $${tier.price}/mo`}
                     </SelectItem>
                   ))}
                 </SelectGroup>
