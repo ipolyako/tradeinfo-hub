@@ -1,36 +1,35 @@
-
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Youtube } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const LiveBotStream = () => {
   const isMobile = useIsMobile();
-  const [streamError, setStreamError] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+  const [attemptedLoad, setAttemptedLoad] = useState(false);
   
-  const handleIframeError = () => {
-    setStreamError(true);
+  // Automatically show fallback after a timeout to avoid the "video unavailable" message
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!attemptedLoad) {
+        setShowFallback(true);
+      }
+    }, 2000); // Show fallback after 2 seconds if stream hasn't loaded
+
+    return () => clearTimeout(timer);
+  }, [attemptedLoad]);
+
+  const handleIframeLoad = () => {
+    setAttemptedLoad(true);
+    // Keep showing the actual stream if it loads successfully
   };
 
-  const handleIframeLoad = (event: React.SyntheticEvent<HTMLIFrameElement>) => {
-    const iframe = event.currentTarget;
-    try {
-      // Check if the iframe content indicates an unavailable video
-      // We'll set a timeout to check for the error state
-      setTimeout(() => {
-        // If the iframe hasn't loaded properly or shows unavailable content, show fallback
-        if (iframe.contentWindow) {
-          try {
-            // This will trigger an error for cross-origin frames, which is expected
-            iframe.contentWindow.document;
-          } catch (e) {
-            // This is normal for YouTube embeds due to cross-origin restrictions
-            // We'll rely on the error event handler instead
-          }
-        }
-      }, 3000);
-    } catch (error) {
-      setStreamError(true);
-    }
+  const handleIframeError = () => {
+    setShowFallback(true);
+  };
+
+  const handleRetryStream = () => {
+    setShowFallback(false);
+    setAttemptedLoad(false);
   };
   
   return (
@@ -58,7 +57,7 @@ export const LiveBotStream = () => {
               Watch Live Stream
             </a>
           </div>
-        ) : streamError ? (
+        ) : showFallback ? (
           <div className="w-full aspect-video max-w-4xl mx-auto rounded-md overflow-hidden shadow-lg bg-muted/20 flex flex-col items-center justify-center p-8">
             <img 
               src="/lovable-uploads/58d7ebfe-9fcf-4c7c-8332-89656975d43b.png" 
@@ -81,7 +80,7 @@ export const LiveBotStream = () => {
                   Visit Our YouTube Channel
                 </a>
                 <button 
-                  onClick={() => setStreamError(false)}
+                  onClick={handleRetryStream}
                   className="px-4 py-2 border border-primary text-primary rounded-md hover:bg-primary hover:text-primary-foreground transition-colors"
                 >
                   Try Loading Stream Again
@@ -99,22 +98,12 @@ export const LiveBotStream = () => {
               onError={handleIframeError}
               onLoad={handleIframeLoad}
             />
-            {/* Fallback trigger - this will be hidden but helps detect if stream is unavailable */}
-            <div className="absolute inset-0 pointer-events-none">
-              <iframe 
-                src="https://www.youtube.com/embed/live_stream?channel=UCUY8wd7gFbc9Sb-rD1KRGtQ&enablejsapi=1"
-                className="w-0 h-0 opacity-0"
-                title="Stream Status Check"
-                onError={handleIframeError}
-                style={{ position: 'absolute', left: '-9999px' }}
-              />
-            </div>
           </div>
         )}
         
         <div className="mt-6 text-sm text-muted-foreground text-center max-w-2xl mx-auto">
           <p>
-            {streamError 
+            {showFallback 
               ? "Check back later for live streaming or explore our performance data in the Stats section."
               : "Note: If the stream appears unavailable, it may be temporarily offline. Please check back later."
             }
