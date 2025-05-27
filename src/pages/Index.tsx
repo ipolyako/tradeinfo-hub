@@ -6,6 +6,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { UserControl } from "@/components/UserControl";
 import { StrategyDetails } from "@/components/StrategyDetails";
 import { LiveBotStream } from "@/components/LiveBotStream";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -36,16 +37,31 @@ const Index = () => {
               >
                 Learn More About Our Strategy
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="bg-transparent border-white text-white hover:bg-white hover:text-primary"
-                asChild
-              >
-                <a href="https://youtu.be/vqPy67DuHAQ" target="_blank" rel="noopener noreferrer">
-                  Watch Demo Video
-                </a>
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="bg-transparent border-white text-white hover:bg-white hover:text-primary"
+                  >
+                    Watch Demo Video
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl w-full">
+                  <div className="aspect-video">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src="https://www.youtube.com/embed/vqPy67DuHAQ"
+                      title="Demo Video"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="rounded-lg"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
