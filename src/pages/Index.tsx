@@ -35,12 +35,7 @@ const Index = () => {
               >
                 Learn More About Our Strategy
               </Button>
-              <Button 
-                className="bg-transparent text-white border border-white hover:bg-white/10"
-                onClick={() => window.open('https://youtu.be/vqPy67DuHAQ', '_blank')}
-              >
-                Introduction Video
-              </Button>
+              <span className="text-white">test</span>
             </div>
           </div>
         </div>
