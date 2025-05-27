@@ -36,6 +36,16 @@ const Index = () => {
               >
                 Learn More About Our Strategy
               </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="bg-transparent border-white text-white hover:bg-white hover:text-primary"
+                asChild
+              >
+                <a href="https://youtu.be/vqPy67DuHAQ" target="_blank" rel="noopener noreferrer">
+                  Watch Demo Video
+                </a>
+              </Button>
             </div>
           </div>
         </div>
