@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import { Stats } from "@/components/Stats";
@@ -6,7 +7,6 @@ import { UserControl } from "@/components/UserControl";
 import { StrategyDetails } from "@/components/StrategyDetails";
 import { LiveBotStream } from "@/components/LiveBotStream";
 import { Link } from "react-router-dom";
-import { type ButtonProps } from "@/components/ui/button";
 
 const Index = () => {
   return (
@@ -25,6 +25,7 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center fade-in">
               <Button 
+                size="lg" 
                 className="bg-white text-primary hover:bg-gray-100"
                 onClick={() => {
                   const strategySection = document.getElementById('strategy-section');
@@ -35,7 +36,6 @@ const Index = () => {
               >
                 Learn More About Our Strategy
               </Button>
-              <span className="text-white">test</span>
             </div>
           </div>
         </div>
