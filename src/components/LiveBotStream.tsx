@@ -45,7 +45,7 @@ export const LiveBotStream = () => {
             <img 
               src="/lovable-uploads/58d7ebfe-9fcf-4c7c-8332-89656975d43b.png" 
               alt="Trading Charts - Stream Preview" 
-              className="w-full h-auto max-h-full object-contain rounded-md shadow-sm mb-6"
+              className="w-full h-auto max-h-64 object-contain rounded-md shadow-sm mb-6"
             />
             <div className="text-center space-y-4">
               <h3 className="text-xl font-semibold">Live Trading Bot Stream</h3>
@@ -55,7 +55,7 @@ export const LiveBotStream = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
                 <button 
                   onClick={handleLoadStream}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2 justify-center"
+                  className="px-6 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2 justify-center text-base font-medium"
                 >
                   <Youtube className="h-5 w-5" />
                   Load Live Stream
@@ -64,7 +64,7 @@ export const LiveBotStream = () => {
                   href="https://www.youtube.com/channel/UCUY8wd7gFbc9Sb-rD1KRGtQ"
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="px-4 py-2 border border-primary text-primary rounded-md hover:bg-primary hover:text-primary-foreground transition-colors flex items-center gap-2 justify-center"
+                  className="px-6 py-3 border border-primary text-primary rounded-md hover:bg-primary hover:text-primary-foreground transition-colors flex items-center gap-2 justify-center text-base font-medium"
                 >
                   <Youtube className="h-5 w-5" />
                   Visit YouTube Channel
