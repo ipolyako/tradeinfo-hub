@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import { ArrowLeft } from "lucide-react";
@@ -25,14 +24,24 @@ const GetStarted = () => {
             <li>
               <strong>Open a Brokerage Account:</strong>
               <p className="mt-2">You'll need to create and fund a trading account with either Charles Schwab or TradeStation. These are the currently supported brokers where our algorithms will execute trades. The minimum recommended account balance is $30,000.</p>
-              <p className="mt-2">
-                <a href="https://drive.google.com/file/d/1lf4q2T7Zq4-4pZFaJZlOjP29cum89gHa/view?usp=sharing" 
-                   className="text-primary hover:underline" 
-                   target="_blank" 
-                   rel="noopener noreferrer">
-                  For detailed Schwab account setup instructions, please follow this guide.
-                </a>
-              </p>
+              <div className="mt-2 space-y-2">
+                <p>
+                  <a href="https://drive.google.com/file/d/1lf4q2T7Zq4-4pZFaJZlOjP29cum89gHa/view?usp=sharing" 
+                     className="text-primary hover:underline" 
+                     target="_blank" 
+                     rel="noopener noreferrer">
+                    For detailed Schwab account setup instructions, please follow this guide.
+                  </a>
+                </p>
+                <p>
+                  <a href="https://drive.google.com/file/d/1ZUlb2eoiHIundJiowODjh5Q2sCjJT67a/view?usp=sharing" 
+                     className="text-primary hover:underline" 
+                     target="_blank" 
+                     rel="noopener noreferrer">
+                    For detailed TradeStation account setup instructions, please follow this guide.
+                  </a>
+                </p>
+              </div>
             </li>
             
             <li>
