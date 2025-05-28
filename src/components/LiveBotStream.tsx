@@ -52,7 +52,7 @@ export const LiveBotStream = () => {
               <p className="text-muted-foreground max-w-2xl">
                 Watch our algorithmic trading bot in action. Click below to load the live stream or visit our YouTube channel.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+              <div className="flex justify-center mt-6">
                 <button 
                   onClick={handleLoadStream}
                   className="px-6 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2 justify-center text-base font-medium"
@@ -60,15 +60,6 @@ export const LiveBotStream = () => {
                   <Youtube className="h-5 w-5" />
                   Load Live Stream
                 </button>
-                <a 
-                  href="https://www.youtube.com/channel/UCUY8wd7gFbc9Sb-rD1KRGtQ"
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 border border-primary text-primary rounded-md hover:bg-primary hover:text-primary-foreground transition-colors flex items-center gap-2 justify-center text-base font-medium"
-                >
-                  <Youtube className="h-5 w-5" />
-                  Visit YouTube Channel
-                </a>
               </div>
             </div>
           </div>
