@@ -203,15 +203,19 @@ const Stats = () => {
                       </a>
                     </div>
                   ) : (
-                    <div className="aspect-video rounded-md overflow-hidden">
+                    <div className="w-full aspect-video rounded-md overflow-hidden shadow-lg">
                       <iframe 
-                        src="https://www.youtube.com/embed/live_stream?channel=UCUY8wd7gFbc9Sb-rD1KRGtQ&enablejsapi=1"
+                        src="https://www.youtube.com/embed/live_stream?channel=UCUY8wd7gFbc9Sb-rD1KRGtQ"
                         className="w-full h-full border-none"
                         title="Live Trading Bot Stream"
                         allowFullScreen
-                      />
+                      ></iframe>
                     </div>
                   )}
+                  
+                  <div className="mt-6 text-sm text-muted-foreground">
+                    <p>Note: If the stream is offline, please check back later or refer to our historical and current performance data.</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
