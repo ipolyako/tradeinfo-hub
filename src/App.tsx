@@ -48,44 +48,47 @@ const PageTransitionHandler = ({ children }: { children: React.ReactNode }) => {
   useViewportHeight();
 
   useEffect(() => {
-    // Set loading state
-    setIsLoading(true);
+    const handleRouteChange = async () => {
+      setIsLoading(true);
 
-    // Reset scroll position
-    window.scrollTo(0, 0);
+      // Store current scroll position
+      const scrollPos = window.scrollY;
 
-    // Preload the next route
-    const preloadRoute = async () => {
-      try {
-        // Wait for the next tick to ensure the new route is mounted
-        await new Promise(resolve => setTimeout(resolve, 0));
-        
-        // Wait for any images or heavy content to load
-        const images = document.querySelectorAll('img');
-        await Promise.all(
-          Array.from(images).map(
-            img => new Promise(resolve => {
-              if (img.complete) resolve(null);
-              else img.onload = () => resolve(null);
-            })
-          )
-        );
+      // Reset scroll position
+      window.scrollTo(0, 0);
 
-        // Update viewport height after content is loaded
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-      } catch (error) {
-        console.error('Error preloading route:', error);
-      } finally {
-        setIsLoading(false);
+      // Wait for the next tick
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Update viewport height
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+
+      // Ensure the page is scrollable
+      document.body.style.overflow = 'auto';
+      document.body.style.height = 'auto';
+      document.body.style.minHeight = '100vh';
+      document.body.style.minHeight = 'calc(var(--vh, 1vh) * 100)';
+
+      // Reset loading state
+      setIsLoading(false);
+
+      // Restore scroll position if needed
+      if (scrollPos > 0) {
+        window.scrollTo(0, scrollPos);
       }
     };
 
-    preloadRoute();
+    handleRouteChange();
   }, [location.pathname]);
 
   return (
-    <div className={`transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
+    <div 
+      className={`min-h-screen transition-opacity duration-300 ${
+        isLoading ? 'opacity-0' : 'opacity-100'
+      }`}
+      style={{ minHeight: 'calc(var(--vh, 1vh) * 100)' }}
+    >
       {children}
     </div>
   );
