@@ -14,6 +14,20 @@ export const LiveBotStream = () => {
       document.documentElement.style.overflow = 'auto';
     }
   }, [isMobile]);
+
+  // Scroll unlock script to prevent iOS scroll locking
+  useEffect(() => {
+    const unlockScroll = () => {
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
+    };
+    
+    // Run on mount and every 2 seconds
+    unlockScroll();
+    const interval = setInterval(unlockScroll, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
   
   return (
     <section className="py-20 bg-muted/30 min-h-screen">
