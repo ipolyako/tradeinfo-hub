@@ -66,69 +66,34 @@
   }
   
   html {
-    -webkit-overflow-scrolling: touch;
-    overflow-scrolling: touch;
-    overflow-y: auto;
-    position: relative;
-    height: auto;
-    min-height: 100%;
+    height: 100%;
     width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    -webkit-overflow-scrolling: touch;
-    overflow-scrolling: touch;
-    overflow-y: auto;
-    position: relative;
-    height: auto;
     min-height: 100%;
     width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
   #root {
-    -webkit-overflow-scrolling: touch;
-    overflow-scrolling: touch;
-    overflow-y: auto;
-    position: relative;
-    height: auto;
     min-height: 100%;
     width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
-  body {
-    -webkit-overflow-scrolling: touch;
-    overflow-scrolling: touch;
+  html, body, #root {
     overflow-y: auto;
-    position: relative;
-    height: auto;
-    min-height: 100%;
-    width: 100%;
-    overscroll-behavior-y: none;
-    touch-action: pan-y;
-  }
-  html {
     -webkit-overflow-scrolling: touch;
-    overflow-scrolling: touch;
-    overflow-y: auto;
-    position: relative;
-    height: auto;
-    min-height: 100%;
-    width: 100%;
-    overscroll-behavior-y: none;
-  }
-  #root {
-    -webkit-overflow-scrolling: touch;
-    overflow-scrolling: touch;
-    overflow-y: auto;
-    position: relative;
-    height: auto;
-    min-height: 100%;
-    width: 100%;
     overscroll-behavior-y: none;
   }
 }
