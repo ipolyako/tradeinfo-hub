@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { useViewportHeight } from "@/hooks/use-viewport-height";
 
 // Lazy load heavy components to improve initial load time
 const Index = lazy(() => import("./pages/Index"));
@@ -40,25 +41,45 @@ const PageLoader = () => (
   </div>
 );
 
+// Page transition handler
+const PageTransitionHandler = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  useViewportHeight();
+
+  useEffect(() => {
+    // Reset scroll position on route change
+    window.scrollTo(0, 0);
+    
+    // Force a reflow to ensure proper height calculation
+    document.body.style.display = 'none';
+    document.body.offsetHeight; // Force reflow
+    document.body.style.display = '';
+  }, [location.pathname]);
+
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/get-started" element={<GetStarted />} />
-            <Route path="/stats" element={<Stats />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/performance" element={<PerformanceTable />} />
-            <Route path="/transactions" element={<TransactionsHistory />} />
-          </Routes>
-        </Suspense>
+        <PageTransitionHandler>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/get-started" element={<GetStarted />} />
+              <Route path="/stats" element={<Stats />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/account" element={<Account />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/performance" element={<PerformanceTable />} />
+              <Route path="/transactions" element={<TransactionsHistory />} />
+            </Routes>
+          </Suspense>
+        </PageTransitionHandler>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
