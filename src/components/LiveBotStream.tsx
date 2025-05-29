@@ -1,11 +1,13 @@
-
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useViewportHeight } from "@/hooks/use-viewport-height";
 import { Youtube } from "lucide-react";
 import { useState } from "react";
 
 export const LiveBotStream = () => {
   const isMobile = useIsMobile();
   const [showStream, setShowStream] = useState(false);
+  
+  useViewportHeight();
   
   const handleLoadStream = () => {
     setShowStream(true);
@@ -16,7 +18,7 @@ export const LiveBotStream = () => {
   };
   
   return (
-    <section className="py-20 bg-muted/30">
+    <section className="py-20 bg-muted/30 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Live Bot Stream</h2>
@@ -26,7 +28,7 @@ export const LiveBotStream = () => {
         </div>
         
         {isMobile ? (
-          <div className="flex flex-col items-center justify-center p-6 bg-muted/50 rounded-md">
+          <div className="flex flex-col items-center justify-center p-6 bg-muted/50 rounded-md mb-8">
             <p className="text-center mb-4">
               For the best viewing experience, please open the YouTube stream directly:
             </p>
