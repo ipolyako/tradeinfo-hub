@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { useViewportHeight } from "@/hooks/use-viewport-height";
 
 // Lazy load heavy components to improve initial load time
 const Index = lazy(() => import("./pages/Index"));
@@ -37,37 +36,9 @@ const queryClient = new QueryClient({
 // Page transition handler
 const PageTransitionHandler = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
-  useViewportHeight();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Handle initial load
-    if (!isInitialized) {
-      const initialize = async () => {
-        // Force a reflow
-        document.body.offsetHeight;
-        
-        // Set viewport height
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-        
-        // Ensure body is properly sized
-        document.body.style.minHeight = '100vh';
-        document.body.style.minHeight = 'calc(var(--vh, 1vh) * 100)';
-        
-        // Wait for next frame
-        await new Promise(resolve => requestAnimationFrame(resolve));
-        
-        setIsInitialized(true);
-        setIsLoading(false);
-      };
-      
-      initialize();
-      return;
-    }
-
-    // Handle route changes
     const handleRouteChange = async () => {
       setIsLoading(true);
       window.scrollTo(0, 0);
@@ -76,15 +47,7 @@ const PageTransitionHandler = ({ children }: { children: React.ReactNode }) => {
     };
 
     handleRouteChange();
-  }, [location.pathname, isInitialized]);
-
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen flex flex-col">
