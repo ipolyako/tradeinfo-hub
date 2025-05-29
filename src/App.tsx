@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { useScrollHandler } from "@/hooks/use-scroll-handler";
 
 // Simplified lazy loading without complex error handling
 const Index = lazy(() => import("./pages/Index"));
@@ -41,28 +42,33 @@ const PageLoader = () => (
   </div>
 );
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/get-started" element={<GetStarted />} />
-            <Route path="/stats" element={<Stats />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/performance" element={<PerformanceTable />} />
-            <Route path="/transactions" element={<TransactionsHistory />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Apply scroll handler
+  useScrollHandler();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/get-started" element={<GetStarted />} />
+              <Route path="/stats" element={<Stats />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/account" element={<Account />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/performance" element={<PerformanceTable />} />
+              <Route path="/transactions" element={<TransactionsHistory />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

@@ -64,17 +64,31 @@
   * {
     @apply border-border;
   }
-  body, html {
+  
+  html {
+    height: 100%;
     width: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    position: relative;
   }
+  
+  body {
+    min-height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    overscroll-behavior-y: none;
+  }
+  
   #root {
-    min-height: 100vh;
+    min-height: 100%;
     width: 100%;
     position: relative;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
   }
 }
 
