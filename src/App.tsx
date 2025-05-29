@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useViewportHeight } from "@/hooks/use-viewport-height";
 
 // Lazy load heavy components to improve initial load time
@@ -44,19 +44,51 @@ const PageLoader = () => (
 // Page transition handler
 const PageTransitionHandler = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
   useViewportHeight();
 
   useEffect(() => {
-    // Reset scroll position on route change
+    // Set loading state
+    setIsLoading(true);
+
+    // Reset scroll position
     window.scrollTo(0, 0);
-    
-    // Force a reflow to ensure proper height calculation
-    document.body.style.display = 'none';
-    document.body.offsetHeight; // Force reflow
-    document.body.style.display = '';
+
+    // Preload the next route
+    const preloadRoute = async () => {
+      try {
+        // Wait for the next tick to ensure the new route is mounted
+        await new Promise(resolve => setTimeout(resolve, 0));
+        
+        // Wait for any images or heavy content to load
+        const images = document.querySelectorAll('img');
+        await Promise.all(
+          Array.from(images).map(
+            img => new Promise(resolve => {
+              if (img.complete) resolve(null);
+              else img.onload = () => resolve(null);
+            })
+          )
+        );
+
+        // Update viewport height after content is loaded
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      } catch (error) {
+        console.error('Error preloading route:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    preloadRoute();
   }, [location.pathname]);
 
-  return <>{children}</>;
+  return (
+    <div className={`transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
+      {children}
+    </div>
+  );
 };
 
 const App = () => (
