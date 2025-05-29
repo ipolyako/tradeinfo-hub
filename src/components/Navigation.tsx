@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, User, List, History, CreditCard, WalletCards, LogOut } from "lucide-react";
@@ -115,7 +114,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
   };
 
   return (
-    <nav className="fixed w-full bg-white/80 backdrop-blur-md z-50 shadow-sm">
+    <nav className="fixed w-full bg-white/80 backdrop-blur-md z-[100] shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
@@ -166,7 +165,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                   <NavigationMenuItem>
                     <NavigationMenuTrigger className="cursor-pointer" role="button" tabIndex={0}>My Account</NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <ul className="grid w-[200px] gap-2 p-2 bg-background shadow-lg">
+                      <ul className="grid w-[200px] gap-2 p-2 bg-background shadow-lg z-[101]">
                         {accountMenuItems.map((item) => (
                           <li key={item.title}>
                             <NavigationMenuLink asChild>
