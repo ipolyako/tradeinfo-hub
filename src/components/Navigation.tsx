@@ -11,12 +11,6 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
 // Define the type for navigation links
@@ -33,6 +27,7 @@ interface NavigationProps {
 
 export const Navigation = ({ onAccountClick }: NavigationProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [session, setSession] = useState<any>(null);
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -155,35 +150,45 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
               )
             ))}
             
-            {/* Account dropdown for authenticated users */}
+            {/* Account menu for authenticated users */}
             {session && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    My Account
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[200px]">
-                  {accountMenuItems.map((item) => (
-                    <DropdownMenuItem key={item.title} asChild>
+              <div className="relative">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => setIsAccountOpen(!isAccountOpen)}
+                >
+                  <User className="h-4 w-4" />
+                  My Account
+                </Button>
+                {isAccountOpen && (
+                  <div className="absolute right-0 mt-2 w-[200px] bg-white rounded-md shadow-lg border py-1 z-[101]">
+                    {accountMenuItems.map((item) => (
                       <Link
+                        key={item.title}
                         to={item.path}
-                        className={`flex items-center gap-2 ${
+                        className={`flex items-center gap-2 px-4 py-2 hover:bg-accent ${
                           location.pathname === item.path ? 'bg-primary/10 text-primary' : ''
                         }`}
+                        onClick={() => setIsAccountOpen(false)}
                       >
                         <item.icon className="h-4 w-4" />
                         {item.title}
                       </Link>
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Log Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    ))}
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsAccountOpen(false);
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 w-full text-left text-destructive hover:bg-accent"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Log Out
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
             
             {/* If not authenticated, show My Account button */}
@@ -278,7 +283,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                       </>
                     )}
                     
-                    {/* If not authenticated, show My Account link with toast */}
+                    {/* If not authenticated, show My Account link */}
                     {!session && (
                       <Link 
                         to="/account" 
