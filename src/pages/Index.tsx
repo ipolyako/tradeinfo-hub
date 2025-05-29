@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import { Stats } from "@/components/Stats";
@@ -5,8 +6,8 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { UserControl } from "@/components/UserControl";
 import { StrategyDetails } from "@/components/StrategyDetails";
 import { LiveBotStream } from "@/components/LiveBotStream";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
-import { type ButtonProps } from "@/components/ui/button";
 
 const Index = () => {
   return (
@@ -25,6 +26,7 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center fade-in">
               <Button 
+                size="lg" 
                 className="bg-white text-primary hover:bg-gray-100"
                 onClick={() => {
                   const strategySection = document.getElementById('strategy-section');
@@ -35,7 +37,31 @@ const Index = () => {
               >
                 Learn More About Our Strategy
               </Button>
-              <span className="text-white">test</span>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="bg-transparent border-white text-white hover:bg-white hover:text-primary"
+                  >
+                    Watch Demo Video
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl w-full">
+                  <div className="aspect-video">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src="https://www.youtube.com/embed/vqPy67DuHAQ"
+                      title="Demo Video"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="rounded-lg"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>

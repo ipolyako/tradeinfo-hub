@@ -3,34 +3,35 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <meta name="theme-color" content="#000000" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
     <title>tradeinfo-hub</title>
     <meta name="description" content="Lovable Generated Project" />
     <meta name="author" content="Lovable" />
     <meta property="og:image" content="/og-image.png" />
     <!-- Preload critical resources -->
     <link rel="preload" href="/src/index.css" as="style" />
+    <!-- iOS Safari specific fixes -->
+    <meta name="apple-mobile-web-app-title" content="TradeInfo Hub">
+    <meta name="apple-touch-fullscreen" content="yes">
     <!-- Disable tap highlight for better UX on mobile -->
     <style>
+      :root {
+        --vh: 1vh;
+      }
+      
       * {
         -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
       }
-      input, textarea, [contenteditable] {
-        -webkit-user-select: auto;
-        -khtml-user-select: auto;
-        -moz-user-select: auto;
-        -ms-user-select: auto;
-        user-select: auto;
+      
+      /* Fix for viewport height on mobile */
+      .min-h-screen {
+        min-height: 100vh;
+        min-height: calc(var(--vh, 1vh) * 100);
       }
     </style>
   </head>
@@ -39,5 +40,20 @@
     <div id="root"></div>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- iOS loading optimization -->
+    <script>
+      // Handle iOS viewport changes
+      function setVH() {
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', vh + 'px');
+      }
+      
+      setVH();
+      window.addEventListener('resize', setVH);
+      window.addEventListener('orientationchange', function() {
+        setTimeout(setVH, 100);
+      });
+    </script>
   </body>
 </html>

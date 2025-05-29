@@ -1,3 +1,4 @@
+
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -138,26 +139,34 @@ const Stats = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-8">
-        <h1 className="text-3xl font-bold mb-6">Trading Performance</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Trading Performance</h1>
         
         <Tabs defaultValue="historical" className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="mb-6 w-full md:w-auto">
-            <TabsTrigger value="historical" className="flex-1 md:flex-none">Historical Performance</TabsTrigger>
-            <TabsTrigger value="current" className="flex-1 md:flex-none">Current Year Performance</TabsTrigger>
-            <TabsTrigger value="live-stream" className="flex-1 md:flex-none">
-              <span className="flex items-center gap-1">
-                <Youtube className="h-4 w-4" />
-                Live Bot Stream
-              </span>
-            </TabsTrigger>
-          </TabsList>
+          {/* Mobile-optimized tabs */}
+          <div className="w-full overflow-x-auto mb-6">
+            <TabsList className="w-full min-w-max grid grid-cols-3 h-auto p-1">
+              <TabsTrigger value="historical" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">
+                Historical
+              </TabsTrigger>
+              <TabsTrigger value="current" className="text-xs sm:text-sm px-2 py-2 whitespace-nowrap">
+                Current Year
+              </TabsTrigger>
+              <TabsTrigger value="live-stream" className="text-xs sm:text-sm px-1 py-2 whitespace-nowrap">
+                <span className="flex items-center gap-1">
+                  <Youtube className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Live Bot Stream</span>
+                  <span className="sm:hidden">Live</span>
+                </span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
           {/* Historical Performance Tab Content */}
           <TabsContent value="historical" className="pt-2">
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="mb-4">
-                  <p className="text-muted-foreground">
+                  <p className="text-sm sm:text-base text-muted-foreground">
                     The following performance data represents trading results for an account with a $30,000 balance.
                   </p>
                 </div>
@@ -169,7 +178,7 @@ const Stats = () => {
           {/* Current Year Performance Tab Content */}
           <TabsContent value="current" className="pt-2">
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <CurrentYearPerformance />
               </CardContent>
             </Card>
@@ -178,27 +187,27 @@ const Stats = () => {
           {/* Live Bot Stream Tab Content */}
           <TabsContent value="live-stream" className="pt-2">
             <Card>
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div>
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold mb-2">Live Trading Bot Stream</h2>
-                    <p className="text-muted-foreground">
+                  <div className="mb-4 sm:mb-6">
+                    <h2 className="text-lg sm:text-xl font-semibold mb-2">Live Trading Bot Stream</h2>
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       Watch our trading bot in action with real-time market activity
                     </p>
                   </div>
                   
                   {isMobile ? (
-                    <div className="flex flex-col items-center justify-center p-6 bg-muted/30 rounded-md">
-                      <p className="text-center mb-4">
+                    <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-muted/30 rounded-md">
+                      <p className="text-center mb-4 text-sm">
                         For the best viewing experience, please open the YouTube stream directly:
                       </p>
                       <a 
                         href="https://www.youtube.com/channel/UCUY8wd7gFbc9Sb-rD1KRGtQ/live"
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm"
                       >
-                        <Youtube className="h-5 w-5" />
+                        <Youtube className="h-4 w-4" />
                         Watch Live Stream
                       </a>
                     </div>
@@ -213,7 +222,7 @@ const Stats = () => {
                     </div>
                   )}
                   
-                  <div className="mt-6 text-sm text-muted-foreground">
+                  <div className="mt-4 sm:mt-6 text-xs sm:text-sm text-muted-foreground">
                     <p>Note: If the stream is offline, please check back later or refer to our historical and current performance data.</p>
                   </div>
                 </div>
