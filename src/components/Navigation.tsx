@@ -12,14 +12,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
 // Define the type for navigation links
@@ -160,46 +157,36 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
             
             {/* Account dropdown for authenticated users */}
             {session && (
-              <NavigationMenu>
-                <NavigationMenuList>
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="cursor-pointer" role="button" tabIndex={0}>My Account</NavigationMenuTrigger>
-                    <NavigationMenuContent className="absolute right-0 mt-2">
-                      <ul className="grid w-[200px] gap-2 p-2 bg-background shadow-lg rounded-md">
-                        {accountMenuItems.map((item) => (
-                          <li key={item.title}>
-                            <NavigationMenuLink asChild>
-                              <Link
-                                to={item.path}
-                                className={`flex items-center gap-2 p-2 rounded-md hover:bg-accent ${
-                                  location.pathname === item.path ? 'bg-primary/10 text-primary' : ''
-                                }`}
-                              >
-                                <item.icon className="h-4 w-4" />
-                                {item.title}
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        ))}
-                        <li>
-                          <NavigationMenuLink asChild>
-                            <button
-                              onClick={handleLogout}
-                              className="flex items-center gap-2 p-2 rounded-md hover:bg-accent w-full text-left"
-                            >
-                              <LogOut className="h-4 w-4" />
-                              Log Out
-                            </button>
-                          </NavigationMenuLink>
-                        </li>
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
-                </NavigationMenuList>
-              </NavigationMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    My Account
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  {accountMenuItems.map((item) => (
+                    <DropdownMenuItem key={item.title} asChild>
+                      <Link
+                        to={item.path}
+                        className={`flex items-center gap-2 ${
+                          location.pathname === item.path ? 'bg-primary/10 text-primary' : ''
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {item.title}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Log Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             
-            {/* If not authenticated, show "My Account" button with toast trigger */}
+            {/* If not authenticated, show My Account button */}
             {!session && (
               <Link to="/account" onClick={handleAccountClick}>
                 <Button 
