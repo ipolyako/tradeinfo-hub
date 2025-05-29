@@ -25,7 +25,6 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
-    --vh: 1vh;
   }
 
   .dark {
@@ -66,102 +65,33 @@
   * {
     @apply border-border;
   }
-  
-  html, body {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: none;
-  }
-  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* iOS Safari specific optimizations */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  /* Mobile viewport fixes */
-  .min-h-screen {
-    min-height: 100vh;
-    min-height: calc(var(--vh, 1vh) * 100);
-  }
-  
-  /* iOS Safari scroll fixes */
-  .scroll-smooth {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  /* Force hardware acceleration for better performance on mobile */
-  .transform-gpu {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
   }
 }
 
 /* Hero gradient */
 .hero-gradient {
   background: linear-gradient(135deg, #2C3E50, #4CA1AF);
-  /* Ensure gradient renders properly on mobile */
-  -webkit-background-size: cover;
-  background-size: cover;
 }
 
-/* Fade-in animation with mobile optimization */
+/* Fade-in animation */
 .fade-in {
   opacity: 0;
   animation: fadeIn 0.6s ease-in forwards;
-  /* Force hardware acceleration */
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
 }
 
 @keyframes fadeIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(10px) translateZ(0); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0) translateZ(0); 
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Stats styling with mobile optimization */
+/* Stats styling */
 .stat-item {
   @apply flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow;
-  /* Force hardware acceleration */
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
 }
 
 .stat-item span:first-child {
   @apply block text-center mb-2;
-}
-
-/* Mobile-specific optimizations */
-@media (max-width: 768px) {
-  /* Ensure touch targets are large enough */
-  button, a, input, select, textarea {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Improve text readability on mobile */
-  body {
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
-  
-  /* Prevent horizontal scrolling on mobile */
-  .overflow-x-auto {
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
-/* Loading state optimization for mobile */
-.loading-state {
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  will-change: transform;
 }
