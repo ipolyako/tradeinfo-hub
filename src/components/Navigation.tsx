@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, User, List, History, CreditCard, WalletCards, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 // Define the type for navigation links
@@ -32,6 +31,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
   const isMobile = useIsMobile();
   const location = useLocation();
   const { toast } = useToast();
+  const accountMenuRef = useRef<HTMLDivElement>(null);
 
   // Check authentication status for navigation
   useEffect(() => {
@@ -47,6 +47,18 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Close account menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+        setIsAccountOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Handler for logout
@@ -97,14 +109,6 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
     { title: "Payments", path: "/payments", icon: WalletCards },
   ];
 
-  // Enhanced mobile link handler with improved touch functionality
-  const handleMobileLinkClick = (onClose: () => void) => {
-    // Add a short delay to ensure the touch event completes fully
-    setTimeout(() => {
-      onClose();
-    }, 50);
-  };
-
   return (
     <nav className="fixed w-full bg-white/80 backdrop-blur-md z-[100] shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -140,9 +144,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                   key={link.title} 
                   to={link.path} 
                   className={`text-muted-foreground hover:text-primary transition-colors ${
-                    (location.pathname === link.path || 
-                     (location.hash === link.path && link.path.startsWith('#'))) ? 
-                     'text-primary font-medium' : ''
+                    location.pathname === link.path ? 'text-primary font-medium' : ''
                   }`}
                 >
                   {link.title}
@@ -152,7 +154,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
             
             {/* Account menu for authenticated users */}
             {session && (
-              <div className="relative">
+              <div className="relative" ref={accountMenuRef}>
                 <Button 
                   variant="outline" 
                   className="flex items-center gap-2"
@@ -212,115 +214,105 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
           </div>
           
           <div className="md:hidden">
-            {isMobile ? (
-              <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-                <DrawerTrigger asChild>
-                  <Button variant="ghost" size="icon" className="touch-manipulation">
-                    <Menu className="h-6 w-6" />
-                  </Button>
-                </DrawerTrigger>
-                <DrawerContent className="px-4 pb-8 pt-4 fixed inset-x-0 bottom-0 z-[200]">
-                  <div className="flex flex-col items-center space-y-4">
-                    {mainNavLinks.map((link) => (
-                      link.external ? (
-                        <a 
-                          key={link.title} 
-                          href={link.path} 
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50"
+            <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+              <DrawerTrigger asChild>
+                <Button variant="ghost" size="icon" className="touch-manipulation">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="px-4 pb-8 pt-4 fixed inset-x-0 bottom-0 z-[200]">
+                <div className="flex flex-col items-center space-y-4">
+                  {mainNavLinks.map((link) => (
+                    link.external ? (
+                      <a 
+                        key={link.title} 
+                        href={link.path} 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50"
+                        onClick={() => setIsDrawerOpen(false)}
+                      >
+                        {link.icon && <link.icon className="h-5 w-5" />}
+                        {link.title}
+                      </a>
+                    ) : (
+                      <Link 
+                        key={link.title} 
+                        to={link.path} 
+                        className={`w-full text-center py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
+                          location.pathname === link.path ? 'text-primary' : ''
+                        }`}
+                        onClick={() => setIsDrawerOpen(false)}
+                      >
+                        {link.title}
+                      </Link>
+                    )
+                  ))}
+                  
+                  {/* Mobile account section */}
+                  {session && (
+                    <>
+                      <div className="w-full text-center py-2 text-lg font-medium mt-2">
+                        My Account
+                      </div>
+                      {accountMenuItems.map((item) => (
+                        <Link 
+                          key={item.title}
+                          to={item.path} 
+                          className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
+                            location.pathname === item.path ? 'text-primary' : ''
+                          }`}
                           onClick={() => setIsDrawerOpen(false)}
                         >
-                          {link.icon && <link.icon className="h-5 w-5" />}
-                          {link.title}
-                        </a>
-                      ) : (
-                        <Link 
-                          key={link.title} 
-                          to={link.path} 
-                          className={`w-full text-center py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
-                            (location.pathname === link.path || 
-                             (location.hash === link.path && link.path.startsWith('#'))) ? 
-                             'text-primary' : ''
-                          }`}
-                          onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
-                        >
-                          {link.title}
+                          <item.icon className="h-5 w-5" />
+                          {item.title}
                         </Link>
-                      )
-                    ))}
-                    
-                    {/* Mobile account section */}
-                    {session && (
-                      <>
-                        <div className="w-full text-center py-2 text-lg font-medium mt-2">
-                          My Account
-                        </div>
-                        {accountMenuItems.map((item) => (
-                          <Link 
-                            key={item.title}
-                            to={item.path} 
-                            className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
-                              location.pathname === item.path ? 
-                              'bg-primary/10 text-primary' : 'bg-muted/50'
-                            }`}
-                            onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
-                          >
-                            <item.icon className="h-5 w-5" />
-                            {item.title}
-                          </Link>
-                        ))}
-                        <button 
-                          onClick={() => {
-                            handleLogout();
-                            handleMobileLinkClick(() => setIsDrawerOpen(false));
-                          }}
-                          className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 bg-muted/50"
-                        >
-                          <LogOut className="h-5 w-5" />
-                          Log Out
-                        </button>
-                      </>
-                    )}
-                    
-                    {/* If not authenticated, show My Account link */}
-                    {!session && (
-                      <Link 
-                        to="/account" 
-                        className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
-                          location.pathname === "/account" ? 
-                          'bg-primary/10 text-primary' : 'bg-muted/50'
-                        }`}
+                      ))}
+                      <button 
                         onClick={() => {
-                          handleAccountClick();
-                          handleMobileLinkClick(() => setIsDrawerOpen(false));
+                          handleLogout();
+                          setIsDrawerOpen(false);
                         }}
+                        className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 text-destructive"
                       >
-                        <User className="h-5 w-5" />
-                        My Account
-                      </Link>
-                    )}
-                    
+                        <LogOut className="h-5 w-5" />
+                        Log Out
+                      </button>
+                    </>
+                  )}
+                  
+                  {/* If not authenticated, show My Account link */}
+                  {!session && (
                     <Link 
-                      to="/get-started" 
-                      className="w-full mt-4 touch-manipulation" 
-                      onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
+                      to="/account" 
+                      className={`w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 ${
+                        location.pathname === "/account" ? 'text-primary' : ''
+                      }`}
+                      onClick={() => {
+                        handleAccountClick();
+                        setIsDrawerOpen(false);
+                      }}
                     >
-                      <Button 
-                        className="w-full"
-                        variant={location.pathname === "/get-started" ? "secondary" : "default"}
-                      >
-                        Get Started
-                      </Button>
+                      <User className="h-5 w-5" />
+                      My Account
                     </Link>
-                  </div>
-                </DrawerContent>
-              </Drawer>
-            ) : (
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-              </Button>
-            )}
+                  )}
+                  
+                  <Link 
+                    to="/get-started" 
+                    className="w-full mt-4" 
+                    onClick={() => setIsDrawerOpen(false)}
+                  >
+                    <Button 
+                      className="w-full"
+                      variant={location.pathname === "/get-started" ? "secondary" : "default"}
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              </DrawerContent>
+            </Drawer>
           </div>
         </div>
       </div>
