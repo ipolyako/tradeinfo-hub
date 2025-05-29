@@ -164,8 +164,8 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                 <NavigationMenuList>
                   <NavigationMenuItem>
                     <NavigationMenuTrigger className="cursor-pointer" role="button" tabIndex={0}>My Account</NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid w-[200px] gap-2 p-2 bg-background shadow-lg z-[101]">
+                    <NavigationMenuContent className="absolute right-0 mt-2">
+                      <ul className="grid w-[200px] gap-2 p-2 bg-background shadow-lg rounded-md">
                         {accountMenuItems.map((item) => (
                           <li key={item.title}>
                             <NavigationMenuLink asChild>
@@ -227,7 +227,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                     <Menu className="h-6 w-6" />
                   </Button>
                 </DrawerTrigger>
-                <DrawerContent className="px-4 pb-8 pt-4">
+                <DrawerContent className="px-4 pb-8 pt-4 fixed inset-x-0 bottom-0 z-[200]">
                   <div className="flex flex-col items-center space-y-4">
                     {mainNavLinks.map((link) => (
                       link.external ? (
