@@ -34,62 +34,67 @@ const queryClient = new QueryClient({
   },
 });
 
-// Loading component for lazy routes
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-  </div>
-);
-
 // Page transition handler
 const PageTransitionHandler = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   useViewportHeight();
 
   useEffect(() => {
+    // Handle initial load
+    if (!isInitialized) {
+      const initialize = async () => {
+        // Force a reflow
+        document.body.offsetHeight;
+        
+        // Set viewport height
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        
+        // Ensure body is properly sized
+        document.body.style.minHeight = '100vh';
+        document.body.style.minHeight = 'calc(var(--vh, 1vh) * 100)';
+        
+        // Wait for next frame
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        
+        setIsInitialized(true);
+        setIsLoading(false);
+      };
+      
+      initialize();
+      return;
+    }
+
+    // Handle route changes
     const handleRouteChange = async () => {
       setIsLoading(true);
-
-      // Store current scroll position
-      const scrollPos = window.scrollY;
-
-      // Reset scroll position
       window.scrollTo(0, 0);
-
-      // Wait for the next tick
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      // Update viewport height
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-
-      // Ensure the page is scrollable
-      document.body.style.overflow = 'auto';
-      document.body.style.height = 'auto';
-      document.body.style.minHeight = '100vh';
-      document.body.style.minHeight = 'calc(var(--vh, 1vh) * 100)';
-
-      // Reset loading state
+      await new Promise(resolve => requestAnimationFrame(resolve));
       setIsLoading(false);
-
-      // Restore scroll position if needed
-      if (scrollPos > 0) {
-        window.scrollTo(0, scrollPos);
-      }
     };
 
     handleRouteChange();
-  }, [location.pathname]);
+  }, [location.pathname, isInitialized]);
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div 
-      className={`min-h-screen transition-opacity duration-300 ${
-        isLoading ? 'opacity-0' : 'opacity-100'
-      }`}
-      style={{ minHeight: 'calc(var(--vh, 1vh) * 100)' }}
-    >
-      {children}
+    <div className="min-h-screen flex flex-col">
+      <div 
+        className={`flex-1 transition-opacity duration-300 ${
+          isLoading ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
+        {children}
+      </div>
     </div>
   );
 };
@@ -101,7 +106,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <PageTransitionHandler>
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          }>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/get-started" element={<GetStarted />} />

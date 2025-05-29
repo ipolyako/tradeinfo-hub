@@ -5,12 +5,6 @@ export const useViewportHeight = () => {
     const updateHeight = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
-      
-      // Ensure body is scrollable
-      document.body.style.overflow = 'auto';
-      document.body.style.height = 'auto';
-      document.body.style.minHeight = '100vh';
-      document.body.style.minHeight = 'calc(var(--vh, 1vh) * 100)';
     };
 
     // Initial update
