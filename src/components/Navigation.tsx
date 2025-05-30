@@ -183,9 +183,15 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                       </Link>
                     ))}
                     <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsDrawerOpen(false);
+                      onClick={async () => {
+                        try {
+                          await handleLogout();
+                          // Only close drawer after successful logout
+                          setIsDrawerOpen(false);
+                        } catch (error) {
+                          console.error("Logout error:", error);
+                          // Don't close drawer if logout fails
+                        }
                       }}
                       className="flex items-center gap-2 px-4 py-2 w-full text-left text-destructive hover:bg-accent"
                     >
@@ -273,9 +279,15 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                         </Link>
                       ))}
                       <button 
-                        onClick={() => {
-                          handleLogout();
-                          setIsDrawerOpen(false);
+                        onClick={async () => {
+                          try {
+                            await handleLogout();
+                            // Only close drawer after successful logout
+                            setIsDrawerOpen(false);
+                          } catch (error) {
+                            console.error("Logout error:", error);
+                            // Don't close drawer if logout fails
+                          }
                         }}
                         className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 text-destructive"
                       >
