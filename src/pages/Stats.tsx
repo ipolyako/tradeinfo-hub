@@ -24,6 +24,11 @@ const Stats = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
 
+  // Force layout recalculation on mount (iOS fix)
+  useEffect(() => {
+    window.dispatchEvent(new Event('resize'));
+  }, []);
+
   // Fetch historical performance data
   useEffect(() => {
     const fetchHistoricalData = async () => {
@@ -135,22 +140,29 @@ const Stats = () => {
   }, [performanceData, isLoading, isMobile]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-container bg-background">
       <Navigation />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-8">
         <h1 className="text-3xl font-bold mb-6">Trading Performance</h1>
         
         <Tabs defaultValue="historical" className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="mb-6 w-full md:w-auto">
-            <TabsTrigger value="historical" className="flex-1 md:flex-none">Historical Performance</TabsTrigger>
-            <TabsTrigger value="current" className="flex-1 md:flex-none">Current Year Performance</TabsTrigger>
-            <TabsTrigger value="live-stream" className="flex-1 md:flex-none">
-              <span className="flex items-center gap-1">
-                <Youtube className="h-4 w-4" />
-                Live Bot Stream
-              </span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 mb-6">
+            <TabsList className="w-max min-w-full md:w-auto grid grid-cols-3 gap-1">
+              <TabsTrigger value="historical" className="text-xs sm:text-sm px-2 sm:px-4">
+                Historical
+              </TabsTrigger>
+              <TabsTrigger value="current" className="text-xs sm:text-sm px-2 sm:px-4">
+                Current Year
+              </TabsTrigger>
+              <TabsTrigger value="live-stream" className="text-xs sm:text-sm px-2 sm:px-4">
+                <span className="flex items-center gap-1">
+                  <Youtube className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Live Bot Stream</span>
+                  <span className="sm:hidden">Live</span>
+                </span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
           {/* Historical Performance Tab Content */}
           <TabsContent value="historical" className="pt-2">
