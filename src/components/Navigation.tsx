@@ -254,9 +254,13 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                     {/* Mobile account section */}
                     {session && (
                       <>
-                        <div className="w-full text-center py-2 text-lg font-medium mt-2">
+                        <Link 
+                          to="/account"
+                          className="w-full text-center py-2 text-lg font-medium mt-2 touch-manipulation active:bg-accent/50"
+                          onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
+                        >
                           My Account
-                        </div>
+                        </Link>
                         {accountMenuItems.map((item) => (
                           <Link 
                             key={item.title}
