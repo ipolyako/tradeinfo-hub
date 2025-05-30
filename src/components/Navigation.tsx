@@ -84,13 +84,6 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
     }
   };
 
-  // Handler for My Account button click when not logged in
-  const handleAccountClick = () => {
-    if (!session && onAccountClick) {
-      onAccountClick();
-    }
-  };
-
   // Separate main navigation links from account-related links
   const mainNavLinks: NavLink[] = [
     { title: "Home", path: "/" },
@@ -200,12 +193,12 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
               </NavigationMenu>
             )}
             
-            {/* If not authenticated, show "My Account" button with toast trigger */}
+            {/* If not authenticated, show "My Account" button as a direct link */}
             {!session && (
-              <Link to="/account" onClick={handleAccountClick}>
+              <Link to="/account">
                 <Button 
                   variant={location.pathname === "/account" ? "default" : "outline"} 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 touch-manipulation"
                 >
                   <User className="h-4 w-4" />
                   My Account
@@ -292,7 +285,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                       </>
                     )}
                     
-                    {/* If not authenticated, show My Account link with toast */}
+                    {/* If not authenticated, show My Account link */}
                     {!session && (
                       <Link 
                         to="/account" 
@@ -300,10 +293,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                           location.pathname === "/account" ? 
                           'bg-primary/10 text-primary' : 'bg-muted/50'
                         }`}
-                        onClick={() => {
-                          handleAccountClick();
-                          handleMobileLinkClick(() => setIsDrawerOpen(false));
-                        }}
+                        onClick={() => handleMobileLinkClick(() => setIsDrawerOpen(false))}
                       >
                         <User className="h-5 w-5" />
                         My Account
