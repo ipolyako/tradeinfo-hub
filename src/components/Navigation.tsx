@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, User, List, History, CreditCard, WalletCards, LogOut } from "lucide-react";
@@ -63,6 +62,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
+        console.error("Logout error:", error);
         toast({
           title: "Error",
           description: "Failed to log out. Please try again.",
@@ -73,6 +73,12 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
           title: "Logged out",
           description: "You have been successfully logged out.",
         });
+        // Close drawer after successful logout
+        if (isMobile) {
+          setTimeout(() => {
+            setIsDrawerOpen(false);
+          }, 300);
+        }
       }
     } catch (error) {
       console.error("Logout error:", error);
@@ -282,7 +288,6 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                         <button 
                           onClick={() => {
                             handleLogout();
-                            handleMobileLinkClick(() => setIsDrawerOpen(false));
                           }}
                           className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 bg-muted/50"
                         >
