@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="page-container">
       <Navigation />
       
       {/* Hero Section - Reduced height and spacing */}

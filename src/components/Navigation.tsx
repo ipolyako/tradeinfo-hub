@@ -91,13 +91,6 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
     }
   };
 
-  // Handler for My Account button click when not logged in
-  const handleAccountClick = () => {
-    if (!session && onAccountClick) {
-      onAccountClick();
-    }
-  };
-
   // Separate main navigation links from account-related links
   const mainNavLinks: NavLink[] = [
     { title: "Home", path: "/" },
@@ -186,11 +179,9 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                       onClick={async () => {
                         try {
                           await handleLogout();
-                          // Only close drawer after successful logout
                           setIsDrawerOpen(false);
                         } catch (error) {
                           console.error("Logout error:", error);
-                          // Don't close drawer if logout fails
                         }
                       }}
                       className="flex items-center gap-2 px-4 py-2 w-full text-left text-destructive hover:bg-accent"
@@ -205,10 +196,10 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
             
             {/* If not authenticated, show My Account button */}
             {!isLoading && !session && (
-              <Link to="/account" onClick={handleAccountClick}>
+              <Link to="/account" onClick={onAccountClick}>
                 <Button 
                   variant={location.pathname === "/account" ? "default" : "outline"} 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 touch-manipulation"
                 >
                   <User className="h-4 w-4" />
                   My Account
@@ -282,11 +273,9 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                         onClick={async () => {
                           try {
                             await handleLogout();
-                            // Only close drawer after successful logout
                             setIsDrawerOpen(false);
                           } catch (error) {
                             console.error("Logout error:", error);
-                            // Don't close drawer if logout fails
                           }
                         }}
                         className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 text-destructive"
@@ -305,7 +294,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                         location.pathname === "/account" ? 'text-primary' : ''
                       }`}
                       onClick={() => {
-                        handleAccountClick();
+                        onAccountClick();
                         setIsDrawerOpen(false);
                       }}
                     >

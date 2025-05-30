@@ -25,6 +25,9 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+    
+    /* iOS viewport height fix */
+    --vh: 1vh;
   }
 
   .dark {
@@ -65,10 +68,37 @@
   * {
     @apply border-border;
   }
+  
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
+  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-overflow-scrolling: touch;
   }
+}
+
+/* iOS viewport height fixes */
+.min-h-screen {
+  min-height: 100vh; /* fallback */
+  min-height: -webkit-fill-available; /* iOS fallback */
+  min-height: calc(var(--vh) * 100); /* dynamic height */
+}
+
+.h-screen {
+  height: 100vh; /* fallback */
+  height: -webkit-fill-available; /* iOS fallback */
+  height: calc(var(--vh) * 100); /* dynamic height */
+}
+
+/* Scrollable containers */
+.page-container {
+  height: calc(var(--vh) * 100);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Hero gradient */
