@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, User, List, History, CreditCard, WalletCards, LogOut } from "lucide-react";
@@ -276,8 +277,8 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
                           </Link>
                         ))}
                         <button 
-                          onClick={() => {
-                            handleLogout();
+                          onClick={async () => {
+                            await handleLogout();
                             handleMobileLinkClick(() => setIsDrawerOpen(false));
                           }}
                           className="w-full flex items-center justify-center gap-2 py-3 text-lg font-medium border-b border-border touch-manipulation active:bg-accent/50 bg-muted/50"
