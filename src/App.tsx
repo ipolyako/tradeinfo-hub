@@ -16,6 +16,7 @@ const Payments = lazy(() => import("./pages/Payments"));
 const PerformanceTable = lazy(() => import("./pages/PerformanceTable"));
 const SpreadsheetView = lazy(() => import("./pages/SpreadsheetView"));
 const TransactionsHistory = lazy(() => import("./pages/TransactionsHistory"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Even though we've moved to a real Edge Function, keep this import
 // to maintain backward compatibility
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/payments" element={<Payments />} />
             <Route path="/performance" element={<PerformanceTable />} />
             <Route path="/transactions" element={<TransactionsHistory />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Routes>
         </Suspense>
       </BrowserRouter>
