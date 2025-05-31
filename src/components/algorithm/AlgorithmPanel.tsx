@@ -322,12 +322,10 @@ Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Con
                 <span className="font-medium">Trading Amount:</span> {tradingAmount}
               </div>
             )}
-          </div>
-          
-          <div className="bg-muted/30 p-4 rounded-md mb-6">
-            <p className="text-sm text-center text-muted-foreground">
-              Click the <strong>Check Status</strong> button to get the current status of your trading service
-            </p>
+
+            <div className="text-sm text-muted-foreground">
+              Click <strong>Check Status</strong> to view current service state
+            </div>
           </div>
           
           <Separator className="my-4" />
@@ -348,12 +346,6 @@ Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Con
                              "Stopping service..."}
                           </span>
                         </div>
-                      </td>
-                    </tr>
-                  ) : results === "Click the Status button to check your bot status." ? (
-                    <tr>
-                      <td colSpan={2} className="py-2 text-center text-muted-foreground">
-                        Click the <strong>Check Status</strong> button to get the current status of your trading service
                       </td>
                     </tr>
                   ) : (
