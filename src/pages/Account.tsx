@@ -183,7 +183,7 @@ const Account = () => {
   // Show loading state while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="page-container">
         <Navigation />
         <div className="container max-w-7xl mx-auto pt-24 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
@@ -196,7 +196,7 @@ const Account = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-container">
       <Navigation />
       
       <div className="container max-w-7xl mx-auto pt-24 px-4 sm:px-6 lg:px-8">
