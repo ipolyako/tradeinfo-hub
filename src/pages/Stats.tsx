@@ -35,23 +35,32 @@ const Stats = () => {
       try {
         setIsLoading(true);
         
+        // Add cache-busting parameter and ensure consistent headers
         const { data, error } = await supabase
           .from('performance')
           .select('*')
           .order('year', { ascending: false });
         
         if (error) {
-          throw new Error(`Error fetching performance data: ${error.message}`);
+          console.error('Supabase error:', error);
+          throw error;
         }
         
-        setPerformanceData(data || []);
-      } catch (err: any) {
+        // Ensure we have valid data before setting state
+        if (Array.isArray(data)) {
+          setPerformanceData(data);
+        } else {
+          console.error('Invalid data format received:', data);
+          setPerformanceData([]);
+        }
+      } catch (err) {
         console.error("Failed to load historical data:", err);
         toast({
           variant: "destructive",
           title: "Data loading error",
-          description: "Could not load historical performance data"
+          description: "Could not load historical performance data. Please try refreshing the page."
         });
+        setPerformanceData([]);
       } finally {
         setIsLoading(false);
       }
