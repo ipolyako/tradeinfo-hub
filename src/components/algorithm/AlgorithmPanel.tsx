@@ -64,9 +64,12 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
       maximumFractionDigits: 0
     }).format(parseFloat(serviceStatus.amount));
 
-    const platformValue = serviceStatus.platform.includes('=') 
+    let platformValue = serviceStatus.platform.includes('=') 
       ? serviceStatus.platform.split('=')[1] 
       : serviceStatus.platform;
+    
+    // Replace TDAMERITRADE with SCHWAB
+    platformValue = platformValue.replace('TDAMERITRADE', 'SCHWAB');
 
     return `Status: ${serviceStatus.runStatus === 'active' ? 'Running' : 'Stopped'}
 Trading Symbols: ${serviceStatus.symbols}
