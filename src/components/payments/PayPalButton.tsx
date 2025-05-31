@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -74,6 +75,7 @@ export const PayPalButton = ({
   const [renderAttempts, setRenderAttempts] = useState(0);
   const [selectedTier, setSelectedTier] = useState<number | undefined>(defaultTierIndex);
   const [paypalButtonsVisible, setPaypalButtonsVisible] = useState(false);
+  const [initializationTimeout, setInitializationTimeout] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const isFirefoxBrowser = isFirefox();
@@ -93,22 +95,40 @@ export const PayPalButton = ({
     : "Free Trial"; // Default to free trial text
   
   const refreshPayPalContainer = () => {
+    console.log('Refreshing PayPal container...');
     setRenderAttempts(prev => prev + 1);
     setScriptError(false);
     setScriptLoaded(false);
     setPaypalButtonsVisible(false);
+    setInitializationTimeout(false);
+    onStatusChange("idle");
     loadPayPalScript();
   };
   
   const loadPayPalScript = async () => {
     try {
+      console.log('Loading PayPal script...');
       onStatusChange("loading");
+      
+      // Set a timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.log('PayPal script loading timeout');
+        setInitializationTimeout(true);
+        setScriptError(true);
+        onStatusChange("failed");
+      }, 15000); // 15 second timeout
+      
       await initializePayPalScript();
+      clearTimeout(timeoutId);
+      
+      console.log('PayPal script loaded successfully');
       setScriptLoaded(true);
+      setInitializationTimeout(false);
       onStatusChange("idle");
     } catch (err) {
       console.error('Failed to load PayPal script:', err);
       setScriptError(true);
+      setInitializationTimeout(false);
       onStatusChange("failed");
       toast({
         title: "PayPal Error",
@@ -126,6 +146,7 @@ export const PayPalButton = ({
     }
     
     try {
+      console.log('Rendering PayPal buttons...');
       // Clear any previous buttons to ensure clean rendering
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
@@ -254,7 +275,7 @@ export const PayPalButton = ({
       // Check if the buttons can be rendered
       if (rendered.isEligible()) {
         rendered.render(`#${containerId}`);
-        console.log('PayPal buttons rendered using direct selector');
+        console.log('PayPal buttons rendered successfully');
         setPaypalButtonsVisible(true);
       } else {
         console.error('PayPal buttons are not eligible for rendering');
@@ -275,6 +296,7 @@ export const PayPalButton = ({
   
   // Load PayPal script on component mount
   useEffect(() => {
+    console.log('PayPal button component mounting...');
     loadPayPalScript();
     
     return () => {
@@ -284,7 +306,8 @@ export const PayPalButton = ({
 
   // Render buttons when script is loaded or when selected tier changes
   useEffect(() => {
-    if (scriptLoaded && window.paypal) {
+    if (scriptLoaded && window.paypal && !scriptError) {
+      console.log('Script loaded, rendering buttons...');
       // Add delay to ensure DOM is ready, longer on mobile
       const delay = isMobile ? 800 : 200;
       const timer = setTimeout(() => {
@@ -296,10 +319,11 @@ export const PayPalButton = ({
   }, [scriptLoaded, renderAttempts, isMobile, selectedTier]);
 
   const handleTierChange = (value: string) => {
+    console.log('Tier changed to:', value);
     const tierIndex = parseInt(value, 10);
     setSelectedTier(tierIndex);
     // Re-render PayPal buttons with new quantity
-    if (scriptLoaded) {
+    if (scriptLoaded && !scriptError) {
       // Hide PayPal buttons during re-render
       setPaypalButtonsVisible(false);
       renderPayPalButtons();
@@ -364,10 +388,15 @@ export const PayPalButton = ({
       
       {/* Improved mobile styling for PayPal buttons */}
       <div className="w-full mt-8 mb-8">
-        {scriptError ? (
+        {(scriptError || initializationTimeout) ? (
           <Alert variant="destructive" className="mb-4">
             <AlertDescription>
-              <p className="mb-2">Could not load the payment system. Please try again.</p>
+              <p className="mb-2">
+                {initializationTimeout 
+                  ? "Payment system is taking too long to load. Please check your connection and try again."
+                  : "Could not load the payment system. Please try again."
+                }
+              </p>
               <Button 
                 variant="outline" 
                 className="w-full mt-2"
@@ -380,7 +409,7 @@ export const PayPalButton = ({
           </Alert>
         ) : (
           <div className="w-full flex flex-col items-center justify-center">
-            {!scriptLoaded && (
+            {!scriptLoaded && !initializationTimeout && (
               <div className="flex flex-col items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="mt-2 text-sm text-muted-foreground">
