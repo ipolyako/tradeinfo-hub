@@ -49,6 +49,7 @@ export const AuthPanel = () => {
   const [authLoading, setAuthLoading] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "signup">("login");
   const [showResetForm, setShowResetForm] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
   const { toast } = useToast();
 
   // Initialize forms
@@ -146,11 +147,12 @@ export const AuthPanel = () => {
     }
   };
 
-  const handleResetPassword = async (formData: z.infer<typeof resetPasswordSchema>) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
     setAuthLoading(true);
     try {
-      console.log('Reset password form data:', formData); // Debug log
-      if (!formData.email) {
+      console.log('Reset password email:', resetEmail); // Debug log
+      if (!resetEmail) {
         toast({
           title: "Reset Failed",
           description: "Please enter an email address",
@@ -160,7 +162,7 @@ export const AuthPanel = () => {
         return;
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/account`,
       });
 
@@ -179,7 +181,7 @@ export const AuthPanel = () => {
         // Switch back to login form
         setShowResetForm(false);
         // Reset the form
-        resetPasswordForm.reset();
+        setResetEmail("");
       }
     } catch (error: any) {
       console.error("Password reset error:", error);
@@ -260,54 +262,46 @@ export const AuthPanel = () => {
                 </form>
               </Form>
             ) : (
-              <Form {...resetPasswordForm}>
-                <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-4 mt-4">
-                  <FormField
-                    control={resetPasswordForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="your.email@example.com" 
-                            {...field}
-                            value={field.value || ''}
-                            onChange={(e) => {
-                              console.log('Email input value:', e.target.value); // Debug log
-                              field.onChange(e.target.value);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+              <form onSubmit={handleResetPassword} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <label htmlFor="reset-email" className="text-sm font-medium">
+                    Email
+                  </label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    value={resetEmail}
+                    onChange={(e) => {
+                      console.log('Email input value:', e.target.value); // Debug log
+                      setResetEmail(e.target.value);
+                    }}
                   />
-                  <div className="flex justify-between items-center">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowResetForm(false);
-                        resetPasswordForm.reset();
-                      }}
-                      className="text-sm text-primary hover:text-primary/90 transition-colors"
-                    >
-                      Back to login
-                    </button>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={authLoading}>
-                    {authLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
-                      </>
-                    ) : (
-                      <>
-                        <KeyRound className="mr-2 h-4 w-4" /> Reset Password
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </Form>
+                </div>
+                <div className="flex justify-between items-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowResetForm(false);
+                      setResetEmail("");
+                    }}
+                    className="text-sm text-primary hover:text-primary/90 transition-colors"
+                  >
+                    Back to login
+                  </button>
+                </div>
+                <Button type="submit" className="w-full" disabled={authLoading}>
+                  {authLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound className="mr-2 h-4 w-4" /> Reset Password
+                    </>
+                  )}
+                </Button>
+              </form>
             )}
           </TabsContent>
           <TabsContent value="signup">
