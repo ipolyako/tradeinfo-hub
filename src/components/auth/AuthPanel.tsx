@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, MessageSquare } from "lucide-react";
+import { Loader2, Mail, MessageSquare, KeyRound } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,9 +27,13 @@ const signupSchema = z.object({
   path: ["confirmPassword"],
 });
 
+const resetPasswordSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+});
+
 export const AuthPanel = () => {
   const [authLoading, setAuthLoading] = useState(false);
-  const [authTab, setAuthTab] = useState<"login" | "signup">("login");
+  const [authTab, setAuthTab] = useState<"login" | "signup" | "reset">("login");
   const { toast } = useToast();
 
   // Initialize forms
@@ -47,6 +51,13 @@ export const AuthPanel = () => {
       email: "",
       password: "",
       confirmPassword: "",
+    },
+  });
+
+  const resetPasswordForm = useForm({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      email: "",
     },
   });
 
@@ -114,6 +125,38 @@ export const AuthPanel = () => {
     }
   };
 
+  const handleResetPassword = async (formData: z.infer<typeof resetPasswordSchema>) => {
+    setAuthLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/account`,
+      });
+
+      if (error) {
+        toast({
+          title: "Password Reset Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Password Reset Email Sent",
+          description: "Please check your email for the password reset link.",
+        });
+        // Switch back to login tab
+        setAuthTab("login");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Password Reset Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -123,10 +166,11 @@ export const AuthPanel = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs value={authTab} onValueChange={(v) => setAuthTab(v as "login" | "signup")}>
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs value={authTab} onValueChange={(v) => setAuthTab(v as "login" | "signup" | "reset")}>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="signup">Sign up</TabsTrigger>
+            <TabsTrigger value="reset">Reset</TabsTrigger>
           </TabsList>
           <TabsContent value="login">
             <Form {...loginForm}>
@@ -221,6 +265,36 @@ export const AuthPanel = () => {
                   ) : (
                     <>
                       <MessageSquare className="mr-2 h-4 w-4" /> Create Account
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
+          <TabsContent value="reset">
+            <Form {...resetPasswordForm}>
+              <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-4 mt-4">
+                <FormField
+                  control={resetPasswordForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="your.email@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={authLoading}>
+                  {authLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound className="mr-2 h-4 w-4" /> Reset Password
                     </>
                   )}
                 </Button>
