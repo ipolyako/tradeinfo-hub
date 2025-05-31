@@ -55,18 +55,20 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
 
   // Helper function to format status message
   const formatStatusMessage = (serviceStatus: ServiceStatus): string => {
+    const formattedAmount = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(parseFloat(serviceStatus.amount));
+
     return `Current Status:
-┌────────────────┬────────────────────────┐
-│ Service        │ ${serviceStatus.service.padEnd(20)} │
-├────────────────┼────────────────────────┤
-│ Platform       │ ${serviceStatus.platform.padEnd(20)} │
-├────────────────┼────────────────────────┤
-│ Trading Symbols│ ${serviceStatus.symbols.padEnd(20)} │
-├────────────────┼────────────────────────┤
-│ Status         │ ${serviceStatus.active.padEnd(20)} │
-├────────────────┼────────────────────────┤
-│ Enabled        │ ${serviceStatus.enabled.padEnd(20)} │
-└────────────────┴────────────────────────┘`;
+• Service: ${serviceStatus.service}
+• Platform: ${serviceStatus.platform}
+• Trading Amount: ${formattedAmount}
+• Trading Symbols: ${serviceStatus.symbols}
+• Status: ${serviceStatus.active}
+• Enabled: ${serviceStatus.enabled}`;
   };
 
   // Check bot status function
