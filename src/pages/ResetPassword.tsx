@@ -19,13 +19,20 @@ const ResetPassword = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    // Check if we have a valid session and type parameter
     const checkSession = async () => {
       setVerifying(true);
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const type = searchParams.get('type');
         
+        // If this is a recovery flow but user is already logged in, sign them out first
+        if (type === 'recovery' && session) {
+          await supabase.auth.signOut();
+          // Reload the page to get a fresh session
+          window.location.reload();
+          return;
+        }
+
         // If we don't have a session, redirect to login
         if (!session) {
           toast({
@@ -37,19 +44,11 @@ const ResetPassword = () => {
           return;
         }
 
-        // If we have a session but no type parameter, we need to check if this is a password reset
-        if (!type) {
-          // Check if the user was redirected from a password reset email
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user?.app_metadata?.provider === 'email') {
-            // This is likely a password reset flow
-            setVerifying(false);
-            return;
-          }
-        }
-
-        // If we have a type parameter, it should be 'recovery'
-        if (type && type !== 'recovery') {
+        // Check if this is a password reset flow by looking at the URL
+        const isRecovery = type === 'recovery';
+        
+        // If this is not a recovery flow, redirect to account
+        if (!isRecovery) {
           toast({
             title: "Invalid Reset Link",
             description: "This password reset link is invalid. Please request a new password reset link.",
