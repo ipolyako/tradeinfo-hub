@@ -23,6 +23,8 @@ interface ServiceStatus {
   amount: string;
   platform: string;
   symbols: string;
+  runStatus: string;
+  deploymentStatus: string;
 }
 
 interface AlgorithmPanelProps {
@@ -62,13 +64,16 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
       maximumFractionDigits: 0
     }).format(parseFloat(serviceStatus.amount));
 
-    return `Current Status:
-• Service: ${serviceStatus.service}
-• Platform: ${serviceStatus.platform}
-• Trading Amount: ${formattedAmount}
-• Trading Symbols: ${serviceStatus.symbols}
-• Status: ${serviceStatus.active}
-• Enabled: ${serviceStatus.enabled}`;
+    const platformValue = serviceStatus.platform.includes('=') 
+      ? serviceStatus.platform.split('=')[1] 
+      : serviceStatus.platform;
+
+    return `Service: ${serviceStatus.service}
+Platform: ${platformValue}
+Trading Amount: ${formattedAmount}
+Trading Symbols: ${serviceStatus.symbols}
+Status: ${serviceStatus.runStatus === 'active' ? 'Running' : 'Stopped'}
+Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Configured' : 'Service is NOT configured'}`;
   };
 
   // Check bot status function
