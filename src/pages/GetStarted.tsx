@@ -42,6 +42,11 @@ const GetStarted = () => {
                   </a>
                 </p>
               </div>
+              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm text-amber-800">
+                  While we recommend a minimum account balance of $30,000, you can trade with a smaller amount. You are not required to use your entire available balance for trading.
+                </p>
+              </div>
             </li>
             
             <li>
