@@ -100,49 +100,27 @@ Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Con
         const responseStr = JSON.stringify(statusResponse);
         console.log("Status response received:", responseStr);
         
-        // Parse the response and update UI based on "active" status
+        // Parse the response and update UI based on runStatus
         if (typeof statusResponse === 'object' && statusResponse !== null) {
           const serviceStatus = statusResponse as ServiceStatus;
           
           // Set the trading amount from the response
           setTradingAmount(serviceStatus.amount || "N/A");
           
-          // Case 1: Not configured (inactive + disabled)
-          if (serviceStatus.active === "inactive" && serviceStatus.enabled === "disabled") {
-            setStatus("not_configured");
-            setResults(`Your trading service is not configured on the system.\n\nPlease contact customer support to set up your trading service.\n\n${formatStatusMessage(serviceStatus)}`);
-            toast({
-              title: "Service Not Configured",
-              description: "Please contact customer support to set up your trading service",
-              variant: "warning"
-            });
-          }
-          // Case 2: Configured but stopped (inactive + enabled)
-          else if (serviceStatus.active === "inactive" && serviceStatus.enabled === "enabled") {
-            setStatus("stopped");
-            setResults(`Your trading service is configured but not running.\n\nYou can start it using the Start button above.\n\n${formatStatusMessage(serviceStatus)}`);
-            toast({
-              title: "Service Stopped",
-              description: "Your service is configured and ready to start",
-            });
-          }
-          // Case 3: Configured and running (active + enabled)
-          else if (serviceStatus.active === "active" && serviceStatus.enabled === "enabled") {
+          // Check status based on runStatus
+          if (serviceStatus.runStatus === "active") {
             setStatus("running");
             setResults(`Your trading service is running successfully.\n\n${formatStatusMessage(serviceStatus)}`);
             toast({
               title: "Service Running",
               description: "Your trading service is active and running",
             });
-          }
-          // Handle any unexpected combinations
-          else {
+          } else {
             setStatus("stopped");
-            setResults(`Unexpected service state detected.\n\n${formatStatusMessage(serviceStatus)}`);
+            setResults(`Your trading service is not running.\n\nYou can start it using the Start button above.\n\n${formatStatusMessage(serviceStatus)}`);
             toast({
-              title: "Unexpected Status",
-              description: "Service is in an unexpected state",
-              variant: "warning"
+              title: "Service Stopped",
+              description: "Your service is ready to start",
             });
           }
         } else {
