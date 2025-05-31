@@ -28,7 +28,7 @@ const signupSchema = z.object({
 });
 
 const resetPasswordSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  email: z.string().email({ message: "Please enter a valid email address" }).min(1, { message: "Email is required" }),
 });
 
 export const AuthPanel = () => {
@@ -134,6 +134,7 @@ export const AuthPanel = () => {
       });
 
       if (error) {
+        console.error("Password reset error:", error);
         toast({
           title: "Password Reset Failed",
           description: error.message,
@@ -146,8 +147,11 @@ export const AuthPanel = () => {
         });
         // Switch back to login form
         setShowResetForm(false);
+        // Reset the form
+        resetPasswordForm.reset();
       }
     } catch (error: any) {
+      console.error("Password reset error:", error);
       toast({
         title: "Password Reset Error",
         description: error.message || "An unexpected error occurred",
