@@ -33,7 +33,8 @@ const resetPasswordSchema = z.object({
 
 export const AuthPanel = () => {
   const [authLoading, setAuthLoading] = useState(false);
-  const [authTab, setAuthTab] = useState<"login" | "signup" | "reset">("login");
+  const [authTab, setAuthTab] = useState<"login" | "signup">("login");
+  const [showResetForm, setShowResetForm] = useState(false);
   const { toast } = useToast();
 
   // Initialize forms
@@ -143,8 +144,8 @@ export const AuthPanel = () => {
           title: "Password Reset Email Sent",
           description: "Please check your email for the password reset link.",
         });
-        // Switch back to login tab
-        setAuthTab("login");
+        // Switch back to login form
+        setShowResetForm(false);
       }
     } catch (error: any) {
       toast({
@@ -166,54 +167,102 @@ export const AuthPanel = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs value={authTab} onValueChange={(v) => setAuthTab(v as "login" | "signup" | "reset")}>
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs value={authTab} onValueChange={(v) => setAuthTab(v as "login" | "signup")}>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="signup">Sign up</TabsTrigger>
-            <TabsTrigger value="reset">Reset</TabsTrigger>
           </TabsList>
           <TabsContent value="login">
-            <Form {...loginForm}>
-              <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4 mt-4">
-                <FormField
-                  control={loginForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="your.email@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={loginForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={authLoading}>
-                  {authLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="mr-2 h-4 w-4" /> Login with Email
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Form>
+            {!showResetForm ? (
+              <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4 mt-4">
+                  <FormField
+                    control={loginForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="your.email@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="••••••••" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowResetForm(true)}
+                      className="text-sm text-primary hover:text-primary/90 transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <Button type="submit" className="w-full" disabled={authLoading}>
+                    {authLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="mr-2 h-4 w-4" /> Login with Email
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            ) : (
+              <Form {...resetPasswordForm}>
+                <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-4 mt-4">
+                  <FormField
+                    control={resetPasswordForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="your.email@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-between items-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowResetForm(false)}
+                      className="text-sm text-primary hover:text-primary/90 transition-colors"
+                    >
+                      Back to login
+                    </button>
+                  </div>
+                  <Button type="submit" className="w-full" disabled={authLoading}>
+                    {authLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+                      </>
+                    ) : (
+                      <>
+                        <KeyRound className="mr-2 h-4 w-4" /> Reset Password
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            )}
           </TabsContent>
           <TabsContent value="signup">
             <Form {...signupForm}>
@@ -265,36 +314,6 @@ export const AuthPanel = () => {
                   ) : (
                     <>
                       <MessageSquare className="mr-2 h-4 w-4" /> Create Account
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </TabsContent>
-          <TabsContent value="reset">
-            <Form {...resetPasswordForm}>
-              <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-4 mt-4">
-                <FormField
-                  control={resetPasswordForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="your.email@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={authLoading}>
-                  {authLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
-                    </>
-                  ) : (
-                    <>
-                      <KeyRound className="mr-2 h-4 w-4" /> Reset Password
                     </>
                   )}
                 </Button>
