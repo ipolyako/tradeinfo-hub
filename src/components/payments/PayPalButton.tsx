@@ -105,7 +105,7 @@ export const PayPalButton = ({
   const loadPayPalScript = async () => {
     try {
       console.log('Loading PayPal script...');
-      onStatusChange("loading");
+      // Don't set loading state here
       
       // Set a timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
