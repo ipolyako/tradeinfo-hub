@@ -288,7 +288,7 @@ Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Con
           <div className="flex flex-wrap gap-4 items-center mb-6">
             <Button 
               onClick={handleStart}
-              disabled={!isServiceOperational(status) || checkingStatus || isServiceRunning(status) || isStarting || isStopping}
+              disabled={checkingStatus || isStarting || isStopping || isServiceRunning(status)}
               className="flex items-center gap-2"
             >
               {isStarting ? (
@@ -300,7 +300,7 @@ Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Con
             </Button>
             <Button 
               onClick={handleStop}
-              disabled={!isServiceOperational(status) || checkingStatus || !isServiceRunning(status) || isStarting || isStopping}
+              disabled={checkingStatus || isStarting || isStopping || !isServiceRunning(status)}
               variant="destructive"
               className="flex items-center gap-2"
             >
