@@ -338,19 +338,24 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
           
           <div className="mt-4">
             <h3 className="text-lg font-medium mb-2">Results</h3>
-            <div className="bg-muted p-4 rounded-md h-[200px] overflow-y-auto font-mono text-sm whitespace-pre-line">
-              {checkingStatus || isStarting || isStopping ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>
-                    {checkingStatus ? "Checking current status..." :
-                     isStarting ? "Starting service..." :
-                     "Stopping service..."}
-                  </span>
-                </div>
-              ) : (
-                results
-              )}
+            <div className="bg-muted p-4 rounded-md h-[200px] overflow-y-auto">
+              <table className="w-full border-collapse">
+                <tbody>
+                  {results
+                    .split('\n')
+                    .filter(line => line.includes(':'))
+                    .map((line, idx) => {
+                      const [key, ...rest] = line.split(':');
+                      const value = rest.join(':').trim();
+                      return (
+                        <tr key={idx}>
+                          <td className="p-2 border font-medium">{key.trim()}</td>
+                          <td className="p-2 border">{value}</td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
             </div>
           </div>
         </CardContent>
