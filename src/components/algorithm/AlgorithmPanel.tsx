@@ -57,6 +57,13 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
 
   // Helper function to format status message
   const formatStatusMessage = (serviceStatus: ServiceStatus): string => {
+    const formattedAmount = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(parseFloat(serviceStatus.amount));
+
     const platformValue = serviceStatus.platform.includes('=') 
       ? serviceStatus.platform.split('=')[1] 
       : serviceStatus.platform;
@@ -64,6 +71,7 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
     return `Status: ${serviceStatus.runStatus === 'active' ? 'Running' : 'Stopped'}
 Trading Symbols: ${serviceStatus.symbols}
 Platform: ${platformValue}
+Trading Amount: ${formattedAmount}
 Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Configured' : 'Service is NOT configured'}`;
   };
 
@@ -316,15 +324,9 @@ Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Con
               )}
               {checkingStatus ? "Checking..." : "Check Status"}
             </Button>
-            
-            {tradingAmount && (
-              <div className="text-sm py-2 px-3 bg-muted rounded-md">
-                <span className="font-medium">Trading Amount:</span> {tradingAmount}
-              </div>
-            )}
 
             <div className="text-sm text-muted-foreground">
-              Click <strong>Check Status</strong> to view current service state
+              Click <strong>Check Status</strong> to view state
             </div>
           </div>
           
