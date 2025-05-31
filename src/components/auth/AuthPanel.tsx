@@ -150,6 +150,16 @@ export const AuthPanel = () => {
     setAuthLoading(true);
     try {
       console.log('Reset password form data:', formData); // Debug log
+      if (!formData.email) {
+        toast({
+          title: "Reset Failed",
+          description: "Please enter an email address",
+          variant: "destructive",
+        });
+        setAuthLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
         redirectTo: `${window.location.origin}/account`,
       });
@@ -261,10 +271,11 @@ export const AuthPanel = () => {
                         <FormControl>
                           <Input 
                             placeholder="your.email@example.com" 
-                            {...field} 
+                            {...field}
+                            value={field.value || ''}
                             onChange={(e) => {
                               console.log('Email input value:', e.target.value); // Debug log
-                              field.onChange(e);
+                              field.onChange(e.target.value);
                             }}
                           />
                         </FormControl>
@@ -277,7 +288,7 @@ export const AuthPanel = () => {
                       type="button"
                       onClick={() => {
                         setShowResetForm(false);
-                        resetPasswordForm.reset(); // Reset form when going back
+                        resetPasswordForm.reset();
                       }}
                       className="text-sm text-primary hover:text-primary/90 transition-colors"
                     >
