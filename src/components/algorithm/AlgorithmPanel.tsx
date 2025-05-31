@@ -57,13 +57,6 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
 
   // Helper function to format status message
   const formatStatusMessage = (serviceStatus: ServiceStatus): string => {
-    const formattedAmount = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(parseFloat(serviceStatus.amount));
-
     const platformValue = serviceStatus.platform.includes('=') 
       ? serviceStatus.platform.split('=')[1] 
       : serviceStatus.platform;
@@ -71,7 +64,6 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
     return `Status: ${serviceStatus.runStatus === 'active' ? 'Running' : 'Stopped'}
 Trading Symbols: ${serviceStatus.symbols}
 Platform: ${platformValue}
-Trading Amount: ${formattedAmount}
 Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Configured' : 'Service is NOT configured'}`;
   };
 
@@ -342,26 +334,34 @@ Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Con
           
           <div className="mt-4">
             <h3 className="text-lg font-medium mb-2">Results</h3>
-            {checkingStatus || isStarting || isStopping ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>
-                  {checkingStatus ? "Checking current status..." :
-                   isStarting ? "Starting service..." :
-                   "Stopping service..."}
-                </span>
-              </div>
-            ) : (
-              <div className="bg-muted p-4 rounded-md h-[200px] overflow-y-auto">
-                <table className="min-w-full text-sm">
-                  <tbody>
-                    {results
+            <div className="bg-muted p-4 rounded-md">
+              <table className="min-w-full text-sm">
+                <tbody>
+                  {checkingStatus || isStarting || isStopping ? (
+                    <tr>
+                      <td colSpan={2} className="py-2">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>
+                            {checkingStatus ? "Checking current status..." :
+                             isStarting ? "Starting service..." :
+                             "Stopping service..."}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : results === "Click the Status button to check your bot status." ? (
+                    <tr>
+                      <td colSpan={2} className="py-2 text-center text-muted-foreground">
+                        Click the <strong>Check Status</strong> button to get the current status of your trading service
+                      </td>
+                    </tr>
+                  ) : (
+                    results
                       .split('\n')
                       .filter(line => line.includes(':'))
                       .map((line, idx) => {
-                        // Remove bullets and ASCII formatting
-                        let cleanLine = line.replace(/^[-•\s]+/, '').replace(/[•\-]/g, '').trim();
-                        const [key, ...rest] = cleanLine.split(':');
+                        const [key, ...rest] = line.split(':');
                         const value = rest.join(':').trim();
                         return (
                           <tr key={idx} className="even:bg-muted/50">
@@ -369,11 +369,11 @@ Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Con
                             <td className="py-2 text-foreground break-all align-top">{value}</td>
                           </tr>
                         );
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                      })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </CardContent>
       </Card>
