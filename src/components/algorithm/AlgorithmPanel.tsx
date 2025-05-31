@@ -19,9 +19,10 @@ interface UserProfile {
 interface ServiceStatus {
   active: string;
   enabled: string;
-  pid: string;
   service: string;
   amount: string;
+  platform: string;
+  symbols: string;
 }
 
 interface AlgorithmPanelProps {
@@ -54,7 +55,20 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
 
   // Helper function to format status message
   const formatStatusMessage = (serviceStatus: ServiceStatus): string => {
-    return `Current Status:\n• Service: ${serviceStatus.service}\n• Status: ${serviceStatus.active}\n• Enabled: ${serviceStatus.enabled}\n• Trading Amount: ${serviceStatus.amount}${serviceStatus.pid !== "0" ? `\n• Process ID: ${serviceStatus.pid}` : ""}`;
+    const formattedAmount = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(parseFloat(serviceStatus.amount));
+
+    return `Current Status:
+• Service: ${serviceStatus.service}
+• Platform: ${serviceStatus.platform}
+• Trading Amount: ${formattedAmount}
+• Trading Symbols: ${serviceStatus.symbols}
+• Status: ${serviceStatus.active}
+• Enabled: ${serviceStatus.enabled}`;
   };
 
   // Check bot status function
