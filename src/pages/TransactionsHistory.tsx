@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Navigation } from "@/components/Navigation";
 import { ArrowLeft, Calendar } from "lucide-react";
@@ -20,7 +19,7 @@ const TransactionsHistory = () => {
   } = useTransactions();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-container bg-background">
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-8 sm:pb-16">
