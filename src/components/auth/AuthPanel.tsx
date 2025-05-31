@@ -138,6 +138,7 @@ export const AuthPanel = () => {
   const handleResetPassword = async (formData: z.infer<typeof resetPasswordSchema>) => {
     setAuthLoading(true);
     try {
+      console.log('Reset password form data:', formData); // Debug log
       const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
         redirectTo: `${window.location.origin}/account`,
       });
@@ -247,7 +248,14 @@ export const AuthPanel = () => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="your.email@example.com" {...field} />
+                          <Input 
+                            placeholder="your.email@example.com" 
+                            {...field} 
+                            onChange={(e) => {
+                              console.log('Email input value:', e.target.value); // Debug log
+                              field.onChange(e);
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -256,7 +264,10 @@ export const AuthPanel = () => {
                   <div className="flex justify-between items-center">
                     <button
                       type="button"
-                      onClick={() => setShowResetForm(false)}
+                      onClick={() => {
+                        setShowResetForm(false);
+                        resetPasswordForm.reset(); // Reset form when going back
+                      }}
                       className="text-sm text-primary hover:text-primary/90 transition-colors"
                     >
                       Back to login
