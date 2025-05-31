@@ -18,9 +18,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 
-// Updated pricing tiers based on new structure
+// Updated pricing tiers - removed free trial entry
 export const pricingTiers = [
-  { min: 0, max: 0, price: 0, quantity: 5, planId: "P-62G67528SN204230HNAXCOEA", name: "Free Trial" },
   { min: 0, max: 50000, price: 299, quantity: 10, planId: "P-2LN24458P3063750MNA5FU4I", name: "Under $50K" },
   { min: 50000, max: 100000, price: 499, quantity: 50010, planId: "P-2JJ50763U74147002NA5FQ7Y", name: "$50K-$100K" },
   { min: 100000, max: 150000, price: 649, quantity: 100010, planId: "P-71071581B37302743NA5FSDI", name: "$100K-$150K" },
@@ -46,8 +45,6 @@ export const getAccountBalanceText = (tierIndex: number): string => {
   if (!tier) return "under $50,000";
   
   if (tierIndex === 0) {
-    return "Free Trial";
-  } else if (tierIndex === 1) {
     return `Under $${tier.max.toLocaleString()}`;
   } else {
     return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
@@ -68,7 +65,7 @@ export const PayPalButton = ({
   className,
   accountValue = 0
 }: PayPalButtonProps) => {
-  // Always default to the free trial (index 0) as the first option
+  // Default to the first tier (index 0) instead of free trial
   const defaultTierIndex = 0;
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [scriptError, setScriptError] = useState(false);
@@ -92,7 +89,7 @@ export const PayPalButton = ({
   // Get account balance display text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
     ? getAccountBalanceText(selectedTier)
-    : "Free Trial"; // Default to free trial text
+    : "Under $50,000"; // Default to first tier text
   
   const refreshPayPalContainer = () => {
     console.log('Refreshing PayPal container...');
@@ -346,6 +343,12 @@ export const PayPalButton = ({
           </div>
           
           <div className="mt-4">
+            <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800 font-medium">
+                🎁 All plans include a 5-day free trial period
+              </p>
+            </div>
+            
             <label htmlFor="tier-select" className="text-sm font-medium mb-2 block">
               Select your pricing tier:
             </label>
@@ -365,9 +368,7 @@ export const PayPalButton = ({
                 <SelectGroup>
                   {pricingTiers.map((tier, index) => (
                     <SelectItem key={index} value={index.toString()}>
-                      {index === 0 ? 
-                        `Free Trial: $${tier.price}/mo` : 
-                        `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}: $${tier.price}/mo`}
+                      $${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}: $${tier.price}/mo
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -378,9 +379,7 @@ export const PayPalButton = ({
           <div className="flex justify-between items-center mt-4">
             <span>Monthly subscription:</span>
             <span className="font-bold text-primary">
-              {currentPrice === 0 ? 
-                "Free Trial" :
-                `$${currentPrice.toLocaleString()}/month`}
+              $${currentPrice.toLocaleString()}/month
             </span>
           </div>
         </div>
