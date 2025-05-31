@@ -68,11 +68,10 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
       ? serviceStatus.platform.split('=')[1] 
       : serviceStatus.platform;
 
-    return `Service: ${serviceStatus.service}
+    return `Status: ${serviceStatus.runStatus === 'active' ? 'Running' : 'Stopped'}
+Trading Symbols: ${serviceStatus.symbols}
 Platform: ${platformValue}
 Trading Amount: ${formattedAmount}
-Trading Symbols: ${serviceStatus.symbols}
-Status: ${serviceStatus.runStatus === 'active' ? 'Running' : 'Stopped'}
 Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Configured' : 'Service is NOT configured'}`;
   };
 
