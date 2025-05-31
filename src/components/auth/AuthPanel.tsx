@@ -149,45 +149,34 @@ export const AuthPanel = () => {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!resetEmail) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setAuthLoading(true);
     try {
-      console.log('Reset password email:', resetEmail); // Debug log
-      if (!resetEmail) {
-        toast({
-          title: "Reset Failed",
-          description: "Please enter an email address",
-          variant: "destructive",
-        });
-        setAuthLoading(false);
-        return;
-      }
-
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/account`,
+        redirectTo: `${window.location.origin}/reset-password?type=recovery`,
       });
 
       if (error) {
-        console.error("Password reset error:", error);
-        toast({
-          title: "Password Reset Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Password Reset Email Sent",
-          description: "Please check your email for the password reset link.",
-        });
-        // Switch back to login form
-        setShowResetForm(false);
-        // Reset the form
-        setResetEmail("");
+        throw error;
       }
-    } catch (error: any) {
-      console.error("Password reset error:", error);
+
       toast({
-        title: "Password Reset Error",
-        description: error.message || "An unexpected error occurred",
+        title: "Reset Email Sent",
+        description: "Please check your email for the password reset link.",
+      });
+      setResetEmail("");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred while sending the reset email.",
         variant: "destructive",
       });
     } finally {
@@ -273,8 +262,9 @@ export const AuthPanel = () => {
                     placeholder="your.email@example.com"
                     value={resetEmail}
                     onChange={(e) => {
-                      console.log('Email input value:', e.target.value); // Debug log
-                      setResetEmail(e.target.value);
+                      const newValue = e.target.value;
+                      console.log('Email input changed:', newValue);
+                      setResetEmail(newValue);
                     }}
                   />
                 </div>

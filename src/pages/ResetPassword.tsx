@@ -26,8 +26,8 @@ const ResetPassword = () => {
         const { data: { session } } = await supabase.auth.getSession();
         const type = searchParams.get('type');
         
-        // If we don't have a session or the type is not 'recovery', redirect to login
-        if (!session || type !== 'recovery') {
+        // If we don't have a session, redirect to login
+        if (!session) {
           toast({
             title: "Invalid Reset Link",
             description: "This password reset link is invalid or has expired. Please request a new password reset link.",
@@ -36,6 +36,30 @@ const ResetPassword = () => {
           navigate("/account");
           return;
         }
+
+        // If we have a session but no type parameter, we need to check if this is a password reset
+        if (!type) {
+          // Check if the user was redirected from a password reset email
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user?.app_metadata?.provider === 'email') {
+            // This is likely a password reset flow
+            setVerifying(false);
+            return;
+          }
+        }
+
+        // If we have a type parameter, it should be 'recovery'
+        if (type && type !== 'recovery') {
+          toast({
+            title: "Invalid Reset Link",
+            description: "This password reset link is invalid. Please request a new password reset link.",
+            variant: "destructive",
+          });
+          navigate("/account");
+          return;
+        }
+
+        setVerifying(false);
       } catch (error) {
         console.error("Session check error:", error);
         toast({
@@ -44,8 +68,6 @@ const ResetPassword = () => {
           variant: "destructive",
         });
         navigate("/account");
-      } finally {
-        setVerifying(false);
       }
     };
 
