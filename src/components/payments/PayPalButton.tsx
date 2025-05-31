@@ -20,10 +20,10 @@ import { Label } from "@/components/ui/label";
 
 // Updated pricing tiers - removed free trial entry
 export const pricingTiers = [
-  { min: 0, max: 50000, price: 299, quantity: 10, planId: "P-2LN24458P3063750MNA5FU4I", name: "Under $50K", trialPrice: 1 },
-  { min: 50001, max: 100000, price: 499, quantity: 50010, planId: "P-2JJ50763U74147002NA5FQ7Y", name: "$50K-$100K", trialPrice: 1 },
-  { min: 100001, max: 150000, price: 649, quantity: 100010, planId: "P-71071581B37302743NA5FSDI", name: "$100K-$150K", trialPrice: 1 },
-  { min: 150001, max: 200000, price: 749, quantity: 150010, planId: "P-6GX390096C7239045NA5FS3Q", name: "$150K-$200K", trialPrice: 1 }
+  { min: 0, max: 50000, price: 299, quantity: 10, planId: "P-2LN24458P3063750MNA5FU4I", name: "$0-$50K", trialPrice: 1 },
+  { min: 50001, max: 100000, price: 499, quantity: 50010, planId: "P-2JJ50763U74147002NA5FQ7Y", name: "$50,001-$100K", trialPrice: 1 },
+  { min: 100001, max: 150000, price: 649, quantity: 100010, planId: "P-71071581B37302743NA5FSDI", name: "$100,001-$150K", trialPrice: 1 },
+  { min: 150001, max: 200000, price: 749, quantity: 150010, planId: "P-6GX390096C7239045NA5FS3Q", name: "$150,001-$200K", trialPrice: 1 }
 ];
 
 // Get the quantity value for a specific tier
@@ -42,12 +42,12 @@ export const getPriceForAccount = (accountValue: number): number => {
 // Function to get display text for account balance range
 export const getAccountBalanceText = (tierIndex: number): string => {
   const tier = pricingTiers[tierIndex];
-  if (!tier) return "under $50,000";
+  if (!tier) return "$0-$50,000";
   
   if (tierIndex === 0) {
-    return `Under $${tier.max.toLocaleString()}`;
+    return `$${tier.min.toLocaleString()}-$${tier.max.toLocaleString()}`;
   } else {
-    return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
+    return `$${tier.min.toLocaleString()}-$${tier.max.toLocaleString()}`;
   }
 };
 
@@ -89,7 +89,7 @@ export const PayPalButton = ({
   // Get account balance display text based on selected tier
   const accountBalanceText = selectedTier !== undefined 
     ? getAccountBalanceText(selectedTier)
-    : "Under $50,000"; // Default to first tier text
+    : "$0-$50,000"; // Default to first tier text
   
   const refreshPayPalContainer = () => {
     console.log('Refreshing PayPal container...');
