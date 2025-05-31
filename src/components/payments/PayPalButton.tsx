@@ -326,7 +326,6 @@ export const PayPalButton = ({
             <Select 
               value={selectedTier?.toString() || defaultTierIndex.toString()} 
               onValueChange={handleTierChange}
-              disabled={!scriptLoaded || scriptError}
             >
               <SelectTrigger className="w-full" id="tier-select">
                 <SelectValue placeholder="Select pricing tier">
