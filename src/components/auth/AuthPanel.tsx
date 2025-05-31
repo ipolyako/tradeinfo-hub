@@ -42,14 +42,7 @@ const signupSchema = z.object({
 });
 
 const resetPasswordSchema = z.object({
-  email: z.string()
-    .min(1, { message: "Email is required" })
-    .refine((email) => {
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      const isValid = emailRegex.test(email);
-      console.log('Email validation:', { email, isValid }); // Debug log
-      return isValid;
-    }, { message: "Please enter a valid email address" }),
+  email: z.string(),
 });
 
 export const AuthPanel = () => {
