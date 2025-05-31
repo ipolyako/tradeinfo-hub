@@ -350,6 +350,12 @@ Deployment Status: ${serviceStatus.deploymentStatus === 'enabled' ? 'Service Con
                         </div>
                       </td>
                     </tr>
+                  ) : results === "Click the Status button to check your bot status." ? (
+                    <tr>
+                      <td colSpan={2} className="py-2 text-center text-muted-foreground">
+                        Click <strong>Check Status</strong> to view current service state
+                      </td>
+                    </tr>
                   ) : (
                     results
                       .split('\n')
