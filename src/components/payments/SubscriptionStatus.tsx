@@ -131,29 +131,24 @@ export const SubscriptionStatus = ({
           </Alert>
         )}
         
-        {isActive ? (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Your algorithmic trading subscription is active. View your payment history and manage your subscription from the Payments page.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link to="/payments">
-                <Button variant="secondary" className="w-full sm:w-auto bg-blue-100 hover:bg-blue-200 text-blue-700">Manage Subscription</Button>
-              </Link>
-            </div>
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {isActive 
+              ? "Your algorithmic trading subscription is active. View your payment history and manage your subscription from the Payments page."
+              : "Subscribe to our algorithmic trading service to access all features."
+            }
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link to="/payments">
+              <Button 
+                variant={isActive ? "secondary" : "default"}
+                className={isActive ? "w-full sm:w-auto bg-blue-100 hover:bg-blue-200 text-blue-700" : "w-full sm:w-auto"}
+              >
+                {isActive ? "Manage Subscription" : "Subscribe Now"}
+              </Button>
+            </Link>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Subscribe to our algorithmic trading service to access all features.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link to="/payments">
-                <Button className="w-full sm:w-auto">Subscribe Now</Button>
-              </Link>
-            </div>
-          </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
