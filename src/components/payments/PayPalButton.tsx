@@ -135,137 +135,150 @@ export const PayPalButton = ({
     }
   };
   
-  // Render buttons when script is loaded or when selected tier changes
-  useEffect(() => {
-    let mounted = true;
+  const renderPayPalButtons = () => {
+    if (!window.paypal || !containerRef.current) {
+      console.error('PayPal SDK not loaded or container not found');
+      setScriptError(true);
+      return;
+    }
     
-    const initializeButtons = async () => {
-      if (!scriptLoaded || !window.paypal || scriptError || !mounted) return;
+    try {
+      console.log('Rendering PayPal buttons...');
+      // Clear any previous buttons to ensure clean rendering
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+      }
       
-      try {
-        console.log('Initializing PayPal buttons...');
-        // Clear any existing buttons
-        if (containerRef.current) {
-          containerRef.current.innerHTML = '';
-        }
-        
-        // Get the current tier's plan ID
-        const chosenTierIndex = selectedTier !== undefined ? selectedTier : defaultTierIndex;
-        const tier = pricingTiers[chosenTierIndex >= 0 ? chosenTierIndex : 0];
-        
-        // Define button config
-        const buttonConfig: PayPalButtonConfig = {
-          style: {
-            shape: "rect",
-            color: "silver",
-            layout: "vertical",
-            label: "subscribe"
-          },
-          createSubscription: function(data, actions) {
-            return actions.subscription.create({
-              plan_id: tier.planId,
-              custom_id: `tier_${chosenTierIndex + 1}_price_${tier.price}`,
-              application_context: {
-                shipping_preference: 'NO_SHIPPING'
-              }
-            });
-          },
-          onApprove: async function(data) {
-            console.log("Subscription successful:", data.subscriptionID);
-            try {
-              const { data: { user } } = await supabase.auth.getUser();
-              if (!user) throw new Error("User not authenticated");
-              
-              const { error: insertError } = await supabase
-                .from('subscriptions')
-                .insert({
-                  user_id: user.id,
-                  paypal_subscription_id: data.subscriptionID,
-                  status: 'ACTIVE',
-                  plan_id: tier.planId,
-                  tier: chosenTierIndex,
-                  price: tier.price,
-                  last_payment_date: new Date().toISOString()
-                });
-                
-              if (insertError) throw insertError;
-              
-              toast({
-                title: "Subscription Successful",
-                description: "Your subscription has been processed and saved to your account.",
-              });
-              
-              onStatusChange("success");
-              onSubscriptionUpdate(true, chosenTierIndex);
-            } catch (error) {
-              console.error("Error processing subscription:", error);
-              toast({
-                title: "Subscription Processed",
-                description: "Your PayPal subscription was processed, but we had trouble updating your account. Please contact support if you don't see your subscription active.",
-                variant: "destructive",
-              });
+      // Get the current tier's plan ID
+      const chosenTierIndex = selectedTier !== undefined ? selectedTier : defaultTierIndex;
+      const tier = pricingTiers[chosenTierIndex >= 0 ? chosenTierIndex : 0];
+      
+      // Define button config with proper TypeScript types
+      const buttonConfig: PayPalButtonConfig = {
+        style: {
+          shape: "rect",
+          color: "silver",
+          layout: "vertical",
+          label: "subscribe"
+        },
+        createSubscription: function(data, actions) {
+          return actions.subscription.create({
+            plan_id: tier.planId,
+            custom_id: `tier_${chosenTierIndex + 1}_price_${tier.price}`,
+            application_context: {
+              shipping_preference: 'NO_SHIPPING'
             }
-          },
-          onError: (err: any) => {
-            console.error("PayPal error:", err);
+          });
+        },
+        onApprove: async function(data) {
+          console.log("Subscription successful:", data.subscriptionID);
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("User not authenticated");
+            
+            const { error: insertError } = await supabase
+              .from('subscriptions')
+              .insert({
+                user_id: user.id,
+                paypal_subscription_id: data.subscriptionID,
+                status: 'ACTIVE',
+                plan_id: tier.planId,
+                tier: chosenTierIndex,
+                price: tier.price,
+                last_payment_date: new Date().toISOString()
+              });
+              
+            if (insertError) throw insertError;
+            
             toast({
-              title: "Subscription Failed",
-              description: "There was an issue processing your subscription.",
+              title: "Subscription Successful",
+              description: "Your subscription has been processed and saved to your account.",
+            });
+            
+            onStatusChange("success");
+            onSubscriptionUpdate(true, chosenTierIndex);
+          } catch (error) {
+            console.error("Error processing subscription:", error);
+            toast({
+              title: "Subscription Processed",
+              description: "Your PayPal subscription was processed, but we had trouble updating your account. Please contact support if you don't see your subscription active.",
               variant: "destructive",
             });
-            setScriptError(true);
-            onStatusChange("failed");
-          },
-          onCancel: () => {
-            console.log("Subscription cancelled");
-            onStatusChange("idle");
-            toast({
-              title: "Subscription Cancelled",
-              description: "You've cancelled the subscription process.",
-            });
           }
-        };
-        
-        // Render buttons
-        const rendered = window.paypal.Buttons(buttonConfig);
-        if (rendered.isEligible()) {
-          await rendered.render(`#${containerId}`);
-          if (mounted) {
-            console.log('PayPal buttons rendered successfully');
-            setPaypalButtonsVisible(true);
-          }
-        } else {
-          console.error('PayPal buttons are not eligible for rendering');
-          if (mounted) {
-            setScriptError(true);
-            onStatusChange("failed");
-          }
-        }
-      } catch (err) {
-        console.error("Failed to initialize PayPal buttons:", err);
-        if (mounted) {
-          onStatusChange("failed");
-          setScriptError(true);
+        },
+        onError: (err: any) => {
+          console.error("PayPal error:", err);
           toast({
-            title: "PayPal Error",
-            description: "Could not initialize subscription system. Please try again.",
+            title: "Subscription Failed",
+            description: "There was an issue processing your subscription.",
             variant: "destructive",
           });
+          setScriptError(true);
+          onStatusChange("failed");
+        },
+        onCancel: () => {
+          console.log("Subscription cancelled");
+          onStatusChange("idle");
+          toast({
+            title: "Subscription Cancelled",
+            description: "You've cancelled the subscription process.",
+          });
         }
+      };
+      
+      // Render buttons
+      const rendered = window.paypal.Buttons(buttonConfig);
+      if (rendered.isEligible()) {
+        rendered.render(`#${containerId}`);
+        console.log('PayPal buttons rendered successfully');
+        setPaypalButtonsVisible(true);
+      } else {
+        console.error('PayPal buttons are not eligible for rendering');
+        setScriptError(true);
+        onStatusChange("failed");
       }
-    };
+    } catch (err) {
+      console.error("Failed to initialize PayPal buttons:", err);
+      onStatusChange("failed");
+      setScriptError(true);
+      toast({
+        title: "PayPal Error",
+        description: "Could not initialize subscription system. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
-    // Add delay to ensure DOM is ready
-    const delay = isMobile ? 800 : 300;
-    const timer = setTimeout(initializeButtons, delay);
+  // Load PayPal script on component mount
+  useEffect(() => {
+    console.log('PayPal button component mounting...');
+    loadPayPalScript();
     
     return () => {
-      mounted = false;
-      clearTimeout(timer);
+      console.log('PayPal button component unmounting');
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
       }
     };
+  }, []);
+
+  // Render buttons when script is loaded or when selected tier changes
+  useEffect(() => {
+    if (scriptLoaded && window.paypal && !scriptError) {
+      console.log('Script loaded, rendering buttons...');
+      // Add delay to ensure DOM is ready, longer on mobile
+      const delay = isMobile ? 800 : 200;
+      const timer = setTimeout(() => {
+        renderPayPalButtons();
+      }, delay);
+      
+      return () => {
+        clearTimeout(timer);
+        if (containerRef.current) {
+          containerRef.current.innerHTML = '';
+        }
+      };
+    }
   }, [scriptLoaded, selectedTier, isMobile]);
 
   const handleTierChange = (value: string) => {
