@@ -318,12 +318,18 @@ export const PayPalButton = ({
   const handleTierChange = (value: string) => {
     console.log('Tier changed to:', value);
     const tierIndex = parseInt(value, 10);
+    
+    // Prevent unnecessary re-renders if the tier hasn't changed
+    if (selectedTier === tierIndex) return;
+    
     setSelectedTier(tierIndex);
-    // Re-render PayPal buttons with new quantity
-    if (scriptLoaded && !scriptError) {
-      // Hide PayPal buttons during re-render
-      setPaypalButtonsVisible(false);
-      renderPayPalButtons();
+    
+    // Only re-render PayPal buttons if they're already loaded and visible
+    if (scriptLoaded && !scriptError && paypalButtonsVisible) {
+      // Add a small delay before re-rendering to ensure smooth UI
+      setTimeout(() => {
+        renderPayPalButtons();
+      }, 100);
     }
   };
 
@@ -355,6 +361,7 @@ export const PayPalButton = ({
             <Select 
               value={selectedTier?.toString() || defaultTierIndex.toString()} 
               onValueChange={handleTierChange}
+              disabled={!scriptLoaded || scriptError}
             >
               <SelectTrigger className="w-full" id="tier-select">
                 <SelectValue placeholder="Select pricing tier" />
@@ -368,7 +375,7 @@ export const PayPalButton = ({
                 <SelectGroup>
                   {pricingTiers.map((tier, index) => (
                     <SelectItem key={index} value={index.toString()}>
-                      $${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}: $${tier.price}/mo
+                      ${tier.min.toLocaleString()} - ${tier.max.toLocaleString()}: ${tier.price}/mo
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -378,8 +385,8 @@ export const PayPalButton = ({
           
           <div className="flex justify-between items-center mt-4">
             <span>Monthly subscription:</span>
-            <span className="font-bold text-primary">
-              $${currentPrice.toLocaleString()}/month
+            <span className="font-bold">
+              ${currentPrice.toLocaleString()}/month
             </span>
           </div>
         </div>
