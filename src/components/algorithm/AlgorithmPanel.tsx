@@ -29,9 +29,11 @@ interface AlgorithmPanelProps {
   userProfile: UserProfile | null;
 }
 
+type ServiceState = "idle" | "running" | "stopped" | "not_configured";
+
 export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) => {
   const [results, setResults] = useState<string>("Click the Status button to check your bot status.");
-  const [status, setStatus] = useState<"idle" | "running" | "stopped">("idle");
+  const [status, setStatus] = useState<ServiceState>("idle");
   const [checkingStatus, setCheckingStatus] = useState(false);
   const [tradingAmount, setTradingAmount] = useState<string>("");
   const { toast } = useToast();
@@ -60,31 +62,39 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
         // Set the trading amount from the response
         setTradingAmount(serviceStatus.amount || "N/A");
         
-        if (serviceStatus.active === "failed") {
-          setStatus("stopped");
-          setResults(`Bot is currently not running.\nYou can start it using the Start button.`);
+        if (serviceStatus.active === "inactive" || serviceStatus.enabled === "disabled") {
+          setStatus("not_configured");
+          setResults(`Your trading service is not configured on the system.\n\nPlease contact customer support to set up your trading service.\n\nCurrent Status:\n• Service: ${serviceStatus.service}\n• Status: ${serviceStatus.active}\n• Enabled: ${serviceStatus.enabled}\n• Trading Amount: ${serviceStatus.amount}`);
           toast({
-            title: "Bot Status",
-            description: "Bot is currently not running",
+            title: "Service Not Configured",
+            description: "Please contact customer support to set up your trading service",
+            variant: "warning"
+          });
+        } else if (serviceStatus.active === "failed") {
+          setStatus("stopped");
+          setResults(`Your trading service is not running.\n\nYou can start it using the Start button above.\n\nCurrent Status:\n• Service: ${serviceStatus.service}\n• Status: ${serviceStatus.active}\n• Enabled: ${serviceStatus.enabled}\n• Trading Amount: ${serviceStatus.amount}`);
+          toast({
+            title: "Service Not Running",
+            description: "You can start the service using the Start button",
             variant: "warning"
           });
         } else {
           setStatus("running");
-          setResults(`Bot is currently running.\nService: ${serviceStatus.service}\nEnabled: ${serviceStatus.enabled}\nTrading Amount: ${serviceStatus.amount}`);
+          setResults(`Your trading service is running successfully.\n\nCurrent Status:\n• Service: ${serviceStatus.service}\n• Status: ${serviceStatus.active}\n• Enabled: ${serviceStatus.enabled}\n• Trading Amount: ${serviceStatus.amount}`);
           toast({
-            title: "Bot Status",
-            description: "Bot is currently running",
+            title: "Service Running",
+            description: "Your trading service is active and running",
           });
         }
       } else {
         // If response isn't in expected format
-        setResults(`API Response: ${responseStr}\n\nUnable to determine bot status from response.`);
+        setResults(`Unable to determine service status.\n\nReceived response:\n${responseStr}`);
       }
     } else {
-      setResults("Failed to check bot status. Verify your trader service configuration and try again.");
+      setResults("Unable to check service status. Please verify your connection and try again.");
       toast({
-        title: "Status Check Failed",
-        description: "Unable to connect to your trading service",
+        title: "Connection Error",
+        description: "Unable to connect to the trading service",
         variant: "warning"
       });
     }
@@ -92,26 +102,36 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
 
   const handleStart = async () => {
     setStatus("running");
-    setResults("Algorithm started. Processing market data...");
+    setResults("Starting your trading service...");
     
     // Call the start endpoint with POST method
     const apiResponse = await traderAPI.callAPI("start", "POST");
     if (apiResponse) {
-      setResults(`API Response: ${JSON.stringify(apiResponse)}`);
-      // After starting, check status again to update UI
-      setTimeout(() => checkBotStatus(), 2000);
+      if (typeof apiResponse === 'object' && apiResponse.action === "started") {
+        setResults(`Trading service started successfully.\n\nService: ${apiResponse.service}\nAction: ${apiResponse.action}`);
+        toast({
+          title: "Service Started",
+          description: "Your trading service has been started successfully",
+        });
+        // After starting, check status again to update UI
+        setTimeout(() => checkBotStatus(), 2000);
+      } else {
+        setResults(`Unexpected response from service:\n${JSON.stringify(apiResponse, null, 2)}`);
+        toast({
+          title: "Start Response Error",
+          description: "Received unexpected response from service",
+          variant: "warning"
+        });
+      }
     } else {
+      setStatus("stopped");
+      setResults("Failed to start trading service. Please try again.");
       toast({
         title: "Start Failed",
-        description: "Unable to start trading algorithm",
+        description: "Unable to start trading service",
         variant: "destructive"
       });
     }
-    
-    toast({
-      title: "Algorithm Started",
-      description: "Your trading algorithm is now running",
-    });
   };
 
   const handleStop = async () => {
@@ -153,7 +173,7 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
           <div className="flex flex-wrap gap-4 items-center mb-6">
             <Button 
               onClick={handleStart}
-              disabled={status === "running" || checkingStatus}
+              disabled={status === "running" || checkingStatus || status === "not_configured"}
               className="flex items-center gap-2"
             >
               <Play className="h-4 w-4" />
@@ -161,7 +181,7 @@ export const AlgorithmPanel = ({ session, userProfile }: AlgorithmPanelProps) =>
             </Button>
             <Button 
               onClick={handleStop}
-              disabled={status !== "running" || checkingStatus}
+              disabled={status !== "running" || checkingStatus || status === "not_configured"}
               variant="destructive"
               className="flex items-center gap-2"
             >
