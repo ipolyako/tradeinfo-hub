@@ -5,6 +5,7 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { mockCancelSubscription } from "@/functions/cancel-subscription";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SubscriptionStatusProps {
   subscriptionId?: string;
@@ -47,6 +48,29 @@ export const SubscriptionStatus = ({
     setWarning(null);
     
     try {
+      // First check the database status
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsActive(false);
+        return;
+      }
+
+      const { data: subscriptionData, error: dbError } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('paypal_subscription_id', subscriptionId)
+        .single();
+
+      if (dbError) {
+        console.error("Error checking subscription in database:", dbError);
+      } else if (subscriptionData?.status === 'ACTIVE') {
+        setIsActive(true);
+        setPaypalStatus('ACTIVE');
+        setCheckingStatus(false);
+        return;
+      }
+
+      // If database check fails or shows inactive, fall back to PayPal check
       const response = await mockCancelSubscription(subscriptionId, { action: 'check' });
       
       if (response.success) {
