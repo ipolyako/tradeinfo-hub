@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -19,12 +18,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 
-// Define pricing tiers based on the subscription structure
+// Updated pricing tiers based on new structure
 export const pricingTiers = [
   { min: 0, max: 0, price: 0, quantity: 5, planId: "P-62G67528SN204230HNAXCOEA", name: "Free Trial" },
-  { min: 25000, max: 50000, price: 150, quantity: 10, planId: PLAN_IDS.TIER_1 },
-  { min: 50001, max: 100000, price: 200, quantity: 50010, planId: PLAN_IDS.TIER_2 },
-  { min: 100001, max: 200000, price: 300, quantity: 100010, planId: PLAN_IDS.TIER_3 }
+  { min: 0, max: 50000, price: 299, quantity: 10, planId: "P-2LN24458P3063750MNA5FU4I", name: "Under $50K" },
+  { min: 50000, max: 100000, price: 499, quantity: 50010, planId: "P-2JJ50763U74147002NA5FQ7Y", name: "$50K-$100K" },
+  { min: 100000, max: 150000, price: 649, quantity: 100010, planId: "P-71071581B37302743NA5FSDI", name: "$100K-$150K" },
+  { min: 150000, max: 200000, price: 749, quantity: 150010, planId: "P-6GX390096C7239045NA5FS3Q", name: "$150K-$200K" }
 ];
 
 // Get the quantity value for a specific tier
@@ -34,21 +34,21 @@ export const getQuantityForTier = (tierIndex: number): number => {
   return tier.quantity;
 };
 
-// Get the price based on account value - always default to first tier ($150)
+// Get the price based on account value - always default to first tier ($299)
 export const getPriceForAccount = (accountValue: number): number => {
-  // Default to first paid tier price of $150
-  return 150;
+  // Default to first paid tier price of $299
+  return 299;
 };
 
 // Function to get display text for account balance range
 export const getAccountBalanceText = (tierIndex: number): string => {
   const tier = pricingTiers[tierIndex];
-  if (!tier) return "under $100,000";
+  if (!tier) return "under $50,000";
   
   if (tierIndex === 0) {
     return "Free Trial";
   } else if (tierIndex === 1) {
-    return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
+    return `Under $${tier.max.toLocaleString()}`;
   } else {
     return `$${tier.min.toLocaleString()} - $${tier.max.toLocaleString()}`;
   }
