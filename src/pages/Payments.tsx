@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { PaymentHeader } from "@/components/payments/PaymentHeader";
@@ -168,7 +167,7 @@ const Payments = () => {
   // If not logged in, already redirected in useAuthRedirect hook
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="page-container bg-background">
       <Navigation />
       
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
