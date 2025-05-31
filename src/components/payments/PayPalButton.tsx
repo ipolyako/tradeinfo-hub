@@ -311,9 +311,15 @@ export const PayPalButton = ({
         renderPayPalButtons();
       }, delay);
       
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        // Clean up PayPal container on unmount or re-render
+        if (containerRef.current) {
+          containerRef.current.innerHTML = '';
+        }
+      };
     }
-  }, [scriptLoaded, renderAttempts, isMobile, selectedTier]);
+  }, [scriptLoaded, renderAttempts, isMobile]);
 
   const handleTierChange = (value: string) => {
     console.log('Tier changed to:', value);
@@ -322,14 +328,21 @@ export const PayPalButton = ({
     // Prevent unnecessary re-renders if the tier hasn't changed
     if (selectedTier === tierIndex) return;
     
-    setSelectedTier(tierIndex);
+    // Clear the PayPal container before changing tier
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
     
-    // Only re-render PayPal buttons if they're already loaded and visible
-    if (scriptLoaded && !scriptError && paypalButtonsVisible) {
-      // Add a small delay before re-rendering to ensure smooth UI
+    setSelectedTier(tierIndex);
+    setPaypalButtonsVisible(false);
+    
+    // Only re-render PayPal buttons if they're already loaded
+    if (scriptLoaded && !scriptError) {
+      // Add a longer delay for desktop to ensure clean re-render
+      const delay = isMobile ? 100 : 300;
       setTimeout(() => {
         renderPayPalButtons();
-      }, 100);
+      }, delay);
     }
   };
 
