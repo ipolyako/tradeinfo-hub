@@ -170,10 +170,9 @@ export const AuthPanel = () => {
 
       toast({
         title: "Reset Email Sent",
-        description: "Please check your email for the password reset link. Click the link in the email to set your new password.",
+        description: "Please check your email for the password reset link.",
       });
       setResetEmail("");
-      setShowResetForm(false);
     } catch (error: any) {
       toast({
         title: "Error",
