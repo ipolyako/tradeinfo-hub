@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, User, List, History, CreditCard, WalletCards, LogOut } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Drawer,
   DrawerContent,
@@ -39,6 +39,7 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
   const [session, setSession] = useState<any>(null);
   const isMobile = useIsMobile();
   const location = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   // Check authentication status for navigation
@@ -79,6 +80,8 @@ export const Navigation = ({ onAccountClick }: NavigationProps) => {
             setIsDrawerOpen(false);
           }, 300);
         }
+        // Navigate to account page after successful logout
+        navigate('/account');
       }
     } catch (error) {
       console.error("Logout error:", error);
