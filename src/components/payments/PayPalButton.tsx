@@ -322,7 +322,7 @@ export const PayPalButton = ({
             
             <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-sm text-amber-800">
-                The minimum recommended account balance is $30,000. However, you can trade with a smaller amount - you are not required to use your entire available balance.
+                Irrespective of the tier you select, you can use a smaller portion of your account balance for trading. The tier selection is for pricing purposes only and does not require you to use your entire available balance.
               </p>
             </div>
             
