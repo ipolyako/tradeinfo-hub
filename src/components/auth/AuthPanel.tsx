@@ -202,15 +202,6 @@ export const AuthPanel = () => {
                       </FormItem>
                     )}
                   />
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setShowResetForm(true)}
-                      className="text-sm text-primary hover:text-primary/90 transition-colors"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
                   <Button type="submit" className="w-full" disabled={authLoading}>
                     {authLoading ? (
                       <>
@@ -222,6 +213,15 @@ export const AuthPanel = () => {
                       </>
                     )}
                   </Button>
+                  <div className="flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowResetForm(true)}
+                      className="text-sm text-primary hover:text-primary/90 transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                 </form>
               </Form>
             ) : (
