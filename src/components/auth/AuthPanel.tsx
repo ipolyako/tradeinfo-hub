@@ -71,9 +71,12 @@ export const AuthPanel = () => {
       });
 
       if (error) {
+        console.error("Login error:", error);
         toast({
           title: "Login Failed",
-          description: error.message,
+          description: error.message === "Invalid login credentials" 
+            ? "Invalid email or password. Please try again."
+            : error.message,
           variant: "destructive",
         });
       } else {
@@ -81,8 +84,11 @@ export const AuthPanel = () => {
           title: "Login Successful",
           description: "Welcome back!",
         });
+        // Reset the form after successful login
+        loginForm.reset();
       }
     } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: "Login Error",
         description: error.message || "An unexpected error occurred",
