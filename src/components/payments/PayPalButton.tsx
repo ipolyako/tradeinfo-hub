@@ -351,7 +351,7 @@ export const PayPalButton = ({
           <div className="mt-4">
             <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800 font-medium">
-                🎁 All plans include a 5-day free trial period
+                🎁 All plans include a 7-day free trial period
               </p>
             </div>
             
@@ -364,7 +364,11 @@ export const PayPalButton = ({
               disabled={!scriptLoaded || scriptError}
             >
               <SelectTrigger className="w-full" id="tier-select">
-                <SelectValue placeholder="Select pricing tier" />
+                <SelectValue placeholder="Select pricing tier">
+                  {selectedTier !== undefined && pricingTiers[selectedTier] && (
+                    `${pricingTiers[selectedTier].name}: $${pricingTiers[selectedTier].price}/mo`
+                  )}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent 
                 position="popper" 
@@ -375,7 +379,7 @@ export const PayPalButton = ({
                 <SelectGroup>
                   {pricingTiers.map((tier, index) => (
                     <SelectItem key={index} value={index.toString()}>
-                      ${tier.min.toLocaleString()} - ${tier.max.toLocaleString()}: ${tier.price}/mo
+                      {tier.name}: ${tier.price}/mo
                     </SelectItem>
                   ))}
                 </SelectGroup>
